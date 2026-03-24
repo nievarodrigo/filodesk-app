@@ -1,0 +1,47 @@
+/* ── TEMA OSCURO (default) ── */
+:root {
+  --bg:        #0e0e0e;
+  --surface:   #1a1a1a;
+  --card:      #222222;
+  --border:    #2e2e2e;
+  --gold:      #c9a84c;
+  --gold-soft: #e8c96a;
+  --cream:     #f0e8d5;
+  --muted:     #7a7060;
+  --green:     #5ecf87;
+  --red:       #e07070;
+  --text:      #e8e0d0;
+  --radius:    10px;
+  color-scheme: dark;
+}
+
+/* ── TEMA CLARO ── */
+:root[data-theme="light"] {
+  --bg:        #f5f0e8;
+  --surface:   #ffffff;
+  --card:      #faf7f2;
+  --border:    #e0d8cc;
+  --gold:      #a07830;
+  --gold-soft: #c9a84c;
+  --cream:     #2a2018;
+  --muted:     #8a7a60;
+  --green:     #2e8b4a;
+  --red:       #b04040;
+  --text:      #1a1008;
+  --radius:    10px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
