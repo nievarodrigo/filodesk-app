@@ -22,12 +22,14 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-  const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
+  const { pathname } = request.nextUrl
+  const isDashboard   = pathname.startsWith('/dashboard')
+  const isOnboarding  = pathname.startsWith('/onboarding')
+  const isAuthRoute   = pathname.startsWith('/auth')
+  const landingUrl    = process.env.NEXT_PUBLIC_LANDING_URL ?? 'https://filodesk-landing.vercel.app'
 
-  // Sin sesión → redirigir al login de la landing
-  if (isDashboard && !user) {
-    const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL ?? 'https://filodesk-landing.vercel.app'
+  // Sin sesión → login de la landing
+  if ((isDashboard || isOnboarding) && !user) {
     return NextResponse.redirect(`${landingUrl}/auth/login`)
   }
 
@@ -40,5 +42,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/auth/:path*'],
+  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/auth/:path*'],
 }

@@ -1,0 +1,119 @@
+.container {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+}
+
+.step {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: .9rem;
+  color: var(--muted);
+  margin-bottom: 36px;
+  line-height: 1.6;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: .78rem;
+}
+
+.input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+.input:focus { border-color: var(--gold); }
+.input::placeholder { color: var(--muted); }
+
+.error {
+  font-size: .75rem;
+  color: var(--red);
+}
+
+.errorBox {
+  background: rgba(224,112,112,.1);
+  border: 1px solid rgba(224,112,112,.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: .85rem;
+  color: var(--red);
+}
+
+.btn {
+  background: var(--gold);
+  color: #0e0e0e;
+  border: none;
+  padding: 13px 24px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: .95rem;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: background .2s;
+  margin-top: 4px;
+}
+.btn:hover:not(:disabled) { background: var(--gold-soft); }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
