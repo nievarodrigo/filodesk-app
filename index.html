@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BarberManager — Panel de Gestión</title>
+  <style>
+    :root {
+      --bg:        #0e0e0e;
+      --surface:   #1a1a1a;
+      --card:      #222222;
+      --border:    #2e2e2e;
+      --gold:      #c9a84c;
+      --gold-soft: #e8c96a;
+      --cream:     #f0e8d5;
+      --muted:     #7a7060;
+      --red:       #8b1a1a;
+      --green:     #2e6b3e;
+      --text:      #e8e0d0;
+      --radius:    10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+      width: 230px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+
+    .logo {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo h1 {
+      font-size: 1.3rem;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .logo span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    nav { margin-top: 24px; flex: 1; }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-left: 3px solid transparent;
+      transition: all .2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--gold);
+      background: rgba(201,168,76,.06);
+      border-left-color: var(--gold);
+    }
+    nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      padding: 20px 24px 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── MAIN ── */
+    main {
+      margin-left: 230px;
+      flex: 1;
+      padding: 36px 40px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .page-header h2 {
+      font-size: 1.5rem;
+      color: var(--cream);
+      font-weight: 600;
+    }
+    .page-header span {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .btn {
+      background: var(--gold);
+      color: #0e0e0e;
+      border: none;
+      padding: 9px 20px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      letter-spacing: .5px;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+
+    /* ── STAT CARDS ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+    }
+    .stat-card .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .stat-card .value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .stat-card .delta {
+      font-size: 0.78rem;
+      margin-top: 6px;
+      color: var(--muted);
+    }
+    .delta.up   { color: #4caf82; }
+    .delta.down { color: #cf6679; }
+
+    /* ── GRID LAYOUT ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    .grid-3-1 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--gold);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    /* ── TABLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(201,168,76,.04); }
+    tbody td { padding: 12px; color: var(--text); }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+    .badge-gold   { background: rgba(201,168,76,.15); color: var(--gold-soft); }
+    .badge-green  { background: rgba(46,107,62,.25);  color: #5ecf87; }
+    .badge-muted  { background: rgba(122,112,96,.15); color: var(--muted); }
+    .badge-red    { background: rgba(139,26,26,.25);  color: #e07070; }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 160px;
+      padding-top: 10px;
+    }
+    .bar-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar {
+      width: 100%;
+      border-radius: 5px 5px 0 0;
+      background: linear-gradient(to top, var(--gold), var(--gold-soft));
+      opacity: .85;
+      transition: opacity .2s;
+      min-height: 4px;
+    }
+    .bar:hover { opacity: 1; }
+    .bar-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .bar-val {
+      font-size: 0.72rem;
+      color: var(--gold-soft);
+      font-weight: 600;
+    }
+
+    /* ── SERVICE LIST ── */
+    .service-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .service-item:last-child { border-bottom: none; }
+    .service-name { font-size: 0.9rem; color: var(--text); }
+    .service-price { color: var(--gold); font-weight: 700; font-size: 0.95rem; }
+    .service-dur { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── AVATAR ── */
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--red));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .client-info { display: flex; align-items: center; gap: 10px; }
+    .client-name { font-size: 0.9rem; }
+    .client-sub  { font-size: 0.74rem; color: var(--muted); }
+
+    /* ── DIVIDER ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside>
+  <div class="logo">
+    <h1>✦ Barber Nieva</h1>
+    <span>PANEL DE GESTIÓN</span>
+  </div>
+
+  <nav>
+    <a href="#" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Servicios
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clientes
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Historial
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Estadísticas
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+      Configuración
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    Barber v1.0 &nbsp;·&nbsp; Demo
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>Dashboard</h2>
+      <span>Semana del 17 al 23 de marzo, 2025</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;color:var(--text);font-size:.85rem;outline:none;">
+        <option>Corte / Servicio</option>
+        <option>Producto</option>
+        <option>Café</option>
+      </select>
+      <button class="btn btn-outline">+ Registrar venta</button>
+      <button class="btn">+ Nuevo turno</button>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total facturado (semana)</div>
+      <div class="value">$47.200</div>
+      <div class="delta up">▲ 12% vs semana anterior</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Pagado a barberos</div>
+      <div class="value">$23.600</div>
+      <div class="delta">50% promedio de comisión</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Ganancia neta del local</div>
+      <div class="value" style="color:#5ecf87">$23.600</div>
+      <div class="delta up">▲ 8% vs semana anterior</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Cortes realizados</div>
+      <div class="value">38</div>
+      <div class="delta">Entre todos los barberos</div>
+    </div>
+  </div>
+
+  <!-- Chart + Services -->
+  <div class="grid-3-1">
+
+    <!-- Gráfico ventas semanales -->
+    <div class="card">
+      <div class="card-title">Ventas diarias — semana actual</div>
+      <div class="chart-wrap">
+
+        <div class="bar-group">
+          <div class="bar-val">$5.200</div>
+          <div class="bar" style="height:52%"></div>
+          <div class="bar-label">Lun</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-val">$7.800</div>
+          <div class="bar" style="height:78%"></div>
+          <div class="bar-label">Mar</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-val">$6.400</div>
+          <div class="bar" style="height:64%"></div>
+          <div class="bar-label">Mié</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-val">$9.100</div>
+          <div class="bar" style="height:91%"></div>
+          <div class="bar-label">Jue</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-val">$10.000</div>
+          <div class="bar" style="height:100%"></div>
+          <div class="bar-label">Vie</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-val">$8.700</div>
+          <div class="bar" style="height:87%"></div>
+          <div class="bar-label">Sáb</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Servicios -->
+    <div class="card">
+      <div class="card-title">Servicios</div>
+
+      <div class="service-item">
+        <div>
+          <div class="service-name">Corte clásico</div>
+          <div class="service-dur">30 min</div>
+        </div>
+        <div class="service-price">$800</div>
+      </div>
+      <div class="service-item">
+        <div>
+          <div class="service-name">Corte + barba</div>
+          <div class="service-dur">50 min</div>
+        </div>
+        <div class="service-price">$1.400</div>
+      </div>
+      <div class="service-item">
+        <div>
+          <div class="service-name">Degradado</div>
+          <div class="service-dur">40 min</div>
+        </div>
+        <div class="service-price">$1.000</div>
+      </div>
+      <div class="service-item">
+        <div>
+          <div class="service-name">Afeitado navaja</div>
+          <div class="service-dur">25 min</div>
+        </div>
+        <div class="service-price">$600</div>
+      </div>
+      <div class="service-item">
+        <div>
+          <div class="service-name">Keratina / Trat.</div>
+          <div class="service-dur">60 min</div>
+        </div>
+        <div class="service-price">$2.200</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Rendimiento barberos + Historial -->
+  <div class="grid-2" style="margin-top:24px">
+
+    <!-- Rendimiento por barbero -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div class="card-title" style="margin:0">Rendimiento por barbero</div>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:.78rem">+ Barbero</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Barbero</th>
+            <th>Servicios</th>
+            <th>Generado</th>
+            <th>Comisión</th>
+            <th>A cobrar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="client-info">
+                <div class="avatar">AR</div>
+                <div class="client-name">Galuchi</div>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;gap:5px;flex-wrap:wrap">
+                  <span class="badge badge-muted">16 cortes</span>
+                  <span class="badge badge-muted">8 barbas</span>
+                  <span class="badge badge-muted">4 cejas</span>
+                </div>
+                <div style="font-size:.72rem;color:var(--muted)">28 servicios en total</div>
+              </div>
+            </td>
+            <td style="color:var(--text);font-weight:600">$26.800</td>
+            <td><span class="badge badge-gold">50%</span></td>
+            <td style="color:#5ecf87;font-weight:700">$13.400</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="client-info">
+                <div class="avatar">JM</div>
+                <div class="client-name">Juan M.</div>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;gap:5px;flex-wrap:wrap">
+                  <span class="badge badge-muted">8 cortes</span>
+                  <span class="badge badge-muted">2 barbas</span>
+                  <span class="badge badge-muted">0 cejas</span>
+                </div>
+                <div style="font-size:.72rem;color:var(--muted)">10 servicios en total</div>
+              </div>
+            </td>
+            <td style="color:var(--text);font-weight:600">$10.400</td>
+            <td><span class="badge badge-gold">50%</span></td>
+            <td style="color:#5ecf87;font-weight:700">$5.200</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Resumen caja -->
+      <div style="margin-top:18px;padding:16px;background:var(--surface);border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;gap:9px">
+
+        <div style="display:flex;justify-content:space-between;font-size:.83rem">
+          <span style="color:var(--muted)">Total facturado</span>
+          <span style="color:var(--text);font-weight:600">$47.200</span>
+        </div>
+
+        <div style="border-top:1px dashed var(--border);padding-top:9px;display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Sueldos a descontar</div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem">
+            <span style="color:var(--muted)">Galuchi (50%)</span>
+            <span style="color:#e07070">− $13.400</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem">
+            <span style="color:var(--muted)">Juan M. (50%)</span>
+            <span style="color:#e07070">− $5.200</span>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:.9rem;border-top:1px solid var(--border);padding-top:9px">
+          <span style="color:var(--cream)">Lo que debe haber en caja</span>
+          <span style="color:var(--gold);font-weight:700">$28.600</span>
+        </div>
+
+        <div style="border-top:1px dashed var(--border);padding-top:9px;display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Presupuesto para invertir</div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem">
+            <span style="color:var(--muted)">Publicidad Instagram</span>
+            <span style="color:#e07070">− $3.000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem">
+            <span style="color:var(--muted)">Insumos / productos</span>
+            <span style="color:#e07070">− $1.500</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem;color:var(--muted)">
+            <span style="font-style:italic">+ Agregar gasto...</span>
+            <span>—</span>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;background:rgba(94,207,135,.07);border:1px solid rgba(94,207,135,.2);border-radius:7px;padding:10px 12px;margin-top:2px">
+          <span style="color:var(--cream)">Ganancia de Ariel</span>
+          <span style="color:#5ecf87">$24.100</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div class="card-title" style="margin:0">Historial reciente</div>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:.78rem">Exportar</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Barbero</th>
+            <th>Servicio</th>
+            <th>Total</th>
+            <th>Pago</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>23/03</td>
+            <td>Galuchi</td>
+            <td>Corte + barba</td>
+            <td style="color:var(--gold);font-weight:700">$1.400</td>
+            <td><span class="badge badge-green">Efectivo</span></td>
+          </tr>
+          <tr>
+            <td>23/03</td>
+            <td>Juan M.</td>
+            <td>Degradado</td>
+            <td style="color:var(--gold);font-weight:700">$1.000</td>
+            <td><span class="badge badge-gold">Transferencia</span></td>
+          </tr>
+          <tr>
+            <td>22/03</td>
+            <td>Galuchi</td>
+            <td>Corte clásico</td>
+            <td style="color:var(--gold);font-weight:700">$800</td>
+            <td><span class="badge badge-green">Efectivo</span></td>
+          </tr>
+          <tr>
+            <td>22/03</td>
+            <td>Juan M.</td>
+            <td>Keratina</td>
+            <td style="color:var(--gold);font-weight:700">$2.200</td>
+            <td><span class="badge badge-gold">Transferencia</span></td>
+          </tr>
+          <tr>
+            <td>21/03</td>
+            <td>Galuchi</td>
+            <td>Afeitado navaja</td>
+            <td style="color:var(--gold);font-weight:700">$600</td>
+            <td><span class="badge badge-red">Pendiente</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+
+  <!-- ══ BARRA TOTALES ══ -->
+  <div style="margin-top:28px;display:flex;gap:14px">
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Total hoy</div>
+        <div style="font-size:1.6rem;font-weight:700;color:var(--gold)">$8.700</div>
+      </div>
+      <div style="font-size:.78rem;color:var(--muted);text-align:right">Sáb 23 mar<br>6 servicios</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Total esta semana</div>
+        <div style="font-size:1.6rem;font-weight:700;color:var(--gold)">$47.200</div>
+      </div>
+      <div style="font-size:.78rem;color:var(--muted);text-align:right">17–23 mar<br>38 servicios</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Ganancia de Ariel hoy</div>
+        <div style="font-size:1.6rem;font-weight:700;color:#5ecf87">$4.350</div>
+      </div>
+      <div style="font-size:.78rem;color:var(--muted);text-align:right">Después de<br>sueldos</div>
+    </div>
+  </div>
+
+  <!-- ══ GASTOS DEL LOCAL ══ -->
+  <div style="margin-top:24px">
+    <div class="page-header" style="margin-bottom:20px">
+      <div>
+        <h2>Gastos del local</h2>
+        <span>Lo que se invierte o gasta, se descuenta de tu ganancia</span>
+      </div>
+      <button class="btn">+ Registrar gasto</button>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- Formulario nuevo gasto -->
+      <div class="card">
+        <div class="card-title">Registrar gasto</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Concepto</label>
+            <input type="text" placeholder="Ej: Publicidad Instagram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;" />
+          </div>
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Monto</label>
+            <input type="number" placeholder="$0" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+          </div>
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Categoría</label>
+            <select style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;">
+              <option>Insumos (productos / café para ofrecer)</option>
+              <option>Publicidad / Marketing</option>
+              <option>Alquiler</option>
+              <option>Servicios (luz, agua, etc.)</option>
+              <option>Equipamiento</option>
+              <option>Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Cuánto me costó a mí</label>
+            <input type="number" placeholder="$0" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+          </div>
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Fecha</label>
+            <input type="text" value="23/03/2025" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;" />
+          </div>
+
+          <button class="btn" style="margin-top:4px">Guardar gasto</button>
+        </div>
+      </div>
+
+      <!-- Lista de gastos -->
+      <div class="card">
+        <div class="card-title">Gastos registrados — esta semana</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Concepto</th>
+              <th>Categoría</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>20/03</td>
+              <td>Publicidad Instagram</td>
+              <td><span class="badge badge-gold">Marketing</span></td>
+              <td style="color:#e07070;font-weight:700">− $3.000</td>
+            </tr>
+            <tr>
+              <td>19/03</td>
+              <td>Insumos / productos</td>
+              <td><span class="badge badge-muted">Insumos</span></td>
+              <td style="color:#e07070;font-weight:700">− $1.500</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:16px;padding:14px 16px;background:var(--surface);border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:.83rem;color:var(--muted)">
+            <span>Total gastos semana</span>
+            <span style="color:#e07070;font-weight:600">− $4.500</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.83rem;color:var(--muted)">
+            <span>Ganancia antes de gastos</span>
+            <span style="color:var(--text)">$28.600</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;border-top:1px solid var(--border);padding-top:10px;margin-top:2px">
+            <span style="color:var(--cream)">Ganancia real de Ariel</span>
+            <span style="color:#5ecf87">$24.100</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LIQUIDACIÓN DE SUELDO ══ -->
+  <div style="margin-top:24px">
+    <div class="page-header" style="margin-bottom:20px">
+      <div>
+        <h2>Liquidación de sueldo</h2>
+        <span>Ingresá las cantidades para calcular el total</span>
+      </div>
+      <button class="btn">Guardar liquidación</button>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- Formulario -->
+      <div class="card">
+        <div class="card-title">Datos del barbero</div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Nombre del barbero</label>
+            <input type="text" value="Galuchi" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;" />
+          </div>
+
+          <div>
+            <label style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Período</label>
+            <input type="text" value="Semana 17–23 marzo 2025" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;" />
+          </div>
+
+          <hr />
+
+          <div class="card-title" style="margin-bottom:4px">Cantidad de servicios</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Cortes</label>
+              <input type="number" value="16" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Barbas</label>
+              <input type="number" value="8" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Cejas</label>
+              <input type="number" value="4" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Degradados</label>
+              <input type="number" value="0" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Afeitados</label>
+              <input type="number" value="2" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">Tratamientos</label>
+              <input type="number" value="1" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--gold);font-size:1rem;font-weight:700;outline:none;" />
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen liquidación -->
+      <div class="card">
+        <div class="card-title">Resumen de liquidación</div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Servicio</th>
+              <th>Cant.</th>
+              <th>Precio unit.</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cortes</td>
+              <td style="color:var(--gold);font-weight:700">16</td>
+              <td>$800</td>
+              <td style="color:var(--gold);font-weight:700">$12.800</td>
+            </tr>
+            <tr>
+              <td>Barbas</td>
+              <td style="color:var(--gold);font-weight:700">8</td>
+              <td>$600</td>
+              <td style="color:var(--gold);font-weight:700">$4.800</td>
+            </tr>
+            <tr>
+              <td>Cejas</td>
+              <td style="color:var(--gold);font-weight:700">4</td>
+              <td>$300</td>
+              <td style="color:var(--gold);font-weight:700">$1.200</td>
+            </tr>
+            <tr>
+              <td>Degradados</td>
+              <td style="color:var(--muted)">0</td>
+              <td>$1.000</td>
+              <td style="color:var(--muted)">$0</td>
+            </tr>
+            <tr>
+              <td>Afeitados</td>
+              <td style="color:var(--gold);font-weight:700">2</td>
+              <td>$600</td>
+              <td style="color:var(--gold);font-weight:700">$1.200</td>
+            </tr>
+            <tr>
+              <td>Tratamientos</td>
+              <td style="color:var(--gold);font-weight:700">1</td>
+              <td>$2.200</td>
+              <td style="color:var(--gold);font-weight:700">$2.200</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted)">
+            <span>Total generado por Ariel</span>
+            <span style="color:var(--text);font-weight:600">$22.200</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted)">
+            <span>Comisión del barbero (50%)</span>
+            <span style="color:var(--text)">$11.100</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted)">
+            <span>Queda para el local (50%)</span>
+            <span style="color:var(--text)">$11.100</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;background:rgba(94,207,135,.07);border:1px solid rgba(94,207,135,.2);border-radius:7px;padding:12px 14px;margin-top:4px">
+            <span style="color:var(--cream)">Sueldo a cobrar — Galuchi</span>
+            <span style="color:#5ecf87">$11.100</span>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px">% comisión del barbero</label>
+          <input type="number" value="50" min="0" max="100" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;" />
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</main>
+</body>
+</html>
