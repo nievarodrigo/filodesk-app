@@ -17,24 +17,34 @@ export async function createVenta(
   const date      = formData.get('date') as string
   const notes     = (formData.get('notes') as string) || null
 
-  const serviceIds = formData.getAll('service_type_id[]') as string[]
-  const amounts    = formData.getAll('amount[]') as string[]
+  const serviceIds  = formData.getAll('service_type_id[]') as string[]
+  const amounts     = formData.getAll('amount[]') as string[]
+  const quantities  = formData.getAll('quantity[]') as string[]
 
   if (!barber_id) return { message: 'Seleccioná un barbero.' }
   if (!date)      return { message: 'Ingresá la fecha.' }
   if (serviceIds.length === 0) return { message: 'Agregá al menos un servicio.' }
 
-  const rows = serviceIds.map((service_type_id, i) => ({
-    barbershop_id:   barbershopId,
-    barber_id,
+  const base = serviceIds.map((service_type_id, i) => ({
     service_type_id,
-    amount:          Number(amounts[i]) || 0,
-    date,
-    notes,
+    amount:   Number(amounts[i]) || 0,
+    quantity: Math.max(1, Number(quantities[i]) || 1),
   }))
 
-  const invalid = rows.find(r => !r.service_type_id || r.amount <= 0)
+  const invalid = base.find(r => !r.service_type_id || r.amount <= 0)
   if (invalid) return { message: 'Completá el servicio y monto de cada fila.' }
+
+  // Insert one record per unit so ticket promedio and service count stay accurate
+  const rows = base.flatMap(r =>
+    Array.from({ length: r.quantity }, () => ({
+      barbershop_id: barbershopId,
+      barber_id,
+      service_type_id: r.service_type_id,
+      amount: r.amount,
+      date,
+      notes,
+    }))
+  )
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

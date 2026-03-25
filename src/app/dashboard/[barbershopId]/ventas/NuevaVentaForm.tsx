@@ -6,7 +6,7 @@ import styles from './ventas.module.css'
 
 interface Barber      { id: string; name: string; commission_pct: number }
 interface ServiceType { id: string; name: string; default_price: number | null }
-interface ServiceRow  { id: number; service_type_id: string; amount: string }
+interface ServiceRow  { id: number; service_type_id: string; quantity: string; amount: string }
 
 interface Props {
   barbershopId: string
@@ -16,7 +16,7 @@ interface Props {
 }
 
 let _id = 1
-function newRow(): ServiceRow { return { id: _id++, service_type_id: '', amount: '' } }
+function newRow(): ServiceRow { return { id: _id++, service_type_id: '', quantity: '1', amount: '' } }
 
 function todayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }) }
 
@@ -27,7 +27,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
   const action = createVenta.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<CreateVentaState, FormData>(action, undefined)
 
-  const total = rows.reduce((s, r) => s + (Number(r.amount) || 0), 0)
+  const total = rows.reduce((s, r) => s + (Number(r.amount) || 0) * Math.max(1, Number(r.quantity) || 1), 0)
   const commission = selectedBarber && total > 0
     ? Math.round(total * selectedBarber.commission_pct / 100)
     : null
@@ -89,7 +89,8 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
       <div className={styles.servicesSection}>
         <div className={styles.servicesHead}>
           <span>Servicio</span>
-          <span>Monto (ARS)</span>
+          <span>Cant.</span>
+          <span>Precio unit.</span>
           <span></span>
         </div>
 
@@ -108,11 +109,23 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
             </select>
 
             <input
+              name="quantity[]"
+              type="number"
+              min="1"
+              step="1"
+              className={styles.input}
+              value={row.quantity}
+              onChange={e => updateRow(row.id, 'quantity', e.target.value)}
+              style={{ width: 56, textAlign: 'center' }}
+              title="Cantidad"
+            />
+
+            <input
               name="amount[]"
               type="number"
               min="1"
               step="1"
-              placeholder="0"
+              placeholder="precio"
               className={styles.input}
               value={row.amount}
               onChange={e => updateRow(row.id, 'amount', e.target.value)}
