@@ -87,6 +87,59 @@ export async function venderProducto(
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
 }
 
+export type VentaMultipleState = { message?: string } | undefined
+
+export async function venderProductos(
+  barbershopId: string,
+  _state: VentaMultipleState,
+  formData: FormData
+): Promise<VentaMultipleState> {
+  const raw  = formData.get('items') as string
+  const date = formData.get('date') as string || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
+
+  let items: { product_id: string; quantity: number; sale_price: number }[] = []
+  try { items = JSON.parse(raw) } catch { return { message: 'Error al procesar los productos.' } }
+  if (!items.length) return { message: 'Agregá al menos un producto.' }
+
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  // Verificar stock de cada producto
+  const ids = items.map(i => i.product_id)
+  const { data: dbProducts } = await supabase.from('products').select('id, stock, name').in('id', ids)
+  if (!dbProducts) return { message: 'No se pudieron verificar los productos.' }
+
+  for (const item of items) {
+    const dbP = dbProducts.find(p => p.id === item.product_id)
+    if (!dbP) return { message: 'Producto no encontrado.' }
+    if (dbP.stock < item.quantity) return { message: `Stock insuficiente para ${dbP.name} (${dbP.stock} disponibles).` }
+  }
+
+  // Insertar ventas y descontar stock
+  const [insertRes] = await Promise.all([
+    supabase.from('product_sales').insert(
+      items.map(i => ({
+        barbershop_id: barbershopId,
+        product_id:    i.product_id,
+        quantity:      i.quantity,
+        sale_price:    i.sale_price,
+        date,
+      }))
+    ),
+    ...items.map(i => {
+      const dbP = dbProducts.find(p => p.id === i.product_id)!
+      return supabase.from('products').update({ stock: dbP.stock - i.quantity }).eq('id', i.product_id)
+    }),
+  ])
+
+  if (insertRes.error) return { message: 'No se pudo registrar la venta.' }
+
+  revalidatePath(`/dashboard/${barbershopId}/productos`)
+  revalidatePath(`/dashboard/${barbershopId}`)
+  revalidatePath(`/dashboard/${barbershopId}/ventas`)
+}
+
 export async function reponerStock(
   barbershopId: string,
   productId: string,

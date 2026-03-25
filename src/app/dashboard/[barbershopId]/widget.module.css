@@ -68,6 +68,21 @@
 
 .widgetError { font-size: .78rem; color: var(--red); }
 
+.widgetBtnSecondary {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.widgetBtnSecondary:hover:not(:disabled) { background: rgba(201,168,76,.1); }
+.widgetBtnSecondary:disabled { opacity: .4; cursor: not-allowed; }
+
 .widgetSearch {
   width: 100%;
   background: #2a2a2a;
