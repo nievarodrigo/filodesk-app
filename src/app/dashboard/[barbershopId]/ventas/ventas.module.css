@@ -540,6 +540,19 @@
 
 .pagNota { font-size: .72rem; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
 
+/* ── Mobile tables ── */
+@media (max-width: 768px) {
+  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tableHead,
+  .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
+  .tableHeadService,
+  .tableRowService { min-width: 640px; padding: 10px 14px; font-size: .82rem; }
+  .tableHeadProduct,
+  .tableRowProduct { padding: 10px 14px; font-size: .82rem; }
+  .servicesHead,
+  .serviceRow { grid-template-columns: 1fr 48px 1fr 28px; }
+}
+
 .noBarbers {
   background: rgba(201,168,76,.08);
   border: 1px solid rgba(201,168,76,.2);

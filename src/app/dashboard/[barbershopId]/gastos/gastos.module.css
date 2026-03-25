@@ -57,3 +57,9 @@
 .catBadge { font-size: .75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; border: 1px solid; display: inline-block; }
 
 .empty { padding: 48px; text-align: center; color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 768px) {
+  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tableHead, .tableRow { min-width: 480px; padding: 10px 14px; font-size: .82rem; }
+  .summary { grid-template-columns: 1fr; max-width: none; }
+}

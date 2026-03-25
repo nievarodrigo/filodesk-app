@@ -78,3 +78,9 @@
 
 .muted { color: var(--muted); font-size: .83rem; }
 .empty { padding: 24px 0; text-align: center; color: var(--muted); font-size: .88rem; }
+
+@media (max-width: 768px) {
+  .section { padding: 16px; }
+  .tableHead { font-size: .65rem; padding: 8px 8px; }
+  .tableRow { font-size: .82rem; padding: 10px 8px; }
+}
