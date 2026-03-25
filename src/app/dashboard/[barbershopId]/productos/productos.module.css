@@ -39,8 +39,8 @@
 
 /* Table */
 .table { background: #1e1e1e; border: 1px solid #3a3a3a; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.tableHead { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr auto; gap: 8px; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid #3a3a3a; background: #252525; }
-.tableRow  { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr auto; padding: 14px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid #2a2a2a; align-items: center; transition: background .12s; gap: 8px; }
+.tableHead { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr 160px; gap: 8px; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid #3a3a3a; background: #252525; }
+.tableRow  { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr 160px; padding: 14px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid #2a2a2a; align-items: center; transition: background .12s; gap: 8px; }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: #252525; }
 
