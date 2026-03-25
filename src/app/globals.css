@@ -1,38 +1,38 @@
-/* ── TEMA OSCURO — barber pole: rojo, negro, azul ── */
+/* ── TEMA OSCURO — barber pole: azul, negro, rojo ── */
 :root {
   --bg:        #0e0e0e;
   --surface:   #1a1a1a;
   --card:      #222222;
   --border:    #3a3a3a;
   --hover:     #2a2a2a;
-  --gold:      #c41e3a;
-  --gold-soft: #d44054;
-  --cream:     #f0e8e0;
-  --muted:     #7a6a70;
+  --gold:      #4a80d0;
+  --gold-soft: #6a9cdc;
+  --cream:     #e8f0fa;
+  --muted:     #6a7a90;
   --green:     #5ecf87;
   --red:       #e07070;
-  --text:      #e8e0e0;
-  --blue:      #5b8bd4;
+  --text:      #e0e8f0;
+  --blue:      #c41e3a;
   --radius:    10px;
   --nav-bg:    rgba(14,14,14,.95);
   color-scheme: dark;
 }
 
-/* ── TEMA CLARO — poste de barbería: rojo, crema, azul ── */
+/* ── TEMA CLARO — barber pole: azul, crema, rojo ── */
 :root[data-theme="light"] {
   --bg:        #f5f0e8;
   --surface:   #fdf9f2;
   --card:      #f9f4ea;
   --border:    #e0d8cc;
   --hover:     #ede8df;
-  --gold:      #c41e3a;
-  --gold-soft: #d44054;
-  --cream:     #1a1510;
-  --muted:     #7a6e60;
+  --gold:      #1e5fa8;
+  --gold-soft: #2d7acc;
+  --cream:     #0e1a2e;
+  --muted:     #6a7080;
   --green:     #2e8b4a;
   --red:       #b04040;
-  --text:      #1a1510;
-  --blue:      #1e3a6e;
+  --text:      #1a1e28;
+  --blue:      #c41e3a;
   --radius:    10px;
   --nav-bg:    rgba(245,240,232,.95);
   color-scheme: light;
