@@ -17,5 +17,10 @@
   .main {
     margin-left: 0;
     padding: 72px 16px 24px;
+    width: 100vw;
+  }
+  .main > * {
+    max-width: 100%;
+    overflow-x: auto;
   }
 }
