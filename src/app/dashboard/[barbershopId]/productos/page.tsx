@@ -17,9 +17,9 @@ export default async function ProductosPage({
   const { barbershopId } = await params
   const supabase = await createClient()
 
-  const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+  const last90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
 
-  const [{ data: products }, { data: recentSales }, { data: salesLast30 }] = await Promise.all([
+  const [{ data: products }, { data: recentSales }, { data: salesLast90 }] = await Promise.all([
     supabase.from('products').select('id, name, cost_price, sale_price, stock, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('product_sales')
       .select('id, quantity, sale_price, date, products(name)')
@@ -29,7 +29,7 @@ export default async function ProductosPage({
     supabase.from('product_sales')
       .select('quantity, sale_price, products(name)')
       .eq('barbershop_id', barbershopId)
-      .gte('date', last30),
+      .gte('date', last90),
   ])
 
   const totalStock  = (products ?? []).filter(p => p.active).length
@@ -38,7 +38,7 @@ export default async function ProductosPage({
 
   // Aggregate for pie chart
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
-  for (const s of salesLast30 ?? []) {
+  for (const s of salesLast90 ?? []) {
     const name = (s as any).products?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += s.quantity ?? 1

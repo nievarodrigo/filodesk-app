@@ -48,7 +48,7 @@ export default function GraficoProductos({ data }: Props) {
         fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px',
         color: 'var(--muted)', fontWeight: 600, marginBottom: 12,
       }}>
-        Más vendidos (últimos 30 días)
+        Más vendidos (últimos 90 días)
       </p>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
