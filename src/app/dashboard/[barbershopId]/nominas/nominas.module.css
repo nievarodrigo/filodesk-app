@@ -6,7 +6,7 @@
 .btnPrimary:hover:not(:disabled) { background: var(--gold-soft); }
 .btnPrimary:disabled { opacity: .6; cursor: not-allowed; }
 .btnSecondary { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: .88rem; cursor: pointer; }
-.btnSecondary:hover { color: var(--text); }
+.btnSecondary:hover { color: var(--text); border-color: rgba(196,30,58,.35); }
 
 .btnPay { background: rgba(94,207,135,.15); border: 1px solid rgba(94,207,135,.4); color: var(--green); padding: 6px 14px; border-radius: 6px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
 .btnPay:hover { background: rgba(94,207,135,.25); }
@@ -31,10 +31,10 @@
 
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: #252525; }
+.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
 .tableRow  { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 16px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
 .tableRow:last-child { border-bottom: none; }
-.tableRow:hover { background: #252525; }
+.tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
 .muted { color: var(--muted); }
 
 .badgePaid    { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(94,207,135,.12);  color: var(--green); }

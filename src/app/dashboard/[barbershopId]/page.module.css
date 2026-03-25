@@ -117,7 +117,7 @@
   align-items: center;
   transition: background .12s;
 }
-.tableRow:hover { background: var(--hover); }
+.tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
 .muted { color: var(--muted); }
 
 /* ── Neto del mes ── */

@@ -22,7 +22,7 @@
   padding: 10px 18px; border-radius: 8px; font-weight: 600;
   font-size: .88rem; cursor: pointer; transition: color .15s;
 }
-.btnSecondary:hover { color: var(--text); }
+.btnSecondary:hover { color: var(--text); border-color: rgba(196,30,58,.35); }
 
 .btnToggleOff {
   background: transparent; border: 1px solid rgba(224,112,112,.4); color: var(--red);

@@ -80,7 +80,7 @@
   white-space: nowrap;
   transition: background .15s;
 }
-.widgetBtnSecondary:hover:not(:disabled) { background: rgba(201,168,76,.1); }
+.widgetBtnSecondary:hover:not(:disabled) { background: rgba(196,30,58,.08); border-color: rgba(196,30,58,.35); }
 .widgetBtnSecondary:disabled { opacity: .4; cursor: not-allowed; }
 
 .widgetSearch {

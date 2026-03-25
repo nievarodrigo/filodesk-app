@@ -62,7 +62,7 @@
   padding: 11px 12px; font-size: .88rem; color: var(--text);
   border-radius: 6px; align-items: center; transition: background .12s;
 }
-.tableRow:hover { background: var(--hover); }
+.tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
 
 .badgeServicio {
   font-size: .72rem; font-weight: 600; padding: 3px 8px; border-radius: 20px;

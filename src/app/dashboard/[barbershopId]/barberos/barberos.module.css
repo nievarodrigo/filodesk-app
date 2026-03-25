@@ -36,7 +36,7 @@
   cursor: pointer;
   transition: color .15s, border-color .15s;
 }
-.btnSecondary:hover { color: var(--text); border-color: var(--muted); }
+.btnSecondary:hover { color: var(--text); border-color: rgba(196,30,58,.35); }
 
 .btnToggleOff {
   background: transparent;
