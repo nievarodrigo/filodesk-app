@@ -1,18 +1,18 @@
-/* ── TEMA OSCURO — barber pole: azul, negro, rojo ── */
+/* ── TEMA OSCURO — negro y dorado ── */
 :root {
   --bg:        #0e0e0e;
   --surface:   #1a1a1a;
   --card:      #222222;
   --border:    #3a3a3a;
   --hover:     #2a2a2a;
-  --gold:      #4a80d0;
-  --gold-soft: #6a9cdc;
-  --cream:     #e8f0fa;
-  --muted:     #6a7a90;
+  --gold:      #d4a82a;
+  --gold-soft: #e0bc48;
+  --cream:     #f5e8c0;
+  --muted:     #7a7060;
   --green:     #5ecf87;
   --red:       #e07070;
-  --text:      #e0e8f0;
-  --blue:      #c41e3a;
+  --text:      #e8e0d0;
+  --blue:      #5b8bd4;
   --radius:    10px;
   --nav-bg:    rgba(14,14,14,.95);
   color-scheme: dark;
