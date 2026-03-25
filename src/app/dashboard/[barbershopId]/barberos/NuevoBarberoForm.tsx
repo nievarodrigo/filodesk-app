@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { createBarber, type CreateBarberState } from '@/app/actions/barber'
+import { createBarber } from '@/app/actions/barber'
+import { type CreateBarberState } from '@/lib/validations/barber'
 import styles from './barberos.module.css'
 
 interface Props { barbershopId: string }

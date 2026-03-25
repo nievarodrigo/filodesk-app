@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 const Schema = z.object({
   name:          z.string().min(2, 'El nombre debe tener al menos 2 caracteres.').trim(),
-  default_price: z.number({ invalid_type_error: 'Ingresá un precio válido.' }).min(0),
+  default_price: z.number({ error: 'Ingresá un precio válido.' }).min(0),
 })
 
 export type ServicioState = {

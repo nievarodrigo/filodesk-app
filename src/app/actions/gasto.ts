@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 const Schema = z.object({
   description: z.string().min(2, 'Describí el gasto.').trim(),
-  amount:      z.number({ invalid_type_error: 'Ingresá un monto válido.' }).positive('El monto debe ser mayor a 0.'),
+  amount:      z.number({ error: 'Ingresá un monto válido.' }).positive('El monto debe ser mayor a 0.'),
   category:    z.enum(CATEGORIES),
   date:        z.string().min(1, 'Ingresá la fecha de pago.'),
 })
