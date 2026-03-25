@@ -17,14 +17,15 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
   const action = venderProductos.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<VentaMultipleState, FormData>(action, undefined)
 
-  const [query, setQuery]   = useState('')
+  const [query, setQuery]       = useState('')
   const [selected, setSelected] = useState<Product | null>(null)
-  const [qty, setQty]       = useState(1)
-  const [open, setOpen]     = useState(false)
-  const [modal, setModal]   = useState(false)
-  const [cart, setCart]     = useState<CartItem[]>([])
-  const containerRef        = useRef<HTMLDivElement>(null)
-  const formRef             = useRef<HTMLFormElement>(null)
+  const [qty, setQty]           = useState(1)
+  const [open, setOpen]         = useState(false)
+  const [activeIdx, setActiveIdx] = useState(-1)
+  const [modal, setModal]       = useState(false)
+  const [cart, setCart]         = useState<CartItem[]>([])
+  const containerRef            = useRef<HTMLDivElement>(null)
+  const formRef                 = useRef<HTMLFormElement>(null)
 
   const suggestions = query.trim() === ''
     ? []
@@ -51,6 +52,25 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
     setQuery(p.name)
     setQty(1)
     setOpen(false)
+    setActiveIdx(-1)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || suggestions.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIdx(i => (i + 1) % suggestions.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIdx(i => (i - 1 + suggestions.length) % suggestions.length)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const target = activeIdx >= 0 ? suggestions[activeIdx] : suggestions[0]
+      if (target && availableStock(target) > 0) pick(target)
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setActiveIdx(-1)
+    }
   }
 
   function addToCart() {
@@ -114,8 +134,9 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 type="text"
                 placeholder="Buscar producto..."
                 value={query}
-                onChange={e => { setQuery(e.target.value); setSelected(null); setOpen(true) }}
+                onChange={e => { setQuery(e.target.value); setSelected(null); setOpen(true); setActiveIdx(-1) }}
                 onFocus={() => { if (query) setOpen(true) }}
+                onKeyDown={handleKeyDown}
                 className={styles.widgetSearch}
                 autoComplete="off"
               />
@@ -143,8 +164,9 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 background: '#252525', border: '1px solid #3a3a3a', borderRadius: 8,
                 marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,.4)',
               }}>
-                {suggestions.map(p => {
+                {suggestions.map((p, i) => {
                   const avail = availableStock(p)
+                  const highlighted = i === activeIdx
                   return (
                     <button
                       key={p.id}
@@ -152,14 +174,15 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                       onClick={() => pick(p)}
                       disabled={avail <= 0}
                       style={{
-                        width: '100%', background: 'transparent', border: 'none',
+                        width: '100%', border: 'none',
+                        background: highlighted ? '#2a2a2a' : 'transparent',
                         padding: '10px 14px', cursor: avail <= 0 ? 'not-allowed' : 'pointer',
                         textAlign: 'left', display: 'flex', justifyContent: 'space-between',
                         alignItems: 'center', borderBottom: '1px solid #2a2a2a',
                         opacity: avail <= 0 ? 0.4 : 1,
                       }}
-                      onMouseEnter={e => { if (avail > 0) e.currentTarget.style.background = '#2a2a2a' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                      onMouseEnter={e => { if (avail > 0) { e.currentTarget.style.background = '#2a2a2a'; setActiveIdx(i) } }}
+                      onMouseLeave={e => { if (!highlighted) e.currentTarget.style.background = 'transparent' }}
                     >
                       <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{p.name}</span>
                       <span style={{ fontSize: '.78rem', color: 'var(--muted)', whiteSpace: 'nowrap', marginLeft: 12 }}>
