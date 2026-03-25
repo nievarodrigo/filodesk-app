@@ -1,11 +1,15 @@
 import Link from 'next/link'
 import styles from './landing.module.css'
+import Logo from '@/components/ui/Logo'
 
 export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.footerBrand}>
-        <div className={styles.footerLogo}>✦ FiloDesk</div>
+        <div className={styles.footerLogo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Logo size={20} />
+          FiloDesk
+        </div>
         <p className={styles.footerTagline}>Gestión para barberías · Hecho en Argentina 🇦🇷</p>
       </div>
 

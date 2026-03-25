@@ -14,7 +14,11 @@ const FAQS = [
   },
   {
     q: '¿Puedo usar FiloDesk desde el celular?',
-    a: 'Sí. FiloDesk funciona desde cualquier navegador, en celular, tablet o computadora. No necesitás descargar nada.',
+    a: 'Sí. FiloDesk funciona desde cualquier navegador — celular, tablet o computadora. No necesitás descargar ninguna app. Con abrir Chrome o Safari ya está.',
+  },
+  {
+    q: '¿Necesito una computadora para usarlo?',
+    a: 'No. Podés manejarlo 100% desde el celular. Registrás ventas, revisás ganancias y gestionás barberos sin necesitar una PC ni tablet. Muchos dueños lo usan exclusivamente desde el teléfono.',
   },
   {
     q: '¿Qué pasa con mis datos si cancelo?',

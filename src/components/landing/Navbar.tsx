@@ -4,6 +4,7 @@ import styles from './landing.module.css'
 import UserMenu from './UserMenu'
 import MobileNav from './MobileNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import Logo from '@/components/ui/Logo'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -12,7 +13,10 @@ export default async function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo}>✦ Filo<span>Desk</span></div>
+      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Logo size={26} />
+        Filo<span>Desk</span>
+      </div>
 
       {/* Desktop links */}
       <ul className={styles.navLinks}>

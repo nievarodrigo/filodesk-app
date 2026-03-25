@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import Logo from '@/components/ui/Logo'
 import styles from './sidebar.module.css'
 
 const NAV = [
@@ -90,7 +91,10 @@ export default function Sidebar({ barbershopId, barbershopName }: Props) {
 
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.logo}>✦ FiloDesk</div>
+      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Logo size={22} />
+        FiloDesk
+      </div>
       <div className={styles.shopName}>{barbershopName}</div>
 
       <nav className={styles.nav}>
