@@ -11,7 +11,7 @@ export async function createBarbershop(
   const validated = CreateBarbershopSchema.safeParse({
     name:    formData.get('name'),
     address: formData.get('address') || undefined,
-    phone:   formData.get('phone')   || undefined,
+    phone:   formData.get('phone'),
   })
 
   if (!validated.success) {

@@ -1,0 +1,85 @@
+.section {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sectionLeft { display: flex; flex-direction: column; gap: 4px; }
+
+.sectionTitle {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  background: var(--gold); color: #0e0e0e;
+  font-size: .7rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+}
+
+.totals { font-size: .88rem; color: var(--green); font-weight: 600; }
+.totalBreak { font-size: .78rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  padding: 5px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600;
+  border: 1px solid #3a3a3a; color: var(--muted); background: transparent;
+  cursor: pointer; transition: color .15s; white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tabActive {
+  padding: 5px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600;
+  background: var(--gold); color: #0e0e0e; border: 1px solid var(--gold);
+  cursor: pointer; white-space: nowrap;
+}
+
+/* Table */
+.table { display: flex; flex-direction: column; }
+.tableHead {
+  display: grid; grid-template-columns: 0.8fr 1.2fr 1fr 1.2fr auto;
+  padding: 8px 12px; font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--muted); font-weight: 600;
+  border-bottom: 1px solid #3a3a3a; margin-bottom: 4px;
+}
+.tableRow {
+  display: grid; grid-template-columns: 0.8fr 1.2fr 1fr 1.2fr auto;
+  padding: 11px 12px; font-size: .88rem; color: var(--text);
+  border-radius: 6px; align-items: center; transition: background .12s;
+}
+.tableRow:hover { background: #2a2a2a; }
+
+.badgeServicio {
+  font-size: .72rem; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  background: rgba(126,184,247,.12); color: #7eb8f7;
+}
+.badgeProducto {
+  font-size: .72rem; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  background: rgba(94,207,135,.12); color: var(--green);
+}
+
+.muted { color: var(--muted); font-size: .83rem; }
+.empty { padding: 24px 0; text-align: center; color: var(--muted); font-size: .88rem; }
+
+.btnDelete {
+  background: transparent; border: none; color: var(--muted);
+  font-size: .85rem; cursor: pointer; padding: 4px 8px;
+  border-radius: 4px; transition: color .15s;
+}
+.btnDelete:hover { color: var(--red); }
+.btnDelete:disabled { opacity: .4; cursor: not-allowed; }

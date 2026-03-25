@@ -38,7 +38,7 @@ export default function OnboardingForm() {
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="phone" className={styles.label}>Teléfono <span className={styles.optional}>(opcional)</span></label>
+        <label htmlFor="phone" className={styles.label}>Teléfono *</label>
         <input
           id="phone"
           name="phone"
@@ -46,7 +46,11 @@ export default function OnboardingForm() {
           placeholder="Ej: 11 2345-6789"
           className={styles.input}
           autoComplete="tel"
+          required
         />
+        {state?.errors?.phone && (
+          <span className={styles.error}>{state.errors.phone[0]}</span>
+        )}
       </div>
 
       {state?.message && (

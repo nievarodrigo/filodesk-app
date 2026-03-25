@@ -1,0 +1,193 @@
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.title { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
+.date  { font-size: .83rem; color: var(--muted); text-transform: capitalize; }
+
+/* ── KPIs ── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .kpis { grid-template-columns: 1fr; } }
+
+.kpiCard {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-top: 3px solid var(--gold);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kpiLabel {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #7a7060;
+  font-weight: 600;
+}
+.kpiValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cream);
+}
+
+/* ── Form row (service + product side by side) ── */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+@media (max-width: 800px) { .formRow { grid-template-columns: 1fr; } }
+
+/* ── Form card ── */
+.formSection {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.formSectionTitle {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+
+/* ── Sales section ── */
+.section {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 20px;
+}
+.sectionTitle {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.badge {
+  background: var(--gold);
+  color: #0e0e0e;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.empty { padding: 24px 0; text-align: center; color: var(--muted); font-size: .88rem; }
+
+/* ── Table ── */
+.table { display: flex; flex-direction: column; }
+.tableHead {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr auto;
+  padding: 8px 12px;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 600;
+  border-bottom: 1px solid #3a3a3a;
+  margin-bottom: 4px;
+}
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr auto;
+  padding: 11px 12px;
+  font-size: .88rem;
+  color: var(--text);
+  border-radius: 6px;
+  align-items: center;
+  transition: background .12s;
+}
+.tableRow:hover { background: #2a2a2a; }
+.muted { color: var(--muted); }
+
+/* ── Neto del mes ── */
+.netoCard {
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.netoLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.netoLabel {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.netoValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 100px;
+}
+.netoRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.netoBreak {
+  display: flex;
+  gap: 14px;
+  font-size: .78rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.netoBreak span { white-space: nowrap; }
+.netoEye {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color .15s;
+  flex-shrink: 0;
+}
+.netoEye:hover { color: var(--text); }
+
+/* ── Alerts ── */
+.noBarbers {
+  background: rgba(201,168,76,.08);
+  border: 1px solid rgba(201,168,76,.25);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: .88rem;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+.link { color: inherit; text-decoration: underline; }
