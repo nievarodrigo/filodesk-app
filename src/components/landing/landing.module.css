@@ -17,7 +17,7 @@
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: rgba(14,14,14,.95);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
   z-index: 100;
 }
@@ -99,7 +99,7 @@
   right: 0;
   width: min(320px, 85vw);
   height: 100vh;
-  background: #141414;
+  background: var(--surface);
   border-left: 1px solid var(--border);
   padding: 80px 28px 40px;
   display: flex;

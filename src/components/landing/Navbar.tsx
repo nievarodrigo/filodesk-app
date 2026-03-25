@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import styles from './landing.module.css'
 import UserMenu from './UserMenu'
 import MobileNav from './MobileNav'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -23,6 +24,7 @@ export default async function Navbar() {
 
       {/* Desktop auth */}
       <div className={styles.navAuth}>
+        <ThemeToggle />
         {user ? (
           <UserMenu email={user.email!} />
         ) : (

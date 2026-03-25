@@ -14,6 +14,7 @@
   --text:      #e8e0e0;
   --blue:      #5b8bd4;
   --radius:    10px;
+  --nav-bg:    rgba(14,14,14,.95);
   color-scheme: dark;
 }
 
@@ -33,6 +34,7 @@
   --text:      #1a1018;
   --blue:      #1e3a6e;
   --radius:    10px;
+  --nav-bg:    rgba(245,242,240,.95);
   color-scheme: light;
 }
 

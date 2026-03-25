@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 import styles from './landing.module.css'
 
 type Props = {
@@ -46,6 +47,10 @@ export default function MobileNav({ user }: Props) {
               <Link href="/nosotros" onClick={() => setOpen(false)}>Nosotros</Link>
               <Link href="/faq" onClick={() => setOpen(false)}>FAQ</Link>
             </nav>
+
+            <div className={styles.mobileDivider} />
+
+            <ThemeToggle />
 
             <div className={styles.mobileDivider} />
 
