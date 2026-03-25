@@ -21,37 +21,35 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
 
   return (
     <>
-      {/* KPI card — misma altura que las otras */}
+      {/* Barra compacta */}
       <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         background: 'var(--surface)',
         border: '1px solid var(--border)',
-        borderTop: '3px solid var(--gold)',
         borderRadius: 10,
-        padding: '18px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
+        padding: '10px 18px',
+        marginBottom: 16,
       }}>
-        <p style={{ fontSize: '.68rem', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted)', fontWeight: 600 }}>
-          Barberos activos
-        </p>
-        <p style={{ fontSize: '1.5rem', fontWeight: 700, lineHeight: 1, color: 'var(--cream)' }}>
-          {activeCount}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+          <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>
+            <strong style={{ color: 'var(--cream)', fontWeight: 700 }}>{activeCount}</strong>
+            {' '}barbero{activeCount !== 1 ? 's' : ''} activo{activeCount !== 1 ? 's' : ''}
+          </span>
+        </div>
         <button
           onClick={() => setOpen(true)}
           style={{
-            marginTop: 4,
             background: 'transparent',
             border: '1px solid var(--border)',
             borderRadius: 6,
             color: 'var(--muted)',
             fontSize: '.75rem',
             fontWeight: 600,
-            padding: '5px 10px',
+            padding: '5px 12px',
             cursor: 'pointer',
-            alignSelf: 'flex-start',
-            transition: 'color .15s, border-color .15s',
           }}
           onMouseEnter={e => { const b = e.currentTarget; b.style.color = 'var(--gold)'; b.style.borderColor = 'var(--gold)' }}
           onMouseLeave={e => { const b = e.currentTarget; b.style.color = 'var(--muted)'; b.style.borderColor = 'var(--border)' }}

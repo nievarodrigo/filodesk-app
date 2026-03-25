@@ -96,8 +96,9 @@ export default async function DashboardPage({
             <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
           </div>
         ))}
-        <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
       </div>
+
+      <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
 
       {/* Forms: servicio + producto lado a lado */}
       {activeBarbers.length === 0 ? (
