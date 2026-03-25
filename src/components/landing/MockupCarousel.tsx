@@ -2,36 +2,50 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import styles from './mockupCarousel.module.css'
 
 type Slide = {
   image: string
   tag: string
-  title: string
+  titleHtml: string
   description: string
+  cta: string
+  ctaHref: string
 }
 
 const SLIDES: Slide[] = [
   {
     image: '/mockups/inicio.png',
-    tag: 'Inicio',
-    title: 'Todo lo que necesitás, de un vistazo',
-    description:
-      'Registrá servicios y productos en segundos. Mirá las horas pico, los ingresos del día y el estado de tu barbería sin salir de la pantalla principal.',
+    tag: 'Para el dueño',
+    titleHtml: 'Potenciá tu <em>barbería</em><br/>con nuestra plataforma.',
+    description: 'Gestioná ventas, barberos y servicios en un solo lugar. Aumentá tus ingresos con datos reales.',
+    cta: 'Comenzá ahora',
+    ctaHref: '/auth/register',
   },
   {
     image: '/mockups/finanzas.png',
     tag: 'Finanzas',
-    title: 'Sabé exactamente cuánto ganás',
-    description:
-      'Ingresos totales, comisiones pagadas, gastos del local y tu ganancia neta. Todo calculado automáticamente, sin fórmulas ni hojas de cálculo.',
+    titleHtml: 'Controlá las <em>finanzas</em><br/>de tu barbería.',
+    description: 'Obtené una visión clara de ingresos, gastos y comisiones para hacer crecer tu negocio.',
+    cta: 'Probá gratis',
+    ctaHref: '/auth/register',
   },
   {
     image: '/mockups/barberos.png',
     tag: 'Barberos',
-    title: 'Liquidaciones sin dolores de cabeza',
-    description:
-      'Cada barbero tiene su resumen de ventas y comisión del mes. Cerrás la quincena en segundos y sin discusiones.',
+    titleHtml: 'Medí el <em>rendimiento</em><br/>de cada barbero.',
+    description: 'Monitoréa el desempeño y las comisiones de tu equipo de manera precisa y sencilla.',
+    cta: 'Optimizá tu equipo',
+    ctaHref: '/auth/register',
+  },
+  {
+    image: '/mockups/ventas.png',
+    tag: 'Ventas',
+    titleHtml: 'Aumentá las <em>ventas</em><br/>de tu barbería.',
+    description: 'Registrá servicios y productos en segundos. Controlá cada ingreso desde el celular.',
+    cta: 'Empezá a vender más',
+    ctaHref: '/auth/register',
   },
 ]
 
@@ -58,8 +72,10 @@ export default function MockupCarousel() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
+  const slide = SLIDES[current]
+
   return (
-    <div className={styles.outer}>
+    <section className={styles.section}>
       <div className={styles.viewport}>
         <div
           className={styles.track}
@@ -71,26 +87,34 @@ export default function MockupCarousel() {
               {/* Copy */}
               <div className={styles.copy}>
                 <span className={styles.tag}>{s.tag}</span>
-                <h2 className={styles.title}>{s.title}</h2>
+                <h2
+                  className={styles.title}
+                  dangerouslySetInnerHTML={{ __html: s.titleHtml }}
+                />
                 <p className={styles.desc}>{s.description}</p>
+                <Link href={s.ctaHref} className={styles.cta}>
+                  {s.cta}
+                </Link>
               </div>
 
               {/* Device frame */}
-              <div className={styles.device}>
-                <div className={styles.deviceBar}>
-                  <div className={`${styles.dot} ${styles.dotRed}`} />
-                  <div className={`${styles.dot} ${styles.dotYellow}`} />
-                  <div className={`${styles.dot} ${styles.dotGreen}`} />
-                </div>
-                <div className={styles.screen}>
-                  <Image
-                    src={s.image}
-                    alt={s.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 55vw"
-                    className={styles.img}
-                    priority={i === 0}
-                  />
+              <div className={styles.deviceWrap}>
+                <div className={styles.device}>
+                  <div className={styles.deviceBar}>
+                    <div className={`${styles.dot} ${styles.dotRed}`} />
+                    <div className={`${styles.dot} ${styles.dotYellow}`} />
+                    <div className={`${styles.dot} ${styles.dotGreen}`} />
+                  </div>
+                  <div className={styles.screen}>
+                    <Image
+                      src={s.image}
+                      alt={s.tag}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 55vw"
+                      className={styles.img}
+                      priority={i === 0}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -106,10 +130,10 @@ export default function MockupCarousel() {
             key={i}
             className={`${styles.dotBtn} ${i === current ? styles.dotBtnActive : ''}`}
             onClick={() => resetTo(i)}
-            aria-label={`Ir al slide ${i + 1}`}
+            aria-label={`Slide ${i + 1}`}
           />
         ))}
       </div>
-    </div>
+    </section>
   )
 }
