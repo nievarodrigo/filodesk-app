@@ -35,7 +35,7 @@ const plans = [
       'Hasta 5 barberías',
       'Barberos ilimitados',
       'Todo lo del plan Base',
-      'Roles: Dueño, Encargado y Barbero',
+      'Rol Dueño (acceso total), Encargado y Barbero',
       'Historial completo',
       'Gráficos y estadísticas avanzadas',
       'Exportar reportes (Excel/PDF)',
@@ -153,24 +153,6 @@ export default function Pricing() {
         })}
       </div>
 
-      {/* Roles explanation */}
-      <div className={styles.pricingRoles}>
-        <div className={styles.pricingRolesTitle}>Roles disponibles en Pro y Premium</div>
-        <div className={styles.pricingRolesGrid}>
-          <div className={styles.pricingRole}>
-            <strong>Dueño</strong>
-            <span>Acceso total a todas las funciones</span>
-          </div>
-          <div className={styles.pricingRole}>
-            <strong>Encargado</strong>
-            <span>Gestiona barberos, productos y ventas. No ve finanzas</span>
-          </div>
-          <div className={styles.pricingRole}>
-            <strong>Barbero</strong>
-            <span>Solo registra sus servicios terminados</span>
-          </div>
-        </div>
-      </div>
     </section>
   )
 }
