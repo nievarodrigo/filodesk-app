@@ -28,7 +28,7 @@ export default async function Hero() {
             <Link href="/auth/register">
               <button className={`${styles.btn} ${styles.btnLg}`}>Empezar gratis 14 días</button>
             </Link>
-            <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnLg}`}>Ver demo</button>
+
           </>
         )}
       </div>
