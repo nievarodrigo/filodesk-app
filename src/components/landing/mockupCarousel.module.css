@@ -138,7 +138,7 @@
 
   .slide {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 28px;
     padding: 0 20px;
   }
 
@@ -148,4 +148,21 @@
 
   .title { font-size: 1.65rem; }
   .desc { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .section { padding: 40px 0 32px; }
+
+  .slide { gap: 20px; padding: 0 16px; }
+
+  .mockupWrap {
+    transform: none;
+  }
+  .mockupWrap:hover {
+    transform: none;
+  }
+
+  .title { font-size: 1.45rem; }
+  .desc { font-size: .88rem; }
+  .dots { margin-top: 28px; }
 }

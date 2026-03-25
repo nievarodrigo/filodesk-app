@@ -853,6 +853,9 @@
 
   .featuresGrid { grid-template-columns: 1fr; }
 
+  .stepsGrid { grid-template-columns: 1fr; gap: 24px; }
+  .step { padding: 0; }
+
   .aboutGrid { grid-template-columns: 1fr; gap: 32px; }
 
   .pricingGrid { grid-template-columns: 1fr; max-width: 400px; }
