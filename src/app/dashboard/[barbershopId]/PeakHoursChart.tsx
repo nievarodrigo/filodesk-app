@@ -17,7 +17,7 @@ function CustomDot(props: any) {
   const maxY = yAxis?.niceTicks?.at(-1) ?? 1
   const ratio = maxY > 0 ? payload.y / maxY : 0
   const r = payload.y === 0 ? 3 : 5 + ratio * 7
-  const bottom = yAxis?.y + yAxis?.height ?? cy
+  const bottom = yAxis ? yAxis.y + yAxis.height : cy
   return (
     <g>
       {payload.y > 0 && (
