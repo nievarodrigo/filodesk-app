@@ -91,8 +91,7 @@ export default function Features() {
             key={f.title}
             className={styles.featureCard}
             style={f.highlight ? {
-              borderColor: 'var(--gold)',
-              background: 'var(--hover)',
+              borderColor: 'var(--blue)',
             } : {}}
           >
             <div className={styles.featureIcon}>{f.icon}</div>

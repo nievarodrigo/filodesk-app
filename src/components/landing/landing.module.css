@@ -450,7 +450,7 @@
   padding: 28px;
   transition: border-color .2s;
 }
-.featureCard:hover { border-color: rgba(201,168,76,.4); }
+.featureCard:hover { border-color: rgba(196,30,58,.35); }
 .featureIcon {
   width: 44px; height: 44px;
   background: rgba(201,168,76,.1);
