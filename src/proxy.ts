@@ -26,8 +26,6 @@ export async function proxy(request: NextRequest) {
   const isDashboard   = pathname.startsWith('/dashboard')
   const isOnboarding  = pathname.startsWith('/onboarding')
   const isAuthRoute   = pathname.startsWith('/auth')
-  const landingUrl    = process.env.NEXT_PUBLIC_LANDING_URL ?? 'https://filodesk-landing.vercel.app'
-
   // Sin sesión → login propio de la app
   if ((isDashboard || isOnboarding) && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))

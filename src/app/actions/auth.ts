@@ -2,30 +2,29 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { RegisterSchema, LoginSchema, type AuthFormState } from '@/lib/definitions'
 
-const LoginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'Ingresá tu contraseña'),
-})
+export type AuthState = AuthFormState
 
-const RegisterSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-})
+async function verifyTurnstile(token: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) return true
 
-export type AuthState = {
-  errors?: { email?: string[]; password?: string[] }
-  message?: string
-  success?: string
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ secret, response: token }),
+  })
+  const data = await res.json()
+  return data.success === true
 }
 
 export async function login(
-  _state: AuthState,
+  _state: AuthFormState,
   formData: FormData
-): Promise<AuthState> {
+): Promise<AuthFormState> {
   const validated = LoginSchema.safeParse({
-    email:    formData.get('email'),
+    email: formData.get('email'),
     password: formData.get('password'),
   })
 
@@ -35,7 +34,7 @@ export async function login(
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({
-    email:    validated.data.email,
+    email: validated.data.email,
     password: validated.data.password,
   })
 
@@ -47,28 +46,48 @@ export async function login(
 }
 
 export async function register(
-  _state: AuthState,
+  _state: AuthFormState,
   formData: FormData
-): Promise<AuthState> {
+): Promise<AuthFormState> {
+  const turnstileToken = formData.get('cf-turnstile-response') as string
+  const captchaOk = await verifyTurnstile(turnstileToken || '')
+  if (!captchaOk) {
+    return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
+  }
+
   const validated = RegisterSchema.safeParse({
-    email:    formData.get('email'),
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    email: formData.get('email'),
     password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
   })
 
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors }
   }
 
+  const { firstName, lastName, email, password } = validated.data
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
-    email:    validated.data.email,
-    password: validated.data.password,
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: { first_name: firstName, last_name: lastName },
+    },
   })
 
   if (error) {
-    return { message: error.message }
+    return { message: `Error: ${error.message}` }
   }
 
-  // Si confirmación de email está desactivada, redirigir directo
-  redirect('/dashboard')
+  redirect('/auth/verify-email')
+}
+
+export async function logout() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect('/')
 }
