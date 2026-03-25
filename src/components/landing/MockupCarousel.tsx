@@ -18,7 +18,7 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     imageDesktop: '/mockups/inicio.png',
-    imageMobile: '/mockups/inicio.png', // TODO: reemplazar con screenshot mobile
+    imageMobile: '/mockups/mobile/inicio.png',
     tag: 'Inicio',
     titleHtml: 'Registrá ventas y controlá<br/>tu <em>día en tiempo real</em>.',
     description: 'Ves los ingresos del día, las ventas de cada barbero y el estado de tu barbería desde la pantalla principal.',
@@ -27,7 +27,7 @@ const SLIDES: Slide[] = [
   },
   {
     imageDesktop: '/mockups/finanzas.png',
-    imageMobile: '/mockups/finanzas.png',
+    imageMobile: '/mockups/mobile/finanzas.png',
     tag: 'Finanzas',
     titleHtml: 'Controlá las <em>finanzas</em><br/>de tu barbería.',
     description: 'Ingresos, gastos, comisiones y ganancia neta de cada mes. Todo calculado automáticamente, sin fórmulas.',
@@ -36,7 +36,7 @@ const SLIDES: Slide[] = [
   },
   {
     imageDesktop: '/mockups/ventas.png',
-    imageMobile: '/mockups/ventas.png',
+    imageMobile: '/mockups/mobile/ventas.png',
     tag: 'Ventas',
     titleHtml: 'Aumentá las <em>ventas</em><br/>de tu barbería.',
     description: 'Registrá servicios y productos en segundos. Analizá tendencias y compará períodos fácilmente.',
@@ -45,7 +45,7 @@ const SLIDES: Slide[] = [
   },
   {
     imageDesktop: '/mockups/barberos.png',
-    imageMobile: '/mockups/barberos.png',
+    imageMobile: '/mockups/mobile/barberos.png',
     tag: 'Equipo',
     titleHtml: 'Configurá tu <em>equipo</em><br/>y sus comisiones.',
     description: 'Agregá barberos, establecé sus porcentajes y gestioná los servicios que ofrece tu barbería.',
@@ -54,7 +54,7 @@ const SLIDES: Slide[] = [
   },
   {
     imageDesktop: '/mockups/gastos.png',
-    imageMobile: '/mockups/gastos.png',
+    imageMobile: '/mockups/mobile/gastos.png',
     tag: 'Gastos',
     titleHtml: 'Controlá cada <em>gasto</em><br/>del local.',
     description: 'Registrá alquiler, productos, sueldos y más. Sabé exactamente cuánto te cuesta mantener la barbería.',
