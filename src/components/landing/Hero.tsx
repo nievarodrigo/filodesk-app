@@ -11,12 +11,12 @@ export default async function Hero() {
     <div className={styles.hero}>
       <div className={styles.heroBadge}>✦ Para dueños de barberías</div>
       <h1>
-        Dejá el Excel.<br />
-        Usá <span>FiloDesk</span>.
+        Sabé exactamente<br />
+        cuánto <span>ganás</span>.
       </h1>
       <p>
-        Sabé cuánto generó cada barbero, cuánto te queda a vos y qué hay en caja —
-        todo en un solo lugar, en tiempo real.
+        Registrá las ventas de cada barbero, controlá los gastos del local
+        y FiloDesk te dice cuánto te queda a vos — automáticamente, sin planillas.
       </p>
       <div className={styles.heroCta}>
         {user ? (
