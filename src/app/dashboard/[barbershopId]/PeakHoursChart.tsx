@@ -1,17 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import styles from './peakHours.module.css'
 
 type Point = { label: string; y: number }
-
-type Props = {
-  hourlyData: Point[]
-  dailyData: Point[]
-}
 
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
@@ -25,32 +19,15 @@ function CustomTooltip({ active, payload }: any) {
   )
 }
 
-export default function PeakHoursChart({ hourlyData, dailyData }: Props) {
-  const [mode, setMode] = useState<'hour' | 'day'>('hour')
-  const data = mode === 'hour' ? hourlyData : dailyData
-
+export default function PeakHoursChart({ hourlyData }: { hourlyData: Point[] }) {
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
         <span className={styles.title}>Horas pico</span>
-        <div className={styles.toggle}>
-          <button
-            className={`${styles.tab} ${mode === 'hour' ? styles.tabActive : ''}`}
-            onClick={() => setMode('hour')}
-          >
-            Por hora
-          </button>
-          <button
-            className={`${styles.tab} ${mode === 'day' ? styles.tabActive : ''}`}
-            onClick={() => setMode('day')}
-          >
-            Por día
-          </button>
-        </div>
       </div>
 
       <ResponsiveContainer width="100%" height={140}>
-        <AreaChart data={data} margin={{ top: 10, right: 8, bottom: 0, left: -32 }}>
+        <AreaChart data={hourlyData} margin={{ top: 10, right: 8, bottom: 0, left: -32 }}>
           <defs>
             <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="#5ecf87" stopOpacity={0.35} />

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { today, startOfWeek } from '@/lib/date'
+import { today } from '@/lib/date'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
@@ -25,7 +25,6 @@ export default async function DashboardPage({
   const supabase = await createClient()
 
   const todayDate = today()
-  const weekStart = startOfWeek()
 
   const [
     { data: barbers },
@@ -35,7 +34,6 @@ export default async function DashboardPage({
     { data: products },
     { data: productSalesToday },
     { data: salesTodayTimed },
-    { data: weekSales },
   ] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
@@ -57,7 +55,6 @@ export default async function DashboardPage({
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
     supabase.from('sales').select('created_at').eq('barbershop_id', barbershopId).eq('date', todayDate),
-    supabase.from('sales').select('date').eq('barbershop_id', barbershopId).gte('date', weekStart),
   ])
 
   // Hourly data (Argentina = UTC-3)
@@ -73,15 +70,6 @@ export default async function DashboardPage({
     const argHour = (utcHour - 3 + 24) % 24
     const idx = HOUR_SLOTS.findIndex(s => argHour >= s.start && argHour < s.start + 2)
     if (idx >= 0) hourlyData[idx].y++
-  }
-
-  // Daily data (current week Mon-Sun)
-  const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-  const dailyData = DAY_LABELS.map((label) => ({ label, y: 0 }))
-  for (const sale of (weekSales ?? [])) {
-    const d = new Date(sale.date + 'T12:00:00Z')
-    const idx = (d.getUTCDay() + 6) % 7
-    dailyData[idx].y++
   }
 
   const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
@@ -157,7 +145,7 @@ export default async function DashboardPage({
       />
 
       {/* Horas pico */}
-      <PeakHoursChart hourlyData={hourlyData} dailyData={dailyData} />
+      <PeakHoursChart hourlyData={hourlyData} />
     </div>
   )
 }

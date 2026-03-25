@@ -67,27 +67,22 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
 
       {state?.message && <p className={styles.errorBox}>{state.message}</p>}
 
-      <div className={styles.formGrid2}>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="barber_id">Barbero *</label>
-          <select
-            id="barber_id"
-            name="barber_id"
-            className={styles.select}
-            defaultValue=""
-            onChange={e => setSelectedBarber(barbers.find(b => b.id === e.target.value) ?? null)}
-          >
-            <option value="" disabled>Seleccioná un barbero</option>
-            {barbers.map(b => (
-              <option key={b.id} value={b.id}>{b.name} ({b.commission_pct}%)</option>
-            ))}
-          </select>
-        </div>
+      <input type="hidden" name="date" value={todayStr()} />
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="date">Fecha *</label>
-          <input id="date" name="date" type="date" className={styles.input} defaultValue={todayStr()} />
-        </div>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="barber_id">Barbero *</label>
+        <select
+          id="barber_id"
+          name="barber_id"
+          className={styles.select}
+          defaultValue=""
+          onChange={e => setSelectedBarber(barbers.find(b => b.id === e.target.value) ?? null)}
+        >
+          <option value="" disabled>Seleccioná un barbero</option>
+          {barbers.map(b => (
+            <option key={b.id} value={b.id}>{b.name} ({b.commission_pct}%)</option>
+          ))}
+        </select>
       </div>
 
       {/* Filas de servicios */}
