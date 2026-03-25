@@ -8,15 +8,15 @@ export const metadata: Metadata = { title: 'Configurá tu barbería' }
 
 export default async function OnboardingPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) redirect('/auth/login')
+  if (!session) redirect('/auth/login')
 
   // Si ya tiene barbería, ir al dashboard
   const { data: barbershops } = await supabase
     .from('barbershops')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('owner_id', session.user.id)
     .limit(1)
 
   if (barbershops && barbershops.length > 0) {

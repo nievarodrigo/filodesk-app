@@ -4,14 +4,14 @@ import { redirect } from 'next/navigation'
 // Detecta cuántas barberías tiene y redirige
 export default async function DashboardRouter() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) redirect('/auth/login')
+  if (!session) redirect('/auth/login')
 
   const { data: barbershops } = await supabase
     .from('barbershops')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('owner_id', session.user.id)
     .order('created_at', { ascending: true })
 
   if (!barbershops || barbershops.length === 0) {

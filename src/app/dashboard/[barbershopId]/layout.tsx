@@ -12,15 +12,15 @@ export default async function DashboardLayout({
 }) {
   const { barbershopId } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) redirect('/auth/login')
+  if (!session) redirect('/auth/login')
 
   const { data: barbershop } = await supabase
     .from('barbershops')
     .select('id, name')
     .eq('id', barbershopId)
-    .eq('owner_id', user.id)
+    .eq('owner_id', session.user.id)
     .single()
 
   if (!barbershop) redirect('/dashboard')

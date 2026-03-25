@@ -4,7 +4,8 @@ import styles from './landing.module.css'
 
 export default async function Hero() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   return (
     <div className={styles.hero}>
