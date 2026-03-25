@@ -87,7 +87,7 @@ export default async function ProductosPage({
       )}
 
       {/* KPIs */}
-      <div className={styles.kpis} style={{ marginTop: 16, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 600 }}>
+      <div className={styles.kpis} style={{ marginTop: 16 }}>
         <div className={styles.kpiCard}>
           <p className={styles.kpiLabel}>Productos activos</p>
           <p className={styles.kpiValue}>{totalStock}</p>
