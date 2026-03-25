@@ -6,7 +6,8 @@ import Link from 'next/link'
 import styles from './mockupCarousel.module.css'
 
 type Slide = {
-  image: string
+  imageDesktop: string
+  imageMobile: string
   tag: string
   titleHtml: string
   description: string
@@ -16,7 +17,8 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    image: '/mockups/inicio.png',
+    imageDesktop: '/mockups/inicio.png',
+    imageMobile: '/mockups/inicio.png', // TODO: reemplazar con screenshot mobile
     tag: 'Inicio',
     titleHtml: 'Registrá ventas y controlá<br/>tu <em>día en tiempo real</em>.',
     description: 'Ves los ingresos del día, las ventas de cada barbero y el estado de tu barbería desde la pantalla principal.',
@@ -24,7 +26,8 @@ const SLIDES: Slide[] = [
     ctaHref: '/auth/register',
   },
   {
-    image: '/mockups/finanzas.png',
+    imageDesktop: '/mockups/finanzas.png',
+    imageMobile: '/mockups/finanzas.png',
     tag: 'Finanzas',
     titleHtml: 'Controlá las <em>finanzas</em><br/>de tu barbería.',
     description: 'Ingresos, gastos, comisiones y ganancia neta de cada mes. Todo calculado automáticamente, sin fórmulas.',
@@ -32,7 +35,8 @@ const SLIDES: Slide[] = [
     ctaHref: '/auth/register',
   },
   {
-    image: '/mockups/ventas.png',
+    imageDesktop: '/mockups/ventas.png',
+    imageMobile: '/mockups/ventas.png',
     tag: 'Ventas',
     titleHtml: 'Aumentá las <em>ventas</em><br/>de tu barbería.',
     description: 'Registrá servicios y productos en segundos. Analizá tendencias y compará períodos fácilmente.',
@@ -40,7 +44,8 @@ const SLIDES: Slide[] = [
     ctaHref: '/auth/register',
   },
   {
-    image: '/mockups/barberos.png',
+    imageDesktop: '/mockups/barberos.png',
+    imageMobile: '/mockups/barberos.png',
     tag: 'Equipo',
     titleHtml: 'Configurá tu <em>equipo</em><br/>y sus comisiones.',
     description: 'Agregá barberos, establecé sus porcentajes y gestioná los servicios que ofrece tu barbería.',
@@ -48,7 +53,8 @@ const SLIDES: Slide[] = [
     ctaHref: '/auth/register',
   },
   {
-    image: '/mockups/gastos.png',
+    imageDesktop: '/mockups/gastos.png',
+    imageMobile: '/mockups/gastos.png',
     tag: 'Gastos',
     titleHtml: 'Controlá cada <em>gasto</em><br/>del local.',
     description: 'Registrá alquiler, productos, sueldos y más. Sabé exactamente cuánto te cuesta mantener la barbería.',
@@ -59,9 +65,17 @@ const SLIDES: Slide[] = [
 
 const INTERVAL_MS = 8000
 
+type ViewMode = 'desktop' | 'mobile'
+
 export default function MockupCarousel() {
   const [current, setCurrent] = useState(0)
+  const [viewMode, setViewMode] = useState<ViewMode>('desktop')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Default según el dispositivo del visitante
+  useEffect(() => {
+    if (window.innerWidth < 768) setViewMode('mobile')
+  }, [])
 
   function start() {
     timerRef.current = setInterval(() => {
@@ -80,6 +94,8 @@ export default function MockupCarousel() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
+  const isMobile = viewMode === 'mobile'
+
   return (
     <section className={styles.section}>
       <div className={styles.viewport}>
@@ -88,7 +104,7 @@ export default function MockupCarousel() {
           style={{ transform: `translateX(-${current * 100}vw)` }}
         >
           {SLIDES.map((s, i) => (
-            <div key={i} className={styles.slide}>
+            <div key={i} className={`${styles.slide} ${isMobile ? styles.slideMobile : ''}`}>
 
               <div className={styles.copy}>
                 <span className={styles.tag}>{s.tag}</span>
@@ -102,12 +118,12 @@ export default function MockupCarousel() {
                 </Link>
               </div>
 
-              <div className={styles.mockupWrap}>
+              <div className={`${styles.mockupWrap} ${isMobile ? styles.mockupPhone : ''}`}>
                 <Image
-                  src={s.image}
+                  src={isMobile ? s.imageMobile : s.imageDesktop}
                   alt={s.tag}
-                  width={900}
-                  height={560}
+                  width={isMobile ? 390 : 900}
+                  height={isMobile ? 844 : 560}
                   className={styles.mockupImg}
                   priority={i === 0}
                 />
@@ -118,15 +134,35 @@ export default function MockupCarousel() {
         </div>
       </div>
 
-      <div className={styles.dots}>
-        {SLIDES.map((_, i) => (
+      {/* Toggle + dots */}
+      <div className={styles.controls}>
+        <div className={styles.viewToggle}>
           <button
-            key={i}
-            className={`${styles.dotBtn} ${i === current ? styles.dotBtnActive : ''}`}
-            onClick={() => resetTo(i)}
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
+            className={`${styles.toggleBtn} ${!isMobile ? styles.toggleBtnActive : ''}`}
+            onClick={() => setViewMode('desktop')}
+            title="Vista escritorio"
+          >
+            🖥
+          </button>
+          <button
+            className={`${styles.toggleBtn} ${isMobile ? styles.toggleBtnActive : ''}`}
+            onClick={() => setViewMode('mobile')}
+            title="Vista celular"
+          >
+            📱
+          </button>
+        </div>
+
+        <div className={styles.dots}>
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              className={`${styles.dotBtn} ${i === current ? styles.dotBtnActive : ''}`}
+              onClick={() => resetTo(i)}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   )
