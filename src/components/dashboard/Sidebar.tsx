@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
@@ -82,6 +83,17 @@ interface Props {
 export default function Sidebar({ barbershopId, barbershopName }: Props) {
   const base = `/dashboard/${barbershopId}`
   const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+
+  // Close drawer on route change
+  useEffect(() => { setOpen(false) }, [pathname])
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
 
   function isActive(href: string) {
     const full = `${base}${href}`
@@ -89,8 +101,8 @@ export default function Sidebar({ barbershopId, barbershopName }: Props) {
     return pathname.startsWith(full)
   }
 
-  return (
-    <aside className={styles.sidebar}>
+  const navContent = (
+    <>
       <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Logo size={22} />
         FiloDesk
@@ -121,6 +133,41 @@ export default function Sidebar({ barbershopId, barbershopName }: Props) {
           </button>
         </form>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <header className={styles.mobileHeader}>
+        <button
+          className={styles.hamburger}
+          onClick={() => setOpen(!open)}
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+        >
+          <span className={`${styles.hamburgerLine} ${open ? styles.hamburgerOpen1 : ''}`} />
+          <span className={`${styles.hamburgerLine} ${open ? styles.hamburgerOpen2 : ''}`} />
+          <span className={`${styles.hamburgerLine} ${open ? styles.hamburgerOpen3 : ''}`} />
+        </button>
+        <div className={styles.mobileTitle} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Logo size={18} />
+          FiloDesk
+        </div>
+        <div style={{ width: 36 }} />
+      </header>
+
+      {/* Desktop sidebar */}
+      <aside className={styles.sidebar}>
+        {navContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
+
+      {/* Mobile drawer */}
+      <aside className={`${styles.drawer} ${open ? styles.drawerOpen : ''}`}>
+        {navContent}
+      </aside>
+    </>
   )
 }
