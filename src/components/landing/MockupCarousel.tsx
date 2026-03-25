@@ -19,7 +19,7 @@ const SLIDES: Slide[] = [
     image: '/mockups/inicio.png',
     tag: 'Inicio',
     titleHtml: 'Registrá ventas y controlá<br/>tu <em>día en tiempo real</em>.',
-    description: 'Ves los ingresos del día, las ventas de cada barbero y las horas de mayor movimiento — todo desde la pantalla principal.',
+    description: 'Ves los ingresos del día, las ventas de cada barbero y el estado de tu barbería desde la pantalla principal.',
     cta: 'Comenzá ahora',
     ctaHref: '/auth/register',
   },
@@ -32,19 +32,27 @@ const SLIDES: Slide[] = [
     ctaHref: '/auth/register',
   },
   {
+    image: '/mockups/ventas.png',
+    tag: 'Ventas',
+    titleHtml: 'Aumentá las <em>ventas</em><br/>de tu barbería.',
+    description: 'Registrá servicios y productos en segundos. Analizá tendencias y compará períodos fácilmente.',
+    cta: 'Empezá a vender más',
+    ctaHref: '/auth/register',
+  },
+  {
     image: '/mockups/barberos.png',
     tag: 'Equipo',
     titleHtml: 'Configurá tu <em>equipo</em><br/>y sus comisiones.',
-    description: 'Agregá barberos, establecé sus porcentajes y gestioná los servicios que ofrece tu barbería — sin complicaciones.',
+    description: 'Agregá barberos, establecé sus porcentajes y gestioná los servicios que ofrece tu barbería.',
     cta: 'Administrá tu equipo',
     ctaHref: '/auth/register',
   },
   {
-    image: '/mockups/ventas.png',
-    tag: 'Ventas',
-    titleHtml: 'Aumentá las <em>ventas</em><br/>de tu barbería.',
-    description: 'Registrá servicios y productos en segundos. Controlá cada ingreso y analizá tendencias desde el celular.',
-    cta: 'Empezá a vender más',
+    image: '/mockups/gastos.png',
+    tag: 'Gastos',
+    titleHtml: 'Controlá cada <em>gasto</em><br/>del local.',
+    description: 'Registrá alquiler, productos, sueldos y más. Sabé exactamente cuánto te cuesta mantener la barbería.',
+    cta: 'Controlá tus gastos',
     ctaHref: '/auth/register',
   },
 ]
@@ -82,7 +90,6 @@ export default function MockupCarousel() {
           {SLIDES.map((s, i) => (
             <div key={i} className={styles.slide}>
 
-              {/* Copy */}
               <div className={styles.copy}>
                 <span className={styles.tag}>{s.tag}</span>
                 <h2
@@ -95,25 +102,15 @@ export default function MockupCarousel() {
                 </Link>
               </div>
 
-              {/* Device frame */}
-              <div className={styles.deviceWrap}>
-                <div className={styles.device}>
-                  <div className={styles.deviceBar}>
-                    <div className={`${styles.dot} ${styles.dotRed}`} />
-                    <div className={`${styles.dot} ${styles.dotYellow}`} />
-                    <div className={`${styles.dot} ${styles.dotGreen}`} />
-                  </div>
-                  <div className={styles.screen}>
-                    <Image
-                      src={s.image}
-                      alt={s.tag}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 55vw"
-                      className={styles.img}
-                      priority={i === 0}
-                    />
-                  </div>
-                </div>
+              <div className={styles.mockupWrap}>
+                <Image
+                  src={s.image}
+                  alt={s.tag}
+                  width={900}
+                  height={560}
+                  className={styles.mockupImg}
+                  priority={i === 0}
+                />
               </div>
 
             </div>
@@ -121,7 +118,6 @@ export default function MockupCarousel() {
         </div>
       </div>
 
-      {/* Dots */}
       <div className={styles.dots}>
         {SLIDES.map((_, i) => (
           <button

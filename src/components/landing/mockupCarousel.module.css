@@ -1,4 +1,4 @@
-/* ── SECTION — adapts to theme ── */
+/* ── SECTION ── */
 .section {
   background: var(--bg);
   padding: 80px 0 60px;
@@ -23,8 +23,8 @@
 .slide {
   min-width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 64px;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 56px;
   align-items: center;
 }
 
@@ -50,14 +50,13 @@
 }
 
 .title {
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 800;
   line-height: 1.2;
   color: var(--text);
   margin: 0;
 }
 
-/* highlighted words */
 .title em {
   font-style: normal;
   color: var(--gold);
@@ -89,58 +88,21 @@
   transform: translateY(-1px);
 }
 
-/* ── DEVICE FRAME + TILT ── */
-.deviceWrap {
-  transform: perspective(1100px) rotateY(-10deg) rotateX(3deg);
-  transform-style: preserve-3d;
+/* ── MOCKUP IMAGE ── */
+.mockupWrap {
+  transform: perspective(1100px) rotateY(-8deg) rotateX(2deg);
   transition: transform .4s ease;
-  /* glow */
-  filter: drop-shadow(0 0 28px rgba(0, 200, 240, .3))
-          drop-shadow(0 24px 48px rgba(0,0,0,.5));
 }
 
-.deviceWrap:hover {
-  transform: perspective(1100px) rotateY(-5deg) rotateX(1.5deg);
+.mockupWrap:hover {
+  transform: perspective(1100px) rotateY(-4deg) rotateX(1deg);
 }
 
-.device {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1.5px solid rgba(0, 200, 240, 0.35);
-  background: var(--card);
-}
-
-.deviceBar {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  padding: 10px 14px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-
-.dotRed    { background: #ff5f57; }
-.dotYellow { background: #ffbd2e; }
-.dotGreen  { background: #28c840; }
-
-.screen {
-  position: relative;
+.mockupImg {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  background: var(--bg);
-  overflow: hidden;
-}
-
-.img {
-  object-fit: cover;
-  object-position: top left;
+  height: auto;
+  border-radius: 10px;
+  display: block;
 }
 
 /* ── DOTS ── */
@@ -175,13 +137,13 @@
 
   .slide {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 32px;
   }
 
-  .deviceWrap {
-    transform: perspective(900px) rotateY(-5deg) rotateX(2deg);
+  .mockupWrap {
+    transform: perspective(900px) rotateY(-4deg) rotateX(1deg);
   }
 
   .title { font-size: 1.65rem; }
-  .desc { max-width: 100%; font-size: .9rem; }
+  .desc { max-width: 100%; }
 }
