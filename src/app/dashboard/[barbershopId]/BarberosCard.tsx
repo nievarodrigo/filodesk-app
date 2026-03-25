@@ -23,8 +23,8 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
     <>
       {/* KPI card — misma altura que las otras */}
       <div style={{
-        background: '#1e1e1e',
-        border: '1px solid #3a3a3a',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderTop: '3px solid var(--gold)',
         borderRadius: 10,
         padding: '18px 20px',
@@ -32,7 +32,7 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
         flexDirection: 'column',
         gap: 8,
       }}>
-        <p style={{ fontSize: '.68rem', textTransform: 'uppercase', letterSpacing: 1, color: '#7a7060', fontWeight: 600 }}>
+        <p style={{ fontSize: '.68rem', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted)', fontWeight: 600 }}>
           Barberos activos
         </p>
         <p style={{ fontSize: '1.5rem', fontWeight: 700, lineHeight: 1, color: 'var(--cream)' }}>
@@ -43,9 +43,9 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
           style={{
             marginTop: 4,
             background: 'transparent',
-            border: '1px solid #3a3a3a',
+            border: '1px solid var(--border)',
             borderRadius: 6,
-            color: '#7a7060',
+            color: 'var(--muted)',
             fontSize: '.75rem',
             fontWeight: 600,
             padding: '5px 10px',
@@ -53,8 +53,8 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
             alignSelf: 'flex-start',
             transition: 'color .15s, border-color .15s',
           }}
-          onMouseEnter={e => { const b = e.currentTarget; b.style.color = '#c9a84c'; b.style.borderColor = '#c9a84c' }}
-          onMouseLeave={e => { const b = e.currentTarget; b.style.color = '#7a7060'; b.style.borderColor = '#3a3a3a' }}
+          onMouseEnter={e => { const b = e.currentTarget; b.style.color = 'var(--gold)'; b.style.borderColor = 'var(--gold)' }}
+          onMouseLeave={e => { const b = e.currentTarget; b.style.color = 'var(--muted)'; b.style.borderColor = 'var(--border)' }}
         >
           Gestionar
         </button>
@@ -74,8 +74,8 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#1e1e1e',
-              border: '1px solid #3a3a3a',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
               borderRadius: 14,
               padding: '24px 28px',
               width: '100%',
@@ -90,7 +90,7 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
               <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cream)' }}>Barberos</p>
               <button
                 onClick={() => setOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: '#7a7060', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}
               >
                 ✕
               </button>
@@ -119,13 +119,13 @@ function BarberRow({ barbershopId, barber }: { barbershopId: string; barber: Bar
       justifyContent: 'space-between',
       gap: 12,
       padding: '12px 0',
-      borderBottom: '1px solid #2a2a2a',
+      borderBottom: '1px solid var(--hover)',
       opacity: barber.active ? 1 : 0.5,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
           width: 8, height: 8, borderRadius: '50%',
-          background: barber.active ? 'var(--green)' : '#3a3a3a',
+          background: barber.active ? 'var(--green)' : 'var(--border)',
           flexShrink: 0,
         }} />
         <div>

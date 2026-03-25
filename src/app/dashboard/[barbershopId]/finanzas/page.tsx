@@ -26,7 +26,7 @@ const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Alquiler: '#c9a84c', Productos: '#5ecf87', Servicios: '#7eb8f7', Sueldos: '#e07070', Otros: '#7a7060',
+  Alquiler: 'var(--gold)', Productos: '#5ecf87', Servicios: '#7eb8f7', Sueldos: '#e07070', Otros: 'var(--muted)',
 }
 
 export default async function FinanzasPage({
@@ -290,7 +290,7 @@ export default async function FinanzasPage({
         <div>
           <VentasPorBarbero data={barberData} />
         </div>
-        <div style={{ background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 12, padding: '16px 20px' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
           <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
             Gastos por categoría
           </p>
@@ -301,11 +301,11 @@ export default async function FinanzasPage({
               {Object.entries(catMap).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => (
                 <div key={cat}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: '.85rem', color: CATEGORY_COLORS[cat] ?? '#7a7060', fontWeight: 600 }}>{cat}</span>
+                    <span style={{ fontSize: '.85rem', color: CATEGORY_COLORS[cat] ?? 'var(--muted)', fontWeight: 600 }}>{cat}</span>
                     <span style={{ fontSize: '.85rem', color: 'var(--text)', fontWeight: 600 }}>{formatARS(amt)}</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 3, background: '#2a2a2a', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round(amt / gastosMes * 100)}%`, height: '100%', borderRadius: 3, background: CATEGORY_COLORS[cat] ?? '#7a7060' }} />
+                  <div style={{ height: 6, borderRadius: 3, background: 'var(--hover)', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.round(amt / gastosMes * 100)}%`, height: '100%', borderRadius: 3, background: CATEGORY_COLORS[cat] ?? 'var(--muted)' }} />
                   </div>
                 </div>
               ))}
@@ -317,13 +317,13 @@ export default async function FinanzasPage({
       {/* Two columns: ranking servicios + productos */}
       <div className={styles.twoCol}>
         {svcRanking.length > 0 && (
-          <div style={{ background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 12, padding: '16px 20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
             <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
               Top servicios
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {svcRanking.map((svc, i) => (
-                <div key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid #2a2a2a' }}>
+                <div key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid var(--hover)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
                     <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{svc.name}</span>

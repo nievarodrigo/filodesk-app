@@ -160,7 +160,7 @@
 
 .mobileAuthBtnPrimary {
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   border-color: var(--gold);
 }
 .mobileAuthBtnPrimary:hover { background: var(--gold-soft); }
@@ -179,7 +179,7 @@
 /* ── BUTTONS ── */
 .btn {
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   border: none;
   padding: 10px 24px;
   border-radius: var(--radius);
@@ -226,7 +226,7 @@
   width: 26px;
   height: 26px;
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -526,7 +526,7 @@
 .pricingBadge {
   display: inline-block;
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   font-size: .72rem;
   font-weight: 700;
   padding: 4px 14px;
@@ -832,7 +832,7 @@
 }
 .socialLink:hover { color: var(--gold); border-color: rgba(201,168,76,.4); }
 
-.footerCopy { color: #3a3a3a; font-size: .72rem; }
+.footerCopy { color: var(--border); font-size: .72rem; }
 
 /* ── MOBILE ── */
 @media (max-width: 768px) {

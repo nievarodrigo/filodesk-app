@@ -161,7 +161,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
             {open && suggestions.length > 0 && (
               <div style={{
                 position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-                background: '#252525', border: '1px solid #3a3a3a', borderRadius: 8,
+                background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8,
                 marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,.4)',
               }}>
                 {suggestions.map((p, i) => {
@@ -175,13 +175,13 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                       disabled={avail <= 0}
                       style={{
                         width: '100%', border: 'none',
-                        background: highlighted ? '#2a2a2a' : 'transparent',
+                        background: highlighted ? 'var(--hover)' : 'transparent',
                         padding: '10px 14px', cursor: avail <= 0 ? 'not-allowed' : 'pointer',
                         textAlign: 'left', display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', borderBottom: '1px solid #2a2a2a',
+                        alignItems: 'center', borderBottom: '1px solid var(--hover)',
                         opacity: avail <= 0 ? 0.4 : 1,
                       }}
-                      onMouseEnter={e => { if (avail > 0) { e.currentTarget.style.background = '#2a2a2a'; setActiveIdx(i) } }}
+                      onMouseEnter={e => { if (avail > 0) { e.currentTarget.style.background = 'var(--hover)'; setActiveIdx(i) } }}
                       onMouseLeave={e => { if (!highlighted) e.currentTarget.style.background = 'transparent' }}
                     >
                       <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{p.name}</span>
@@ -197,7 +197,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
 
           {/* Carrito */}
           {cart.length > 0 && (
-            <div style={{ background: '#252525', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ background: 'var(--card)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {cart.map(c => (
                 <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: 1 }}>
@@ -213,7 +213,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                   >✕</button>
                 </div>
               ))}
-              <div style={{ borderTop: '1px solid #3a3a3a', paddingTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px' }}>Total</span>
                 <span style={{ fontSize: '1rem', color: 'var(--gold)', fontWeight: 700 }}>{formatARS(total)}</span>
               </div>
@@ -240,11 +240,11 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 14, padding: '24px 28px', width: '100%', maxWidth: 480, maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 16 }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 28px', width: '100%', maxWidth: 480, maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 16 }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cream)' }}>Productos disponibles</p>
-              <button onClick={() => setModal(false)} style={{ background: 'transparent', border: 'none', color: '#7a7060', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}>✕</button>
+              <button onClick={() => setModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}>✕</button>
             </div>
             <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {products.map(p => {
@@ -256,12 +256,12 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                     onClick={() => { pick(p); setModal(false) }}
                     disabled={avail <= 0}
                     style={{
-                      background: 'transparent', border: 'none', borderBottom: '1px solid #2a2a2a',
+                      background: 'transparent', border: 'none', borderBottom: '1px solid var(--hover)',
                       padding: '11px 4px', cursor: avail <= 0 ? 'not-allowed' : 'pointer', textAlign: 'left',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       gap: 12, borderRadius: 4, opacity: avail <= 0 ? 0.4 : 1,
                     }}
-                    onMouseEnter={e => { if (avail > 0) e.currentTarget.style.background = '#2a2a2a' }}
+                    onMouseEnter={e => { if (avail > 0) e.currentTarget.style.background = 'var(--hover)' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span style={{ fontSize: '.9rem', color: 'var(--cream)', fontWeight: 500 }}>{p.name}</span>

@@ -2,8 +2,8 @@
 .title  { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
 
 .block {
-  background: #1e1e1e;
-  border: 1px solid #3a3a3a;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
@@ -32,7 +32,7 @@
   letter-spacing: .7px;
   color: var(--muted);
   font-weight: 600;
-  border-bottom: 1px solid #3a3a3a;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
 }
 .tableRow {
@@ -45,7 +45,7 @@
   align-items: center;
   transition: background .12s;
 }
-.tableRow:hover { background: #2a2a2a; }
+.tableRow:hover { background: var(--hover); }
 
 .badgeActive   { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(94,207,135,.12);  color: var(--green); }
 .badgeInactive { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(122,112,96,.12); color: var(--muted); }

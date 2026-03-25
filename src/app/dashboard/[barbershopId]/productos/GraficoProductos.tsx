@@ -12,7 +12,7 @@ interface ProductoData {
 
 interface Props { data: ProductoData[] }
 
-const COLORS = ['#c9a84c', '#5ecf87', '#7eb8f7', '#e07070', '#a78bfa', '#fb923c', '#34d399', '#f472b6']
+const COLORS = ['var(--gold)', '#5ecf87', '#7eb8f7', '#e07070', '#a78bfa', '#fb923c', '#34d399', '#f472b6']
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -23,11 +23,11 @@ const CustomTooltip = ({ active, payload }: any) => {
   const d = payload[0].payload
   return (
     <div style={{
-      background: '#1e1e1e', border: '1px solid #3a3a3a',
+      background: 'var(--surface)', border: '1px solid var(--border)',
       borderRadius: 8, padding: '10px 14px', fontSize: '.82rem',
     }}>
-      <p style={{ color: '#d4c5a9', fontWeight: 600, marginBottom: 4 }}>{d.name}</p>
-      <p style={{ color: '#7a7060' }}>{d.cantidad} u. vendidas</p>
+      <p style={{ color: 'var(--cream)', fontWeight: 600, marginBottom: 4 }}>{d.name}</p>
+      <p style={{ color: 'var(--muted)' }}>{d.cantidad} u. vendidas</p>
       <p style={{ color: '#5ecf87', fontWeight: 600 }}>{formatARS(d.ingresos)}</p>
     </div>
   )
@@ -41,7 +41,7 @@ export default function GraficoProductos({ data }: Props) {
 
   return (
     <div style={{
-      background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 12,
+      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
       padding: '16px 20px', marginBottom: 20,
     }}>
       <p style={{
@@ -71,7 +71,7 @@ export default function GraficoProductos({ data }: Props) {
           <Tooltip content={<CustomTooltip />} />
           <Legend
             formatter={(v) => v}
-            wrapperStyle={{ fontSize: '.78rem', color: '#7a7060' }}
+            wrapperStyle={{ fontSize: '.78rem', color: 'var(--muted)' }}
           />
         </PieChart>
       </ResponsiveContainer>

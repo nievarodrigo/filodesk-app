@@ -10,7 +10,7 @@
 .subtitle { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 
 .btnPrimary {
-  background: var(--gold); color: #0e0e0e; border: none;
+  background: var(--gold); color: var(--bg); border: none;
   padding: 10px 18px; border-radius: 8px; font-weight: 700;
   font-size: .88rem; cursor: pointer; transition: background .15s; white-space: nowrap;
 }
@@ -113,7 +113,7 @@
 }
 
 .btnSave {
-  background: var(--gold); color: #0e0e0e; border: none;
+  background: var(--gold); color: var(--bg); border: none;
   padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700;
 }
 .btnSave:disabled { opacity: .6; }

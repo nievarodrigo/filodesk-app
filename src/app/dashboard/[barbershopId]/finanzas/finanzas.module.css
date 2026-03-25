@@ -12,8 +12,8 @@
 @media (max-width: 480px) { .kpis { grid-template-columns: 1fr; } }
 
 .kpiCard {
-  background: #1e1e1e;
-  border: 1px solid #3a3a3a;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-top: 3px solid var(--gold);
   border-radius: 10px;
   padding: 18px 20px;
@@ -22,7 +22,7 @@
   font-size: .68rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #7a7060;
+  color: var(--muted);
   font-weight: 600;
   margin-bottom: 6px;
 }
@@ -61,20 +61,20 @@
   font-weight: 600;
   color: var(--muted);
   background: transparent;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--border);
   border-radius: 20px;
   text-decoration: none;
   text-transform: capitalize;
   transition: background .15s, color .15s;
 }
-.monthTab:hover { background: #2a2a2a; color: var(--text); }
+.monthTab:hover { background: var(--hover); color: var(--text); }
 .monthActive {
   composes: monthTab;
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   border-color: var(--gold);
 }
-.monthActive:hover { background: var(--gold); color: #0e0e0e; }
+.monthActive:hover { background: var(--gold); color: var(--bg); }
 
 /* ── Stats row ── */
 .statsRow {
@@ -84,8 +84,8 @@
   margin-bottom: 20px;
 }
 .statCard {
-  background: #1e1e1e;
-  border: 1px solid #3a3a3a;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px 20px;
 }
@@ -93,7 +93,7 @@
   font-size: .68rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #7a7060;
+  color: var(--muted);
   font-weight: 600;
   margin-bottom: 6px;
 }

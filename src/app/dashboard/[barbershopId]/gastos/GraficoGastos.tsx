@@ -11,11 +11,11 @@ interface DayData { fecha: string; amount: number; category: string }
 interface Props    { data: DayData[] }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Alquiler:  '#c9a84c',
+  Alquiler:  'var(--gold)',
   Productos: '#5ecf87',
   Servicios: '#7eb8f7',
   Sueldos:   '#e07070',
-  Otros:     '#7a7060',
+  Otros:     'var(--muted)',
 }
 
 const fmtFull = (n: number) =>
@@ -33,8 +33,8 @@ const Tooltip_ = ({ active, payload, label, cat, categories }: any) => {
   if (!active || !payload?.length) return null
   const total = payload.reduce((s: number, p: any) => s + (p.value ?? 0), 0)
   return (
-    <div style={{ background:'#1e1e1e', border:'1px solid #3a3a3a', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
-      <p style={{ color:'#d4c5a9', fontWeight:600, marginBottom:6 }}>{shortDate(label)}</p>
+    <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
+      <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>{shortDate(label)}</p>
       {cat === 'Todos' ? (
         <>
           {payload.map((p: any) => p.value > 0 && (
@@ -43,7 +43,7 @@ const Tooltip_ = ({ active, payload, label, cat, categories }: any) => {
             </p>
           ))}
           {payload.length > 1 && (
-            <p style={{ color:'#d4c5a9', fontWeight:700, marginTop:4, borderTop:'1px solid #3a3a3a', paddingTop:4 }}>
+            <p style={{ color:'var(--cream)', fontWeight:700, marginTop:4, borderTop:'1px solid var(--border)', paddingTop:4 }}>
               Total: {fmtFull(total)}
             </p>
           )}
@@ -113,17 +113,17 @@ export default function GraficoGastos({ data }: Props) {
 
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top:4, right:8, left:0, bottom:0 }} barSize={barSize}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--hover)" vertical={false} />
           <XAxis
             dataKey="fecha"
             tickFormatter={shortDate}
-            tick={{ fill: '#7a7060', fontSize: 11 }}
+            tick={{ fill: 'var(--muted)', fontSize: 11 }}
             axisLine={false} tickLine={false}
             interval={xInterval}
           />
           <YAxis
             tickFormatter={fmtARS}
-            tick={{ fill: '#7a7060', fontSize: 11 }}
+            tick={{ fill: 'var(--muted)', fontSize: 11 }}
             axisLine={false} tickLine={false}
             width={48}
           />

@@ -44,7 +44,7 @@ export default function FAQPage() {
         <h1 className={styles.title}>Preguntas frecuentes</h1>
         <p className={styles.updated}>
           ¿No encontrás lo que buscás?{' '}
-          <a href="mailto:hola@filodesk.com" style={{ color: '#c9a84c' }}>Escribinos</a>
+          <a href="mailto:hola@filodesk.com" style={{ color: 'var(--gold)' }}>Escribinos</a>
         </p>
 
         {FAQS.map((faq, i) => (

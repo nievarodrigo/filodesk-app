@@ -19,11 +19,11 @@ function monthLabel(ym: string) {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Alquiler:  '#c9a84c',
+  Alquiler:  'var(--gold)',
   Productos: '#5ecf87',
   Servicios: '#7eb8f7',
   Sueldos:   '#e07070',
-  Otros:     '#7a7060',
+  Otros:     'var(--muted)',
 }
 
 export default async function GastosPage({
@@ -120,11 +120,11 @@ export default async function GastosPage({
       {Object.keys(byCategory).length > 0 && (
         <div className={styles.catGrid}>
           {Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => (
-            <div key={cat} className={styles.catCard} style={{ borderTopColor: CATEGORY_COLORS[cat] ?? '#7a7060' }}>
+            <div key={cat} className={styles.catCard} style={{ borderTopColor: CATEGORY_COLORS[cat] ?? 'var(--muted)' }}>
               <p className={styles.catName}>{cat}</p>
               <p className={styles.catAmt}>{formatARS(amt)}</p>
               <div className={styles.catBar}>
-                <div className={styles.catBarFill} style={{ width: `${Math.round(amt / total * 100)}%`, background: CATEGORY_COLORS[cat] ?? '#7a7060' }} />
+                <div className={styles.catBarFill} style={{ width: `${Math.round(amt / total * 100)}%`, background: CATEGORY_COLORS[cat] ?? 'var(--muted)' }} />
               </div>
               <p className={styles.catPct}>{Math.round(amt / total * 100)}%</p>
             </div>

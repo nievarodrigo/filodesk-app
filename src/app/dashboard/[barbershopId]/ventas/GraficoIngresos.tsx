@@ -53,20 +53,20 @@ const Tooltip_ = ({ active, payload, label, vista, weekly }: any) => {
   const s = payload.find((p: any) => p.dataKey === 'servicios')?.value ?? 0
   const pr = payload.find((p: any) => p.dataKey === 'productos')?.value ?? 0
   return (
-    <div style={{ background:'#1e1e1e', border:'1px solid #3a3a3a', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
-      <p style={{ color:'#d4c5a9', fontWeight:600, marginBottom:6 }}>
+    <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
+      <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>
         {weekly ? `Semana del ${weekLabel(label)}` : shortDate(label)}
       </p>
       {vista === 'total' ? (
         <>
-          <p style={{ color:'#c9a84c' }}>Servicios: {fmtFull(s)}</p>
+          <p style={{ color:'var(--gold)' }}>Servicios: {fmtFull(s)}</p>
           {pr > 0 && <p style={{ color:'#5ecf87' }}>Productos: {fmtFull(pr)}</p>}
-          <p style={{ color:'#5ecf87', fontWeight:700, marginTop:4, borderTop:'1px solid #3a3a3a', paddingTop:4 }}>
+          <p style={{ color:'#5ecf87', fontWeight:700, marginTop:4, borderTop:'1px solid var(--border)', paddingTop:4 }}>
             Total: {fmtFull(s + pr)}
           </p>
         </>
       ) : vista === 'servicios' ? (
-        <p style={{ color:'#c9a84c', fontWeight:600 }}>{fmtFull(s)}</p>
+        <p style={{ color:'var(--gold)', fontWeight:600 }}>{fmtFull(s)}</p>
       ) : (
         <p style={{ color:'#5ecf87', fontWeight:600 }}>{fmtFull(pr)}</p>
       )}
@@ -95,13 +95,13 @@ export default function GraficoIngresos({ data }: Props) {
     xProps: {
       dataKey: 'fecha',
       tickFormatter: isWeekly ? weekLabel : shortDate,
-      tick: { fill: '#7a7060', fontSize: 11 },
+      tick: { fill: 'var(--muted)', fontSize: 11 },
       axisLine: false, tickLine: false,
       interval: xInterval,
     },
     yProps: {
       tickFormatter: fmtARS,
-      tick: { fill: '#7a7060', fontSize: 11 },
+      tick: { fill: 'var(--muted)', fontSize: 11 },
       axisLine: false, tickLine: false,
       width: 48,
     },
@@ -127,7 +127,7 @@ export default function GraficoIngresos({ data }: Props) {
       <ResponsiveContainer width="100%" height={220}>
         {isWeekly ? (
           <LineChart data={chartData} margin={{ top:4, right:8, left:0, bottom:0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--hover)" vertical={false} />
             <XAxis {...commonAxis.xProps} />
             <YAxis {...commonAxis.yProps} />
             <Tooltip content={<Tooltip_ vista={vista} weekly />} cursor={{ stroke:'rgba(255,255,255,.08)', strokeWidth:1 }} />
@@ -135,11 +135,11 @@ export default function GraficoIngresos({ data }: Props) {
               <Line dataKey="productos" stroke="#5ecf87" strokeWidth={2} dot={false} />
             )}
             {(vista === 'total' || vista === 'servicios') && (
-              <Line dataKey="servicios" stroke="#c9a84c" strokeWidth={2.5}
+              <Line dataKey="servicios" stroke="var(--gold)" strokeWidth={2.5}
                 dot={(props: any) => {
                   const { cx, cy, value } = props
                   return value > 0
-                    ? <circle key={`d${cx}`} cx={cx} cy={cy} r={3} fill="#c9a84c" stroke="#1e1e1e" strokeWidth={1.5} />
+                    ? <circle key={`d${cx}`} cx={cx} cy={cy} r={3} fill="var(--gold)" stroke="var(--surface)" strokeWidth={1.5} />
                     : <g key={`d${cx}`} />
                 }}
               />
@@ -147,12 +147,12 @@ export default function GraficoIngresos({ data }: Props) {
           </LineChart>
         ) : (
           <BarChart data={chartData} margin={{ top:4, right:8, left:0, bottom:0 }} barSize={barSize}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--hover)" vertical={false} />
             <XAxis {...commonAxis.xProps} />
             <YAxis {...commonAxis.yProps} />
             <Tooltip content={<Tooltip_ vista={vista} />} cursor={{ fill:'rgba(255,255,255,.04)' }} />
             {(vista === 'total' || vista === 'servicios') && (
-              <Bar dataKey="servicios" fill="#c9a84c"
+              <Bar dataKey="servicios" fill="var(--gold)"
                 radius={vista === 'servicios' ? [3,3,0,0] : [0,0,0,0]} stackId="a" />
             )}
             {(vista === 'total' || vista === 'productos') && (

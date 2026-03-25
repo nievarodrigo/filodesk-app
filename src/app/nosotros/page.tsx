@@ -52,7 +52,7 @@ export default function NosotrosPage() {
           <h2>Contacto</h2>
           <p>
             ¿Tenés alguna pregunta o sugerencia? Escribinos a{' '}
-            <a href="mailto:hola@filodesk.com" style={{ color: '#c9a84c' }}>hola@filodesk.com</a>.
+            <a href="mailto:hola@filodesk.com" style={{ color: 'var(--gold)' }}>hola@filodesk.com</a>.
           </p>
         </div>
       </div>

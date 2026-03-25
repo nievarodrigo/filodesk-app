@@ -104,7 +104,7 @@
 
 .btn {
   background: var(--gold);
-  color: #0e0e0e;
+  color: var(--bg);
   border: none;
   padding: 13px 24px;
   border-radius: var(--radius);

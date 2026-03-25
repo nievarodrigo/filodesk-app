@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 import styles from './sidebar.module.css'
 
 const NAV = [
@@ -106,6 +107,7 @@ export default function Sidebar({ barbershopId, barbershopName }: Props) {
       </nav>
 
       <div className={styles.bottom}>
+        <ThemeToggle />
         <form action={logout}>
           <button type="submit" className={styles.signout}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
