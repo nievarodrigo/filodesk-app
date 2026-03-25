@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
-import DashboardPreview from '@/components/landing/DashboardPreview'
+import MockupCarousel from '@/components/landing/MockupCarousel'
 import Features from '@/components/landing/Features'
 import Pricing from '@/components/landing/Pricing'
 import CTASection from '@/components/landing/CTASection'
@@ -24,7 +24,7 @@ export default async function LandingPage({
       <Navbar />
       <AuthErrorBanner searchParams={params} />
       <Hero />
-      <DashboardPreview />
+      <MockupCarousel />
       <hr className={styles.divider} />
       <Features />
       <hr className={styles.divider} />

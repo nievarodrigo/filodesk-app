@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { today } from '@/lib/date'
+import { today, startOfWeek } from '@/lib/date'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
 import BarberosCard from './BarberosCard'
+import PeakHoursChart from './PeakHoursChart'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Dashboard — FiloDesk' }
@@ -24,6 +25,7 @@ export default async function DashboardPage({
   const supabase = await createClient()
 
   const todayDate = today()
+  const weekStart = startOfWeek()
 
   const [
     { data: barbers },
@@ -32,6 +34,8 @@ export default async function DashboardPage({
     { data: recentSales },
     { data: products },
     { data: productSalesToday },
+    { data: salesTodayTimed },
+    { data: weekSales },
   ] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
@@ -52,7 +56,33 @@ export default async function DashboardPage({
       .eq('barbershop_id', barbershopId)
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
+    supabase.from('sales').select('created_at').eq('barbershop_id', barbershopId).eq('date', todayDate),
+    supabase.from('sales').select('date').eq('barbershop_id', barbershopId).gte('date', weekStart),
   ])
+
+  // Hourly data (Argentina = UTC-3)
+  const HOUR_SLOTS = [
+    { label: '8-10', start: 8 }, { label: '10-12', start: 10 },
+    { label: '12-14', start: 12 }, { label: '14-16', start: 14 },
+    { label: '16-18', start: 16 }, { label: '18-20', start: 18 },
+    { label: '20-22', start: 20 },
+  ]
+  const hourlyData = HOUR_SLOTS.map((slot, i) => ({ x: i, label: slot.label, y: 0 }))
+  for (const sale of (salesTodayTimed ?? [])) {
+    const utcHour = new Date(sale.created_at).getUTCHours()
+    const argHour = (utcHour - 3 + 24) % 24
+    const idx = HOUR_SLOTS.findIndex(s => argHour >= s.start && argHour < s.start + 2)
+    if (idx >= 0) hourlyData[idx].y++
+  }
+
+  // Daily data (current week Mon-Sun)
+  const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+  const dailyData = DAY_LABELS.map((label, i) => ({ x: i, label, y: 0 }))
+  for (const sale of (weekSales ?? [])) {
+    const d = new Date(sale.date + 'T12:00:00Z')
+    const idx = (d.getUTCDay() + 6) % 7
+    dailyData[idx].y++
+  }
 
   const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
@@ -125,6 +155,9 @@ export default async function DashboardPage({
           amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
         }))}
       />
+
+      {/* Horas pico */}
+      <PeakHoursChart hourlyData={hourlyData} dailyData={dailyData} />
     </div>
   )
 }

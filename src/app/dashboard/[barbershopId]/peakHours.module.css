@@ -1,0 +1,68 @@
+.wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px 8px;
+  margin-top: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+
+.toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--hover);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: .78rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.tabActive {
+  background: var(--surface);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.tooltip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltipLabel {
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.tooltipVal {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--gold);
+}
