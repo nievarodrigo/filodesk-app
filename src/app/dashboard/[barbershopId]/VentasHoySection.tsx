@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { deleteVenta } from '@/app/actions/venta'
+import { useState } from 'react'
 import styles from './ventashoy.module.css'
 
 interface ServiceSale {
@@ -14,43 +13,60 @@ interface ProductSale {
   product: string; quantity: number
   amount: number
 }
-type AnyRow = ServiceSale | ProductSale
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
+interface GroupedService {
+  key: string
+  barber: string
+  service: string
+  count: number
+  total: number
+}
+
+function groupServices(sales: ServiceSale[]): GroupedService[] {
+  const map = new Map<string, GroupedService>()
+  for (const s of sales) {
+    const key = `${s.barber}||${s.service}`
+    const existing = map.get(key)
+    if (existing) {
+      existing.count++
+      existing.total += s.amount
+    } else {
+      map.set(key, { key, barber: s.barber, service: s.service, count: 1, total: s.amount })
+    }
+  }
+  // Ordenar por barbero luego servicio
+  return [...map.values()].sort((a, b) =>
+    a.barber.localeCompare(b.barber) || a.service.localeCompare(b.service)
+  )
+}
+
 interface Props {
-  barbershopId: string
   serviceSales: ServiceSale[]
   productSales: ProductSale[]
 }
 
-function DeleteBtn({ barbershopId, saleId }: { barbershopId: string; saleId: string }) {
-  const [pending, start] = useTransition()
-  return (
-    <button className={styles.btnDelete} disabled={pending}
-      onClick={() => { if (confirm('¿Eliminar?')) start(() => deleteVenta(barbershopId, saleId)) }}>
-      {pending ? '…' : '✕'}
-    </button>
-  )
-}
-
-export default function VentasHoySection({ barbershopId, serviceSales, productSales }: Props) {
+export default function VentasHoySection({ serviceSales, productSales }: Props) {
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
 
-  const all: AnyRow[] = [...serviceSales, ...productSales]
-  const visible = filter === 'todos' ? all : all.filter(r => r.type === filter)
-
+  const grouped = groupServices(serviceSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
   const totalProductos = productSales.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
 
   const TABS = [
-    { key: 'todos',    label: `Todos (${all.length})` },
+    { key: 'todos',    label: `Todos` },
     { key: 'servicio', label: `Servicios (${serviceSales.length})` },
     { key: 'producto', label: `Productos (${productSales.length})` },
   ] as const
+
+  const showServices = filter === 'todos' || filter === 'servicio'
+  const showProducts = filter === 'todos' || filter === 'producto'
+
+  const totalCount = serviceSales.length + productSales.length
 
   return (
     <div className={styles.section}>
@@ -58,7 +74,7 @@ export default function VentasHoySection({ barbershopId, serviceSales, productSa
         <div className={styles.sectionLeft}>
           <h2 className={styles.sectionTitle}>
             Ventas de hoy
-            {all.length > 0 && <span className={styles.badge}>{all.length}</span>}
+            {totalCount > 0 && <span className={styles.badge}>{totalCount}</span>}
           </h2>
           {total > 0 && (
             <div className={styles.totals}>
@@ -82,40 +98,64 @@ export default function VentasHoySection({ barbershopId, serviceSales, productSa
         </div>
       </div>
 
-      {visible.length === 0 ? (
-        <p className={styles.empty}>
-          {all.length === 0 ? 'Todavía no hay ventas hoy.' : `No hay ${filter === 'servicio' ? 'servicios' : 'productos'} hoy.`}
-        </p>
+      {totalCount === 0 ? (
+        <p className={styles.empty}>Todavía no hay ventas hoy.</p>
       ) : (
         <div className={styles.table}>
-          <div className={styles.tableHead}>
-            <span>Tipo</span>
-            <span>Detalle</span>
-            <span>Monto</span>
-            <span>Info</span>
-            <span></span>
-          </div>
-          {visible.map(row => (
-            <div key={row.id} className={styles.tableRow}>
-              <span>
-                <span className={row.type === 'servicio' ? styles.badgeServicio : styles.badgeProducto}>
-                  {row.type === 'servicio' ? 'Servicio' : 'Producto'}
-                </span>
-              </span>
-              <span style={{ fontWeight: 500 }}>
-                {row.type === 'servicio' ? `${row.service}` : `${row.product}`}
-              </span>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(row.amount)}</span>
-              <span className={styles.muted}>
-                {row.type === 'servicio'
-                  ? `${row.barber}${row.notes ? ` · ${row.notes}` : ''}`
-                  : `${row.quantity} u.`}
-              </span>
-              {row.type === 'servicio'
-                ? <DeleteBtn barbershopId={barbershopId} saleId={row.id} />
-                : <span />}
-            </div>
-          ))}
+
+          {/* ── Servicios agrupados ── */}
+          {showServices && grouped.length > 0 && (
+            <>
+              <div className={styles.tableHead}>
+                <span>Barbero</span>
+                <span>Servicio</span>
+                <span>Cant.</span>
+                <span>Total</span>
+              </div>
+              {grouped.map(g => (
+                <div key={g.key} className={`${styles.tableRow} ${styles.tableRowService}`}>
+                  <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{g.barber}</span>
+                  <span>{g.service}</span>
+                  <span className={styles.countBadge}>×{g.count}</span>
+                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(g.total)}</span>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* ── Separador si hay ambos ── */}
+          {showServices && showProducts && grouped.length > 0 && productSales.length > 0 && (
+            <div className={styles.divider} />
+          )}
+
+          {/* ── Productos ── */}
+          {showProducts && productSales.length > 0 && (
+            <>
+              <div className={styles.tableHead}>
+                <span>Producto</span>
+                <span></span>
+                <span>Cant.</span>
+                <span>Total</span>
+              </div>
+              {productSales.map(p => (
+                <div key={p.id} className={`${styles.tableRow} ${styles.tableRowProduct}`}>
+                  <span style={{ fontWeight: 500 }}>{p.product}</span>
+                  <span />
+                  <span className={styles.countBadge}>×{p.quantity}</span>
+                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(p.amount)}</span>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* ── Empty states por tab ── */}
+          {showServices && !showProducts && grouped.length === 0 && (
+            <p className={styles.empty}>No hay servicios hoy.</p>
+          )}
+          {showProducts && !showServices && productSales.length === 0 && (
+            <p className={styles.empty}>No hay productos hoy.</p>
+          )}
+
         </div>
       )}
     </div>

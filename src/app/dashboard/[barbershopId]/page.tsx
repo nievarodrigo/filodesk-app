@@ -122,7 +122,6 @@ export default async function DashboardPage({
 
       {/* Ventas de hoy */}
       <VentasHoySection
-        barbershopId={barbershopId}
         serviceSales={(recentSales ?? []).map((s: any) => ({
           id: s.id,
           type: 'servicio' as const,
