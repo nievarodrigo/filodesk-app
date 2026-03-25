@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import NuevoProductoForm from './NuevoProductoForm'
 import ProductoRow from './ProductoRow'
 import GraficoProductos from './GraficoProductos'
+import GraficoBarrasMensuales from './GraficoBarrasMensuales'
 import styles from './productos.module.css'
 
 export const metadata: Metadata = { title: 'Productos — FiloDesk' }
@@ -18,8 +19,9 @@ export default async function ProductosPage({
   const supabase = await createClient()
 
   const last90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
+  const last6m = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10)
 
-  const [{ data: products }, { data: recentSales }, { data: salesLast90 }] = await Promise.all([
+  const [{ data: products }, { data: recentSales }, { data: salesLast90 }, { data: salesLast6m }] = await Promise.all([
     supabase.from('products').select('id, name, cost_price, sale_price, stock, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('product_sales')
       .select('id, quantity, sale_price, date, products(name)')
@@ -30,11 +32,31 @@ export default async function ProductosPage({
       .select('quantity, sale_price, products(name)')
       .eq('barbershop_id', barbershopId)
       .gte('date', last90),
+    supabase.from('product_sales')
+      .select('quantity, sale_price, date')
+      .eq('barbershop_id', barbershopId)
+      .gte('date', last6m),
   ])
 
-  const totalStock  = (products ?? []).filter(p => p.active).length
-  const lowStock    = (products ?? []).filter(p => p.active && p.stock <= 2)
-  const totalVentas = (recentSales ?? []).reduce((s, r) => s + (r.sale_price * r.quantity), 0)
+  const activeProducts = (products ?? []).filter(p => p.active)
+  const totalStock     = activeProducts.length
+  const lowStock       = activeProducts.filter(p => p.stock <= 2)
+  const totalVentas    = (recentSales ?? []).reduce((s, r) => s + (r.sale_price * r.quantity), 0)
+  const valorInventario = activeProducts.reduce((s, p) => s + (p.cost_price * p.stock), 0)
+
+  // Agregado mensual para gráfico de barras
+  const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+  const monthMap: Record<string, number> = {}
+  for (const s of salesLast6m ?? []) {
+    const key = s.date.slice(0, 7) // "2025-03"
+    monthMap[key] = (monthMap[key] ?? 0) + (s.sale_price ?? 0) * (s.quantity ?? 1)
+  }
+  const barData = Object.entries(monthMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([ym, ingresos]) => {
+      const [, m] = ym.split('-')
+      return { mes: MESES[Number(m) - 1], ingresos: Math.round(ingresos) }
+    })
 
   // Aggregate for pie chart
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
@@ -65,7 +87,7 @@ export default async function ProductosPage({
       )}
 
       {/* KPIs */}
-      <div className={styles.kpis} style={{ marginTop: 16 }}>
+      <div className={styles.kpis} style={{ marginTop: 16, gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 600 }}>
         <div className={styles.kpiCard}>
           <p className={styles.kpiLabel}>Productos activos</p>
           <p className={styles.kpiValue}>{totalStock}</p>
@@ -74,7 +96,14 @@ export default async function ProductosPage({
           <p className={styles.kpiLabel}>Ventas recientes</p>
           <p className={styles.kpiValue} style={{ color: 'var(--green)' }}>{formatARS(totalVentas)}</p>
         </div>
+        <div className={styles.kpiCard}>
+          <p className={styles.kpiLabel}>Valor en stock</p>
+          <p className={styles.kpiValue} style={{ color: 'var(--gold)' }}>{formatARS(valorInventario)}</p>
+        </div>
       </div>
+
+      {/* Gráfico barras mensual (toggle) */}
+      {barData.length > 0 && <GraficoBarrasMensuales data={barData} />}
 
       {/* Gráfico torta de más vendidos */}
       {pieData.length > 0 && <GraficoProductos data={pieData} />}

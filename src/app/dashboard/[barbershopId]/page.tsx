@@ -5,6 +5,7 @@ import NetoCard from './NetoCard'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
+import BarberosCard from './BarberosCard'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Dashboard — FiloDesk' }
@@ -38,7 +39,7 @@ export default async function DashboardPage({
     { data: expensesMonth },
     { data: salesMonthWithComm },
   ] = await Promise.all([
-    supabase.from('barbers').select('id, name, commission_pct').eq('barbershop_id', barbershopId).eq('active', true).order('name'),
+    supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', monthStart),
@@ -86,11 +87,12 @@ export default async function DashboardPage({
   }, 0)
   const netoMes = totalMes - totalGastosMes - totalComisionesMes
 
+  const activeBarbers = (barbers ?? []).filter(b => b.active)
+
   const kpis = [
-    { label: 'Servicios hoy',    value: countHoy.toString(),           color: 'var(--cream)' },
-    { label: 'Ingresos hoy',     value: formatARS(totalHoy),           color: 'var(--green)' },
-    { label: 'Ingresos del mes', value: formatARS(totalMes),           color: 'var(--gold)'  },
-    { label: 'Barberos activos', value: String((barbers ?? []).length), color: 'var(--cream)' },
+    { label: 'Servicios hoy',    value: countHoy.toString(),    color: 'var(--cream)' },
+    { label: 'Ingresos hoy',     value: formatARS(totalHoy),    color: 'var(--green)' },
+    { label: 'Ingresos del mes', value: formatARS(totalMes),    color: 'var(--gold)'  },
   ]
 
   return (
@@ -110,6 +112,7 @@ export default async function DashboardPage({
             <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
           </div>
         ))}
+        <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
       </div>
 
       {/* Neto del mes */}
@@ -121,7 +124,7 @@ export default async function DashboardPage({
       />
 
       {/* Forms: servicio + producto lado a lado */}
-      {barbers && barbers.length === 0 ? (
+      {activeBarbers.length === 0 ? (
         <div className={styles.noBarbers}>
           Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
         </div>
@@ -129,7 +132,7 @@ export default async function DashboardPage({
         <div className={styles.formRow}>
           <NuevaVentaForm
             barbershopId={barbershopId}
-            barbers={barbers ?? []}
+            barbers={activeBarbers}
             serviceTypes={serviceTypes ?? []}
             compact
           />
