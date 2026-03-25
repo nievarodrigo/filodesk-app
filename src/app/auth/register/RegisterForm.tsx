@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import Script from 'next/script'
+// import Script from 'next/script' // TODO: reactivar Turnstile
 import { register } from '@/app/actions/auth'
 import styles from '../auth.module.css'
 
@@ -10,10 +10,7 @@ export default function RegisterForm() {
 
   return (
     <>
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        strategy="lazyOnload"
-      />
+      {/* TODO: reactivar Turnstile cuando se configure el dominio en Cloudflare */}
 
       <form action={action} className={styles.form}>
         <div className={styles.fieldRow}>
@@ -92,12 +89,6 @@ export default function RegisterForm() {
             <span className={styles.error}>{state.errors.confirmPassword[0]}</span>
           )}
         </div>
-
-        <div
-          className="cf-turnstile"
-          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'}
-          data-theme="dark"
-        />
 
         {state?.message && (
           <div className={styles.errorBox}>{state.message}</div>
