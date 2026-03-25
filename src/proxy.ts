@@ -21,18 +21,19 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
-  const isDashboard   = pathname.startsWith('/dashboard')
-  const isOnboarding  = pathname.startsWith('/onboarding')
-  const isAuthRoute   = pathname.startsWith('/auth')
-  // Sin sesión → login propio de la app
-  if ((isDashboard || isOnboarding) && !user) {
+  const isDashboard  = pathname.startsWith('/dashboard')
+  const isOnboarding = pathname.startsWith('/onboarding')
+  const isAuthRoute  = pathname.startsWith('/auth')
+
+  // Sin sesión → login
+  if ((isDashboard || isOnboarding) && !session) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   // Con sesión en /auth → al dashboard
-  if (isAuthRoute && user) {
+  if (isAuthRoute && session) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
