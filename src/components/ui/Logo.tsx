@@ -24,8 +24,8 @@ export default function Logo({ size = 28, className }: Props) {
 
       {/* Cuerpo del poste */}
       <rect x="0.5" y="0.5" width="9" height="19" rx="4"
-        fill="currentColor" fillOpacity="0.1"
-        stroke="currentColor" strokeOpacity="0.25" strokeWidth="1"
+        fill="#1e5fa8" fillOpacity="0.12"
+        stroke="#1e5fa8" strokeOpacity="0.4" strokeWidth="1"
       />
 
       {/* Franjas diagonales */}
@@ -37,9 +37,9 @@ export default function Logo({ size = 28, className }: Props) {
 
       {/* Caps superior e inferior */}
       <rect x="0.5" y="0.5"  width="9" height="2.5" rx="4"
-        fill="currentColor" fillOpacity="0.3" clipPath="url(#fd-pole)" />
+        fill="#1e5fa8" fillOpacity="0.35" clipPath="url(#fd-pole)" />
       <rect x="0.5" y="17" width="9" height="2.5" rx="0"
-        fill="currentColor" fillOpacity="0.3" clipPath="url(#fd-pole)" />
+        fill="#1e5fa8" fillOpacity="0.35" clipPath="url(#fd-pole)" />
     </svg>
   )
 }
