@@ -9,14 +9,14 @@ export default async function Hero() {
 
   return (
     <div className={styles.hero}>
-      <div className={styles.heroBadge}>✦ Para dueños de barberías</div>
+      <div className={styles.heroBadge}>✦ La app #1 para barberías</div>
       <h1>
-        Sabé exactamente<br />
-        cuánto <span>ganás</span>.
+        Tu barbería,<br />
+        bajo <span>control</span>.
       </h1>
       <p>
-        La herramienta que tu barbería necesitaba. Comisiones, gastos y ganancia
-        — todo calculado solo, para que vos te enfoques en crecer.
+        Ventas, comisiones, gastos y ganancias — todo en un solo lugar.
+        Dejá de perder plata por no tener los números claros.
       </p>
       <div className={styles.heroCta}>
         {user ? (
