@@ -41,7 +41,7 @@
   font-size: .9rem;
   transition: color .2s;
 }
-.navLinks a:hover { color: var(--gold); }
+.navLinks a:hover { color: var(--blue); }
 
 .navFAQBtn {
   background: transparent;
@@ -193,10 +193,10 @@
 
 .btnOutline {
   background: transparent;
-  color: var(--gold);
-  border: 1px solid var(--gold);
+  color: var(--blue);
+  border: 1px solid var(--blue);
 }
-.btnOutline:hover { background: rgba(201,168,76,.1); }
+.btnOutline:hover { background: rgba(91,139,212,.1); }
 
 .btnLg {
   padding: 14px 36px;

@@ -56,8 +56,8 @@
 }
 
 .navLinkActive {
-  background: rgba(201,168,76,.12);
-  color: var(--gold) !important;
+  background: rgba(91,139,212,.12);
+  color: var(--blue) !important;
 }
 
 .navIcon {
