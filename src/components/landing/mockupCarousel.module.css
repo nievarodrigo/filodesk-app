@@ -129,15 +129,15 @@
 /* ── CONTROLS (toggle + dots) ── */
 .controls {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
+  gap: 14px;
   margin-top: 32px;
 }
 
 .viewToggle {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -148,16 +148,24 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
-  transition: background .15s;
-  line-height: 1;
+  transition: background .15s, color .15s;
+  line-height: 0;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggleBtn:hover {
+  color: var(--text);
 }
 
 .toggleBtnActive {
   background: var(--surface);
   box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  color: var(--text);
 }
 
 /* ── DOTS ── */

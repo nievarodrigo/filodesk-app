@@ -142,14 +142,21 @@ export default function MockupCarousel() {
             onClick={() => setViewMode('desktop')}
             title="Vista escritorio"
           >
-            🖥
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
           </button>
           <button
             className={`${styles.toggleBtn} ${isMobile ? styles.toggleBtnActive : ''}`}
             onClick={() => setViewMode('mobile')}
             title="Vista celular"
           >
-            📱
+            <svg width="14" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
           </button>
         </div>
 
