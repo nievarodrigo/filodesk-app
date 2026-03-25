@@ -1,47 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+} from 'recharts'
 import styles from './peakHours.module.css'
 
-type Point = { x: number; label: string; y: number }
+type Point = { label: string; y: number }
 
 type Props = {
   hourlyData: Point[]
   dailyData: Point[]
-}
-
-function CustomDot(props: any) {
-  const { cx, cy, payload, yAxis } = props
-  if (!payload || payload.y === undefined) return null
-  const maxY = yAxis?.niceTicks?.at(-1) ?? 1
-  const ratio = maxY > 0 ? payload.y / maxY : 0
-  const r = payload.y === 0 ? 3 : 5 + ratio * 7
-  const bottom = yAxis ? yAxis.y + yAxis.height : cy
-  return (
-    <g>
-      {payload.y > 0 && (
-        <line
-          x1={cx} y1={cy + r} x2={cx} y2={bottom}
-          stroke="var(--border)" strokeWidth={1} strokeDasharray="3 3"
-        />
-      )}
-      <circle
-        cx={cx} cy={cy} r={r}
-        fill="var(--gold)" fillOpacity={payload.y === 0 ? 0.15 : 0.15 + ratio * 0.75}
-        stroke="var(--gold)" strokeWidth={payload.y === 0 ? 0 : 1.5}
-      />
-      {payload.y > 0 && (
-        <text
-          x={cx} y={cy + 0.5}
-          textAnchor="middle" dominantBaseline="middle"
-          fontSize={9} fontWeight="700" fill="var(--bg)"
-        >
-          {payload.y}
-        </text>
-      )}
-    </g>
-  )
 }
 
 function CustomTooltip({ active, payload }: any) {
@@ -80,27 +49,38 @@ export default function PeakHoursChart({ hourlyData, dailyData }: Props) {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={150}>
-        <ScatterChart margin={{ top: 20, right: 16, bottom: 0, left: -10 }}>
+      <ResponsiveContainer width="100%" height={140}>
+        <AreaChart data={data} margin={{ top: 10, right: 8, bottom: 0, left: -32 }}>
+          <defs>
+            <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#5ecf87" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#5ecf87" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <XAxis
-            type="number"
-            dataKey="x"
-            domain={[-0.5, data.length - 0.5]}
-            ticks={data.map((_, i) => i)}
-            tickFormatter={(v) => data[v]?.label ?? ''}
+            dataKey="label"
             tick={{ fill: 'var(--muted)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            type="number"
-            dataKey="y"
             hide
-            domain={[0, (max: number) => Math.max(max * 1.4, 4)]}
+            domain={[0, (max: number) => Math.max(max * 1.5, 4)]}
           />
-          <Tooltip content={<CustomTooltip />} cursor={false} />
-          <Scatter data={data} shape={<CustomDot />} />
-        </ScatterChart>
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }}
+          />
+          <Area
+            type="monotone"
+            dataKey="y"
+            stroke="#5ecf87"
+            strokeWidth={2}
+            fill="url(#greenGrad)"
+            dot={{ fill: '#5ecf87', strokeWidth: 0, r: 3 }}
+            activeDot={{ fill: '#5ecf87', stroke: 'var(--surface)', strokeWidth: 2, r: 5 }}
+          />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   )

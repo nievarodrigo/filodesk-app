@@ -67,7 +67,7 @@ export default async function DashboardPage({
     { label: '16-18', start: 16 }, { label: '18-20', start: 18 },
     { label: '20-22', start: 20 },
   ]
-  const hourlyData = HOUR_SLOTS.map((slot, i) => ({ x: i, label: slot.label, y: 0 }))
+  const hourlyData = HOUR_SLOTS.map((slot) => ({ label: slot.label, y: 0 }))
   for (const sale of (salesTodayTimed ?? [])) {
     const utcHour = new Date(sale.created_at).getUTCHours()
     const argHour = (utcHour - 3 + 24) % 24
@@ -77,7 +77,7 @@ export default async function DashboardPage({
 
   // Daily data (current week Mon-Sun)
   const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-  const dailyData = DAY_LABELS.map((label, i) => ({ x: i, label, y: 0 }))
+  const dailyData = DAY_LABELS.map((label) => ({ label, y: 0 }))
   for (const sale of (weekSales ?? [])) {
     const d = new Date(sale.date + 'T12:00:00Z')
     const idx = (d.getUTCDay() + 6) % 7
