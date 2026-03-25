@@ -2,14 +2,11 @@
 .section {
   background: var(--bg);
   padding: 80px 0 60px;
-  overflow: hidden; /* clips the track */
 }
 
 /* ── CAROUSEL ── */
 .viewport {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 40px;
+  overflow: hidden; /* full-width clip — adjacent slides stay hidden */
 }
 
 .track {
@@ -25,6 +22,12 @@
   grid-template-columns: 1fr 1.6fr;
   gap: 56px;
   align-items: center;
+  /* padding goes inside each slide, not on the viewport */
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+  box-sizing: border-box;
 }
 
 /* ── COPY ── */
@@ -132,11 +135,11 @@
 /* ── RESPONSIVE ── */
 @media (max-width: 860px) {
   .section { padding: 48px 0 40px; }
-  .viewport { padding: 0 20px; }
 
   .slide {
     grid-template-columns: 1fr;
     gap: 32px;
+    padding: 0 20px;
   }
 
   .mockupWrap {
