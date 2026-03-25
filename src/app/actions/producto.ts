@@ -40,6 +40,20 @@ export async function createProducto(
   })
 
   if (error) return { message: 'No se pudo crear el producto. ' + error.message }
+
+  // Si tiene stock inicial y precio de costo, registrar como gasto automáticamente
+  const { stock, cost_price, name } = validated.data
+  if (stock > 0 && cost_price > 0) {
+    await supabase.from('expenses').insert({
+      barbershop_id: barbershopId,
+      description:   `Stock inicial: ${name} (${stock} u.)`,
+      amount:        cost_price * stock,
+      category:      'Productos',
+      date:          new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }),
+    })
+    revalidatePath(`/dashboard/${barbershopId}/gastos`)
+  }
+
   revalidatePath(`/dashboard/${barbershopId}/productos`)
 }
 
