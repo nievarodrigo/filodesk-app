@@ -90,9 +90,7 @@ export default function Features() {
           <div
             key={f.title}
             className={styles.featureCard}
-            style={f.highlight ? {
-              borderColor: 'rgba(196,30,58,.3)',
-            } : {}}
+            style={{}}
           >
             <div className={styles.featureIcon}>{f.icon}</div>
             <h3>{f.title}</h3>
