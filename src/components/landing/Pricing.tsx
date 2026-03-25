@@ -31,7 +31,11 @@ export default function Pricing() {
       <div className={styles.pricingGrid}>
 
         {/* Plan base */}
-        <div className={styles.pricingCard}>
+        <div className={styles.pricingCard} style={{ position: 'relative', overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+            background: 'var(--blue)',
+          }} />
           <div className={styles.pricingBadge}>Plan completo</div>
           <div className={styles.pricingPrice}>$12.000 <span>ARS/mes</span></div>
           <div className={styles.pricingSub}>Primeros 14 días gratis, cancelás cuando querés</div>
