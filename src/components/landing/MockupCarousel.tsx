@@ -85,7 +85,7 @@ export default function MockupCarousel() {
       <div className={styles.viewport}>
         <div
           className={styles.track}
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          style={{ transform: `translateX(-${current * 100}vw)` }}
         >
           {SLIDES.map((s, i) => (
             <div key={i} className={styles.slide}>
