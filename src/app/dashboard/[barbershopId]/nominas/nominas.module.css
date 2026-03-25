@@ -43,6 +43,6 @@
 .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px; text-align: center; color: var(--muted); font-size: .9rem; }
 
 @media (max-width: 768px) {
-  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .tableHead, .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
 }

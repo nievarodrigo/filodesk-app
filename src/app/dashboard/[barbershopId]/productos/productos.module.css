@@ -68,7 +68,7 @@
 
 /* ── Mobile tables ── */
 @media (max-width: 768px) {
-  .table, .histTable { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table, .histTable { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .tableHead, .tableRow { min-width: 580px; padding: 10px 14px; font-size: .82rem; }
   .histRow { min-width: 400px; padding: 10px 14px; font-size: .82rem; }
   .kpis { grid-template-columns: 1fr; max-width: none; }

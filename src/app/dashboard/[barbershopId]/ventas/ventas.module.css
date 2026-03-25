@@ -542,7 +542,7 @@
 
 /* ── Mobile tables ── */
 @media (max-width: 768px) {
-  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .tableHead,
   .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
   .tableHeadService,

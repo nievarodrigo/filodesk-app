@@ -9,6 +9,8 @@
   margin-left: 220px;
   padding: 32px 36px;
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 @media (max-width: 768px) {
