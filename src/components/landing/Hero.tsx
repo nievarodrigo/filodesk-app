@@ -15,8 +15,8 @@ export default async function Hero() {
         cuánto <span>ganás</span>.
       </h1>
       <p>
-        Registrá las ventas de cada barbero, controlá los gastos del local
-        y FiloDesk te dice cuánto te queda a vos — automáticamente, sin planillas.
+        La herramienta que tu barbería necesitaba. Comisiones, gastos y ganancia
+        — todo calculado solo, para que vos te enfoques en crecer.
       </p>
       <div className={styles.heroCta}>
         {user ? (
