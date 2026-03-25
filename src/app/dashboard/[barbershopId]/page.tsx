@@ -123,7 +123,7 @@ export default async function DashboardPage({
       {/* Forms: servicio + producto lado a lado */}
       {barbers && barbers.length === 0 ? (
         <div className={styles.noBarbers}>
-          Agregá un barbero en <a href={`/dashboard/${barbershopId}/barberos`} className={styles.link}>Barberos</a> para empezar a registrar ventas.
+          Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
         </div>
       ) : (
         <div className={styles.formRow}>
