@@ -67,3 +67,17 @@
 .widgetBtn:disabled { opacity: .6; cursor: not-allowed; }
 
 .widgetError { font-size: .78rem; color: var(--red); }
+
+.widgetSearch {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 7px 12px;
+  color: var(--text);
+  font-size: .85rem;
+  outline: none;
+  transition: border-color .15s;
+}
+.widgetSearch:focus { border-color: var(--gold); }
+.widgetSearch::placeholder { color: var(--muted); }
