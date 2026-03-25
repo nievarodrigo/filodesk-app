@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateServicioPrice, toggleServicio } from '@/app/actions/servicio'
+import { updateServicioPrice, toggleServicio, deleteServicio } from '@/app/actions/servicio'
 import styles from './servicios.module.css'
 
 interface Props {
@@ -21,6 +21,14 @@ export default function ServicioRow({ barbershopId, service }: Props) {
   const [pending, startTransition] = useTransition()
 
   const isGlobal = service.barbershop_id === null
+
+  function handleDelete() {
+    if (!confirm(`¿Eliminar el servicio "${service.name}"?`)) return
+    startTransition(async () => {
+      const result = await deleteServicio(barbershopId, service.id)
+      if (result?.error) alert(result.error)
+    })
+  }
 
   function savePrice() {
     startTransition(async () => {
@@ -71,13 +79,25 @@ export default function ServicioRow({ barbershopId, service }: Props) {
         </span>
       </span>
 
-      <button
-        className={service.active ? styles.btnToggleOff : styles.btnToggleOn}
-        disabled={pending}
-        onClick={() => startTransition(() => toggleServicio(barbershopId, service.id, !service.active))}
-      >
-        {service.active ? 'Desactivar' : 'Activar'}
-      </button>
+      <div className={styles.btnActions}>
+        <button
+          className={service.active ? styles.btnToggleOff : styles.btnToggleOn}
+          disabled={pending}
+          onClick={() => startTransition(() => toggleServicio(barbershopId, service.id, !service.active))}
+        >
+          {service.active ? 'Desactivar' : 'Activar'}
+        </button>
+        {!isGlobal && (
+          <button
+            className={styles.btnDelete}
+            disabled={pending}
+            onClick={handleDelete}
+            title="Eliminar servicio"
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </div>
   )
 }

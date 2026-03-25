@@ -82,6 +82,20 @@ export async function updateServicioPrice(
   revalidatePath(`/dashboard/${barbershopId}`)
 }
 
+export async function deleteServicio(barbershopId: string, serviceId: string) {
+  const supabase = await createClient()
+  const { data: service } = await supabase
+    .from('service_types')
+    .select('barbershop_id')
+    .eq('id', serviceId)
+    .single()
+  if (!service || service.barbershop_id !== barbershopId) {
+    return { error: 'Solo podés eliminar servicios propios, no los globales.' }
+  }
+  await supabase.from('service_types').delete().eq('id', serviceId)
+  revalidatePath(`/dashboard/${barbershopId}/servicios`)
+}
+
 export async function toggleServicio(
   barbershopId: string,
   serviceId: string,

@@ -41,3 +41,16 @@ export async function toggleBarberActive(barbershopId: string, barberId: string,
   await supabase.from('barbers').update({ active }).eq('id', barberId)
   revalidatePath(`/dashboard/${barbershopId}/barberos`)
 }
+
+export async function deleteBarber(barbershopId: string, barberId: string) {
+  const supabase = await createClient()
+  const { count } = await supabase
+    .from('sales')
+    .select('id', { count: 'exact', head: true })
+    .eq('barber_id', barberId)
+  if (count && count > 0) {
+    return { error: 'Este barbero tiene ventas registradas. Solo podés desactivarlo.' }
+  }
+  await supabase.from('barbers').delete().eq('id', barberId).eq('barbershop_id', barbershopId)
+  revalidatePath(`/dashboard/${barbershopId}/barberos`)
+}

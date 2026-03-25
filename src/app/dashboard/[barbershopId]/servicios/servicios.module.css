@@ -40,6 +40,16 @@
 .btnToggleOn:hover { background: rgba(94,207,135,.08); }
 .btnToggleOn:disabled { opacity: .5; cursor: not-allowed; }
 
+.btnActions { display: flex; align-items: center; gap: 6px; }
+
+.btnDelete {
+  background: transparent; border: none; color: var(--muted);
+  font-size: .8rem; cursor: pointer; padding: 4px 6px; border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+.btnDelete:hover { color: var(--red); background: rgba(224,112,112,.08); }
+.btnDelete:disabled { opacity: .4; cursor: not-allowed; }
+
 /* Form */
 .formCard {
   background: var(--surface); border: 1px solid var(--border);

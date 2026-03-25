@@ -14,11 +14,19 @@ export default async function ServiciosPage({
   const { barbershopId } = await params
   const supabase = await createClient()
 
-  const { data: services } = await supabase
+  const { data: rawServices } = await supabase
     .from('service_types')
     .select('id, name, default_price, active, barbershop_id')
     .or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`)
     .order('name')
+
+  // Si existe un override propio, ocultar el servicio global del mismo nombre
+  const overrideNames = new Set(
+    (rawServices ?? []).filter(s => s.barbershop_id).map(s => s.name)
+  )
+  const services = (rawServices ?? []).filter(
+    s => s.barbershop_id || !overrideNames.has(s.name)
+  )
 
   return (
     <div>

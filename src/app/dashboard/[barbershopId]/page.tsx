@@ -27,11 +27,12 @@ export default async function DashboardPage({
 
   const [
     { data: barbers },
-    { data: serviceTypes },
+    { data: rawServiceTypes },
     { data: salesToday },
     { data: recentSales },
     { data: products },
     { data: productSalesToday },
+    { data: expensesToday },
   ] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
@@ -52,18 +53,30 @@ export default async function DashboardPage({
       .eq('barbershop_id', barbershopId)
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
+    supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
   ])
+
+  // Deduplicar: si hay override propio, ocultar el global del mismo nombre
+  const overrideNames = new Set((rawServiceTypes ?? []).filter(s => (s as any).barbershop_id).map(s => s.name))
+  const serviceTypes = (rawServiceTypes ?? []).filter(s => (s as any).barbershop_id || !overrideNames.has(s.name))
 
   const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = (salesToday ?? []).length
 
+  const comisionesHoy = (recentSales ?? []).reduce((s, r: any) =>
+    s + Math.round((r.amount ?? 0) * ((r.barbers?.commission_pct ?? 0) / 100)), 0)
+  const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
+
   const activeBarbers = (barbers ?? []).filter(b => b.active)
 
   const kpis = [
-    { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
-    { label: 'Ingresos hoy',  value: formatARS(totalHoy), color: 'var(--green)' },
+    { label: 'Servicios hoy',     value: countHoy.toString(),    color: 'var(--cream)' },
+    { label: 'Ingresos hoy',      value: formatARS(totalHoy),    color: 'var(--green)' },
+    { label: 'Comisiones hoy',    value: formatARS(comisionesHoy), color: 'var(--gold)' },
+    { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
   ]
 
   return (
