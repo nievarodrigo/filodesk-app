@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { startOfMonth } from '@/lib/date'
+import { currentYM } from '@/lib/date'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
 import GraficoProductos from '../productos/GraficoProductos'
@@ -17,28 +17,63 @@ function pctChange(current: number, previous: number) {
   return Math.round(((current - previous) / previous) * 100)
 }
 
+function monthLabel(ym: string) {
+  const [y, m] = ym.split('-')
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+}
+
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Alquiler: '#c9a84c', Productos: '#5ecf87', Servicios: '#7eb8f7', Sueldos: '#e07070', Otros: '#7a7060',
+}
+
 export default async function FinanzasPage({
   params,
-}: { params: Promise<{ barbershopId: string }> }) {
+  searchParams,
+}: {
+  params: Promise<{ barbershopId: string }>
+  searchParams: Promise<{ mes?: string }>
+}) {
   const { barbershopId } = await params
+  const { mes } = await searchParams
   const supabase = await createClient()
 
   const now = new Date()
-  const monthStart = startOfMonth()
+
+  // ── Selected month range ─────────────────────────────────────
+  const ym = mes ?? currentYM()
+  const [selY, selM] = ym.split('-').map(Number)
+  const from = `${ym}-01`
+  const to   = `${selY}-${String(selM).padStart(2, '0')}-${new Date(selY, selM, 0).getDate()}`
+
+  const isCurrentMonth = ym === currentYM()
+  const daysInMonth    = new Date(selY, selM, 0).getDate()
+  const dayOfMonth     = isCurrentMonth ? now.getDate() : daysInMonth
 
   // Previous month range
-  const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const prevEnd   = new Date(now.getFullYear(), now.getMonth(), 0)
-  const prevFrom  = prevStart.toISOString().slice(0, 10)
-  const prevTo    = prevEnd.toISOString().slice(0, 10)
+  const prevD     = new Date(selY, selM - 2, 1)
+  const prevYM    = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}`
+  const prevFrom  = `${prevYM}-01`
+  const prevTo    = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}-${new Date(prevD.getFullYear(), prevD.getMonth() + 1, 0).getDate()}`
 
-  // 6 months ago for trend chart
+  // 6 months for trend chart (always from current date)
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10)
-  const last90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
 
+  // Month tabs
+  const [curY, curM] = currentYM().split('-').map(Number)
+  const months: string[] = []
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(curY, curM - 1 - i, 1)
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  // ── Queries ──────────────────────────────────────────────────
   const [
     { data: salesMonth },
     { data: salesMonthWithComm },
+    { data: salesMonthDates },
     { data: productSalesMonth },
     { data: expensesMonth },
     { data: salesPrev },
@@ -47,31 +82,33 @@ export default async function FinanzasPage({
     { data: salesAll6m },
     { data: productSalesAll6m },
     { data: expensesAll6m },
-    { data: barbers },
     { data: barberSalesMonth },
-    { data: prodSalesLast90 },
+    { data: prodSalesMonth },
+    { data: serviceCountMonth },
   ] = await Promise.all([
-    // Current month
-    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', monthStart),
-    supabase.from('sales').select('amount, barbers(commission_pct)').eq('barbershop_id', barbershopId).gte('date', monthStart),
-    supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', monthStart),
-    supabase.from('expenses').select('amount, category').eq('barbershop_id', barbershopId).gte('date', monthStart),
+    // Selected month
+    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, barbers(commission_pct)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('expenses').select('amount, category').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
     // Previous month
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
     supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
     supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
-    // Last 6 months (for trend)
+    // Last 6 months (trend)
     supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
     supabase.from('product_sales').select('sale_price, quantity, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
     supabase.from('expenses').select('amount, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
-    // Barbers
-    supabase.from('barbers').select('id, name, commission_pct').eq('barbershop_id', barbershopId).eq('active', true),
-    supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).gte('date', monthStart),
-    // Products (last 90 days for pie)
-    supabase.from('product_sales').select('quantity, sale_price, products(name)').eq('barbershop_id', barbershopId).gte('date', last90),
+    // Barber sales (selected month)
+    supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    // Products (selected month)
+    supabase.from('product_sales').select('quantity, sale_price, products(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    // Service types (for ranking)
+    supabase.from('sales').select('amount, service_types(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
   ])
 
-  // ── Current month totals ───────────────────────────────────────
+  // ── Month totals ─────────────────────────────────────────────
   const ingServicios = (salesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const ingProductos = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const ingresosMes  = ingServicios + ingProductos
@@ -82,22 +119,41 @@ export default async function FinanzasPage({
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
 
-  // ── Previous month totals ──────────────────────────────────────
-  const ingPrev  = (salesPrev ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  // ── Previous month totals ────────────────────────────────────
+  const ingPrev = (salesPrev ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
     + (productSalesPrev ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
-  const gasPrev  = (expensesPrev ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const gasPrev = (expensesPrev ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
 
-  // ── Monthly trend chart ────────────────────────────────────────
-  const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+  // ── Ticket promedio ──────────────────────────────────────────
+  const totalServicios = (salesMonth ?? []).length
+  const ticketPromedio = totalServicios > 0 ? Math.round(ingServicios / totalServicios) : 0
+
+  // ── Mejor día de la semana ───────────────────────────────────
+  const dayTotals: Record<number, { total: number; days: Set<string> }> = {}
+  for (const s of salesMonthDates ?? []) {
+    const d = new Date(s.date + 'T12:00:00')
+    const dow = d.getDay()
+    if (!dayTotals[dow]) dayTotals[dow] = { total: 0, days: new Set() }
+    dayTotals[dow].total += s.amount ?? 0
+    dayTotals[dow].days.add(s.date)
+  }
+  const dayAvgs = Object.entries(dayTotals)
+    .map(([dow, v]) => ({ dow: Number(dow), avg: Math.round(v.total / v.days.size), total: v.total }))
+    .sort((a, b) => b.avg - a.avg)
+  const bestDay = dayAvgs[0] ?? null
+
+  // ── Proyección del mes ───────────────────────────────────────
+  const proyeccion = isCurrentMonth && dayOfMonth > 1
+    ? Math.round(ingresosMes / dayOfMonth * daysInMonth)
+    : null
+
+  // ── Trend chart ──────────────────────────────────────────────
   const trendMap: Record<string, { ingresos: number; gastos: number }> = {}
-
-  // Init last 6 months
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     trendMap[key] = { ingresos: 0, gastos: 0 }
   }
-
   for (const s of salesAll6m ?? []) {
     const key = s.date.slice(0, 7)
     if (trendMap[key]) trendMap[key].ingresos += s.amount ?? 0
@@ -110,16 +166,11 @@ export default async function FinanzasPage({
     const key = e.date.slice(0, 7)
     if (trendMap[key]) trendMap[key].gastos += e.amount ?? 0
   }
-
   const trendData = Object.entries(trendMap)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([ym, v]) => ({
-      mes: MESES[Number(ym.split('-')[1]) - 1],
-      ingresos: Math.round(v.ingresos),
-      gastos: Math.round(v.gastos),
-    }))
+    .map(([ymk, v]) => ({ mes: MESES[Number(ymk.split('-')[1]) - 1], ingresos: Math.round(v.ingresos), gastos: Math.round(v.gastos) }))
 
-  // ── Ventas por barbero ─────────────────────────────────────────
+  // ── Ventas por barbero ───────────────────────────────────────
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? []) {
     const b = (s as any).barbers
@@ -132,9 +183,22 @@ export default async function FinanzasPage({
     .map(b => ({ name: b.name, total: Math.round(b.total), comision: Math.round(b.total * b.pct / 100) }))
     .sort((a, b) => b.total - a.total)
 
-  // ── Productos más vendidos (pie) ───────────────────────────────
+  // ── Ranking servicios ────────────────────────────────────────
+  const svcMap: Record<string, { count: number; total: number }> = {}
+  for (const s of serviceCountMonth ?? []) {
+    const name = (s as any).service_types?.name ?? 'Otro'
+    if (!svcMap[name]) svcMap[name] = { count: 0, total: 0 }
+    svcMap[name].count += 1
+    svcMap[name].total += s.amount ?? 0
+  }
+  const svcRanking = Object.entries(svcMap)
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 6)
+
+  // ── Productos (pie) ──────────────────────────────────────────
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
-  for (const s of prodSalesLast90 ?? []) {
+  for (const s of prodSalesMonth ?? []) {
     const name = (s as any).products?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += s.quantity ?? 1
@@ -145,34 +209,37 @@ export default async function FinanzasPage({
     .sort((a, b) => b.ingresos - a.ingresos)
     .slice(0, 8)
 
-  // ── Gastos por categoría ───────────────────────────────────────
-  const CATEGORY_COLORS: Record<string, string> = {
-    Alquiler: '#c9a84c', Productos: '#5ecf87', Servicios: '#7eb8f7', Sueldos: '#e07070', Otros: '#7a7060',
-  }
+  // ── Gastos por categoría ─────────────────────────────────────
   const catMap: Record<string, number> = {}
   for (const e of expensesMonth ?? []) {
     const cat = e.category ?? 'Otros'
     catMap[cat] = (catMap[cat] ?? 0) + (e.amount ?? 0)
   }
 
-  // ── Deltas ─────────────────────────────────────────────────────
+  // ── Deltas ───────────────────────────────────────────────────
   const ingDelta = pctChange(ingresosMes, ingPrev)
   const gasDelta = pctChange(gastosMes, gasPrev)
 
   const kpis = [
-    { label: 'Ingresos del mes', value: formatARS(ingresosMes), color: 'var(--green)', delta: ingDelta },
-    { label: 'Gastos del mes',   value: formatARS(gastosMes),   color: 'var(--red)',   delta: gasDelta },
-    { label: 'Comisiones',       value: formatARS(comisionesMes), color: 'var(--muted)', delta: null },
-    { label: 'Neto del mes',     value: formatARS(netoMes),     color: netoMes >= 0 ? 'var(--green)' : 'var(--red)', delta: null },
+    { label: 'Ingresos', value: formatARS(ingresosMes), color: 'var(--green)', delta: ingDelta },
+    { label: 'Gastos',   value: formatARS(gastosMes),   color: 'var(--red)',   delta: gasDelta },
+    { label: 'Comisiones', value: formatARS(comisionesMes), color: 'var(--muted)', delta: null },
+    { label: 'Neto',     value: formatARS(netoMes),     color: netoMes >= 0 ? 'var(--green)' : 'var(--red)', delta: null },
   ]
 
   return (
     <div>
       <div className={styles.header}>
         <h1 className={styles.title}>Finanzas</h1>
-        <p className={styles.subtitle}>
-          {now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })}
-        </p>
+      </div>
+
+      {/* Month selector */}
+      <div className={styles.monthNav}>
+        {months.map(mo => (
+          <a key={mo} href={`?mes=${mo}`} className={mo === ym ? styles.monthActive : styles.monthTab}>
+            {monthLabel(mo)}
+          </a>
+        ))}
       </div>
 
       {/* KPIs */}
@@ -182,12 +249,35 @@ export default async function FinanzasPage({
             <p className={styles.kpiLabel}>{k.label}</p>
             <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
             {k.delta !== null && (
-              <p className={styles.kpiDelta} style={{ color: k.label === 'Gastos del mes' ? (k.delta > 0 ? 'var(--red)' : 'var(--green)') : (k.delta >= 0 ? 'var(--green)' : 'var(--red)') }}>
+              <p className={styles.kpiDelta} style={{ color: k.label === 'Gastos' ? (k.delta > 0 ? 'var(--red)' : 'var(--green)') : (k.delta >= 0 ? 'var(--green)' : 'var(--red)') }}>
                 {k.delta >= 0 ? '▲' : '▼'} {Math.abs(k.delta)}% vs mes anterior
               </p>
             )}
           </div>
         ))}
+      </div>
+
+      {/* Stats row: ticket promedio + mejor día + proyección */}
+      <div className={styles.statsRow}>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Ticket promedio</p>
+          <p className={styles.statValue}>{formatARS(ticketPromedio)}</p>
+          <p className={styles.statDetail}>{totalServicios} servicios realizados</p>
+        </div>
+        {bestDay && (
+          <div className={styles.statCard}>
+            <p className={styles.statLabel}>Mejor día</p>
+            <p className={styles.statValue}>{DIAS[bestDay.dow]}</p>
+            <p className={styles.statDetail}>{formatARS(bestDay.avg)} promedio por {DIAS[bestDay.dow].toLowerCase()}</p>
+          </div>
+        )}
+        {proyeccion !== null && (
+          <div className={styles.statCard}>
+            <p className={styles.statLabel}>Proyección del mes</p>
+            <p className={styles.statValue} style={{ color: 'var(--gold)' }}>{formatARS(proyeccion)}</p>
+            <p className={styles.statDetail}>Día {dayOfMonth} de {daysInMonth} — al ritmo actual</p>
+          </div>
+        )}
       </div>
 
       {/* Trend chart */}
@@ -202,7 +292,7 @@ export default async function FinanzasPage({
         </div>
         <div style={{ background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 12, padding: '16px 20px' }}>
           <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-            Gastos por categoría — mes actual
+            Gastos por categoría
           </p>
           {Object.keys(catMap).length === 0 ? (
             <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Sin gastos este mes.</p>
@@ -224,12 +314,31 @@ export default async function FinanzasPage({
         </div>
       </div>
 
-      {/* Productos más vendidos */}
-      {pieData.length > 0 && (
-        <div className={styles.section}>
-          <GraficoProductos data={pieData} />
-        </div>
-      )}
+      {/* Two columns: ranking servicios + productos */}
+      <div className={styles.twoCol}>
+        {svcRanking.length > 0 && (
+          <div style={{ background: '#1e1e1e', border: '1px solid #3a3a3a', borderRadius: 12, padding: '16px 20px' }}>
+            <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
+              Top servicios
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {svcRanking.map((svc, i) => (
+                <div key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid #2a2a2a' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{svc.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
+                    <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{svc.count} servicios</span>
+                    <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, minWidth: 70, textAlign: 'right' }}>{formatARS(svc.total)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {pieData.length > 0 && <GraficoProductos data={pieData} />}
+      </div>
     </div>
   )
 }
