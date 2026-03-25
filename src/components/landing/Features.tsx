@@ -54,14 +54,14 @@ const features = [
   {
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/>
-        <line x1="12" y1="20" x2="12" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/>
-        <line x1="2" y1="20" x2="22" y2="20"/>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
       </svg>
     ),
-    title: 'Análisis de ventas',
-    desc: 'Gráficos por día, comparación entre meses y detalle por barbero y servicio. Entendés qué días y qué servicios te generan más.',
+    title: 'Armá tu equipo',
+    desc: 'Agregás cada barbero con su porcentaje de comisión y los servicios de tu barbería. FiloDesk usa eso para calcular todo sin que toques nada.',
     highlight: false,
   },
   {
