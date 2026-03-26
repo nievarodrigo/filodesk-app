@@ -11,8 +11,9 @@ const plans = [
     disabled: false,
     highlight: false,
     features: [
-      'Dashboard con ingresos y ventas en tiempo real',
+      '1 barbería por cuenta',
       'Barberos ilimitados',
+      'Dashboard con ingresos y ventas en tiempo real',
       'Comisiones calculadas automáticamente',
       'Ganancia neta descontando gastos y comisiones',
       'Registro de servicios y productos',
@@ -32,8 +33,8 @@ const plans = [
     highlight: true,
     badge: 'Próximamente',
     features: [
+      '1 barbería por cuenta',
       'Todo lo del plan Base',
-      'Multi-barbería desde una sola cuenta',
       'Rol Dueño — acceso total',
       'Rol Encargado — gestiona sin ver finanzas',
       'Rol Barbero — registra sus servicios',
@@ -45,7 +46,7 @@ const plans = [
   },
   {
     name: 'Premium IA',
-    price: '30.000',
+    price: '29.999',
     sub: 'En desarrollo — disponible pronto',
     cta: 'Anotarme en lista de espera',
     href: '#',
