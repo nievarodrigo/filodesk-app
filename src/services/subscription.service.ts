@@ -21,8 +21,8 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    payer_email: userEmail,
     external_reference: barbershopId,
-    status: 'pending',
   }
 
   const res = await fetch('https://api.mercadopago.com/preapproval', {
