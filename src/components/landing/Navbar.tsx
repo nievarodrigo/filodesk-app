@@ -1,10 +1,10 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import styles from './landing.module.css'
 import UserMenu from './UserMenu'
 import MobileNav from './MobileNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import Logo from '@/components/ui/Logo'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -13,9 +13,9 @@ export default async function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Logo size={26} />
-        Filo<span>Desk</span>
+      <div className={styles.logo}>
+        <Image src="/logo-dark.png"  alt="FiloDesk" width={36} height={36} className="logo-dark"  style={{ borderRadius: 8 }} />
+        <Image src="/logo-light.png" alt="FiloDesk" width={36} height={36} className="logo-light" style={{ borderRadius: 8 }} />
       </div>
 
       {/* Desktop links */}
