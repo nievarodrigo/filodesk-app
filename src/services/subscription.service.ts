@@ -21,7 +21,6 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
-    payer_email: 'pagos@filodesk.app',
     external_reference: barbershopId,
     status: 'pending',
   }
