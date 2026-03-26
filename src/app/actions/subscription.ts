@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export async function createMPSubscription(barbershopId: string): Promise<{ error?: string }> {
+export async function createMPSubscription(barbershopId: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -15,7 +15,7 @@ export async function createMPSubscription(barbershopId: string): Promise<{ erro
     .eq('owner_id', user.id)
     .single()
 
-  if (!barbershop) return { error: 'Barbería no encontrada.' }
+  if (!barbershop) redirect('/dashboard')
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://filodesk.app'
 
@@ -46,7 +46,7 @@ export async function createMPSubscription(barbershopId: string): Promise<{ erro
 
   if (!res.ok || !data.init_point) {
     console.error('[MP subscription]', data)
-    return { error: 'No se pudo generar el link de pago. Intentá de nuevo.' }
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
   }
 
   redirect(data.init_point)
