@@ -18,12 +18,23 @@ export default async function DashboardLayout({
 
   const { data: barbershop } = await supabase
     .from('barbershops')
-    .select('id, name')
+    .select('id, name, subscription_status, trial_ends_at')
     .eq('id', barbershopId)
     .eq('owner_id', session.user.id)
     .single()
 
   if (!barbershop) redirect('/dashboard')
+
+  // Chequear suscripción en cada carga del dashboard
+  const status = barbershop.subscription_status
+  if (status === 'expired') {
+    redirect(`/suscripcion?barbershopId=${barbershopId}`)
+  }
+  if (status === 'trial' && barbershop.trial_ends_at) {
+    if (new Date(barbershop.trial_ends_at) < new Date()) {
+      redirect(`/suscripcion?barbershopId=${barbershopId}`)
+    }
+  }
 
   return (
     <div className={styles.shell}>
