@@ -11,7 +11,6 @@ const plans = [
     disabled: false,
     highlight: false,
     features: [
-      '1 barbería por cuenta',
       'Barberos ilimitados',
       'Dashboard con ingresos y ventas en tiempo real',
       'Comisiones calculadas automáticamente',
@@ -33,7 +32,6 @@ const plans = [
     highlight: true,
     badge: 'Próximamente',
     features: [
-      '1 barbería por cuenta',
       'Todo lo del plan Base',
       'Rol Dueño — acceso total',
       'Rol Encargado — gestiona sin ver finanzas',
