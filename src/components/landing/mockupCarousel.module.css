@@ -198,16 +198,30 @@
 
   .slide {
     grid-template-columns: 1fr;
-    gap: 28px;
+    gap: 24px;
     padding: 0 20px;
+    justify-items: center;
   }
+
+  .slideMobile {
+    grid-template-columns: 1fr;
+  }
+
+  .copy {
+    text-align: center;
+    align-items: center;
+  }
+
+  .desc { max-width: 100%; }
+
+  .tag { margin: 0 auto; }
 
   .mockupWrap {
     transform: perspective(900px) rotateY(-4deg) rotateX(1deg);
+    width: 100%;
   }
 
   .title { font-size: 1.65rem; }
-  .desc { max-width: 100%; }
 }
 
 @media (max-width: 480px) {
