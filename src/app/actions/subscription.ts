@@ -17,7 +17,7 @@ export async function createMPSubscription(barbershopId: string): Promise<void> 
 
   if (!barbershop) redirect('/dashboard')
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://filodesk.app'
+  const siteUrl = 'https://filodesk.app'
 
   const body = {
     reason: `FiloDesk — ${barbershop.name}`,
@@ -44,8 +44,13 @@ export async function createMPSubscription(barbershopId: string): Promise<void> 
 
   const data = await res.json()
 
-  if (!res.ok || !data.init_point) {
+  if (!res.ok) {
     console.error('[MP subscription]', data)
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+  }
+
+  if (!data.init_point) {
+    console.error('[MP subscription] no redirect URL in response')
     redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
   }
 
