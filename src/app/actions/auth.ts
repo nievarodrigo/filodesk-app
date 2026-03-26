@@ -3,21 +3,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RegisterSchema, LoginSchema, type AuthFormState } from '@/lib/definitions'
+import * as authService from '@/services/auth.service'
 
 export type AuthState = AuthFormState
-
-async function verifyTurnstile(token: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY
-  if (!secret) return true
-
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ secret, response: token }),
-  })
-  const data = await res.json()
-  return data.success === true
-}
 
 export async function login(
   _state: AuthFormState,
@@ -27,20 +15,11 @@ export async function login(
     email: formData.get('email'),
     password: formData.get('password'),
   })
-
-  if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors }
-  }
+  if (!validated.success) return { errors: validated.error.flatten().fieldErrors }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({
-    email: validated.data.email,
-    password: validated.data.password,
-  })
-
-  if (error) {
-    return { message: 'Email o contraseña incorrectos.' }
-  }
+  const result = await authService.loginUser(supabase, validated.data)
+  if (result.error) return { message: result.error }
 
   redirect('/dashboard')
 }
@@ -51,7 +30,7 @@ export async function register(
 ): Promise<AuthFormState> {
   // TODO: reactivar Turnstile cuando se configure el dominio en Cloudflare
   // const turnstileToken = formData.get('cf-turnstile-response') as string
-  // const captchaOk = await verifyTurnstile(turnstileToken || '')
+  // const captchaOk = await authService.verifyTurnstile(turnstileToken || '')
   // if (!captchaOk) return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
 
   const validated = RegisterSchema.safeParse({
@@ -61,32 +40,18 @@ export async function register(
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
   })
-
-  if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors }
-  }
-
-  const { firstName, lastName, email, password } = validated.data
+  if (!validated.success) return { errors: validated.error.flatten().fieldErrors }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      data: { first_name: firstName, last_name: lastName },
-    },
-  })
-
-  if (error) {
-    return { message: `Error: ${error.message}` }
-  }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3001'
+  const result = await authService.registerUser(supabase, validated.data, siteUrl)
+  if (result.error) return { message: result.error }
 
   redirect('/auth/verify-email')
 }
 
 export async function logout() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  await authService.logoutUser(supabase)
   redirect('/')
 }

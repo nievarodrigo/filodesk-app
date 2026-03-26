@@ -1,0 +1,67 @@
+import { SupabaseClient } from '@supabase/supabase-js'
+import * as barbershopRepo from '@/repositories/barbershop.repository'
+
+export async function createMPSubscription(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string,
+  userEmail: string
+) {
+  const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
+  if (!barbershop) return { error: 'not_found' as const }
+
+  const siteUrl = 'https://filodesk.app'
+
+  const body = {
+    reason: `FiloDesk — ${barbershop.name}`,
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: 'months',
+      transaction_amount: 11999,
+      currency_id: 'ARS',
+    },
+    back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    payer_email: 'pagos@filodesk.app',
+    external_reference: barbershopId,
+    status: 'pending',
+  }
+
+  const res = await fetch('https://api.mercadopago.com/preapproval', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok || !data.init_point) {
+    console.error('[MP subscription]', data)
+    return { error: 'mp_error' as const }
+  }
+
+  return { redirectUrl: data.init_point as string }
+}
+
+export async function processWebhook(
+  supabase: SupabaseClient,
+  subscriptionId: string
+) {
+  const mpRes = await fetch(`https://api.mercadopago.com/preapproval/${subscriptionId}`, {
+    headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+  })
+  const subscription = await mpRes.json()
+
+  if (!mpRes.ok) {
+    console.error('[MP webhook] error fetching subscription', subscription)
+    return { error: 'mp_error' }
+  }
+
+  const barbershopId = subscription.external_reference
+  const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
+
+  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId)
+  return {}
+}

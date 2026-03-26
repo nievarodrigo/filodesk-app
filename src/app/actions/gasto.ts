@@ -5,12 +5,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/constants/gastos'
 import { z } from 'zod'
+import * as expenseService from '@/services/expense.service'
 
 const Schema = z.object({
   description: z.string().min(2, 'Describí el gasto.').trim(),
-  amount:      z.number({ error: 'Ingresá un monto válido.' }).positive('El monto debe ser mayor a 0.'),
-  category:    z.enum(CATEGORIES),
-  date:        z.string().min(1, 'Ingresá la fecha de pago.'),
+  amount: z.number({ error: 'Ingresá un monto válido.' }).positive('El monto debe ser mayor a 0.'),
+  category: z.enum(CATEGORIES),
+  date: z.string().min(1, 'Ingresá la fecha de pago.'),
 })
 
 export type GastoState = {
@@ -25,9 +26,9 @@ export async function createGasto(
 ): Promise<GastoState> {
   const validated = Schema.safeParse({
     description: formData.get('description'),
-    amount:      Number(formData.get('amount')),
-    category:    formData.get('category'),
-    date:        formData.get('date'),
+    amount: Number(formData.get('amount')),
+    category: formData.get('category'),
+    date: formData.get('date'),
   })
   if (!validated.success) return { errors: validated.error.flatten().fieldErrors }
 
@@ -35,24 +36,14 @@ export async function createGasto(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { error } = await supabase.from('expenses').insert({
-    barbershop_id: barbershopId,
-    description:   validated.data.description,
-    amount:        validated.data.amount,
-    category:      validated.data.category,
-    date:          validated.data.date,
-  })
-
-  if (error) {
-    console.error('[createGasto]', error)
-    return { message: 'No se pudo registrar el gasto. ' + error.message }
-  }
+  const result = await expenseService.createExpense(supabase, barbershopId, validated.data)
+  if (result.error) return { message: result.error }
 
   revalidatePath(`/dashboard/${barbershopId}/gastos`)
 }
 
 export async function deleteGasto(barbershopId: string, id: string) {
   const supabase = await createClient()
-  await supabase.from('expenses').delete().eq('id', id)
+  await expenseService.deleteExpense(supabase, id)
   revalidatePath(`/dashboard/${barbershopId}/gastos`)
 }

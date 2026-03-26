@@ -1,0 +1,35 @@
+import { SupabaseClient } from '@supabase/supabase-js'
+import * as barberRepo from '@/repositories/barber.repository'
+import * as saleRepo from '@/repositories/sale.repository'
+import type { CreateBarberInput } from '@/types'
+
+export async function createBarber(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  input: CreateBarberInput
+) {
+  const { error } = await barberRepo.insert(supabase, {
+    barbershop_id: barbershopId,
+    name: input.name,
+    commission_pct: input.commission_pct,
+  })
+  if (error) return { error: 'No se pudo agregar el barbero. Intentá de nuevo.' }
+  return {}
+}
+
+export async function toggleActive(supabase: SupabaseClient, barberId: string, active: boolean) {
+  await barberRepo.updateActive(supabase, barberId, active)
+}
+
+export async function deleteBarber(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  barberId: string
+) {
+  const count = await saleRepo.countByBarberId(supabase, barberId)
+  if (count > 0) {
+    return { error: 'Este barbero tiene ventas registradas. Solo podés desactivarlo.' }
+  }
+  await barberRepo.deleteById(supabase, barberId, barbershopId)
+  return {}
+}
