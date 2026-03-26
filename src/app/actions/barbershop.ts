@@ -23,13 +23,18 @@ export async function createBarbershop(
 
   if (!user) redirect('/auth/login')
 
+  const trialEndsAt = new Date()
+  trialEndsAt.setDate(trialEndsAt.getDate() + 14)
+
   const { data, error } = await supabase
     .from('barbershops')
     .insert({
-      owner_id: user.id,
-      name:     validated.data.name,
-      address:  validated.data.address,
-      phone:    validated.data.phone,
+      owner_id:            user.id,
+      name:                validated.data.name,
+      address:             validated.data.address,
+      phone:               validated.data.phone,
+      subscription_status: 'trial',
+      trial_ends_at:       trialEndsAt.toISOString(),
     })
     .select('id')
     .single()
