@@ -25,7 +25,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '20.000',
+    price: '19.999',
     sub: 'En desarrollo — disponible pronto',
     cta: 'Anotarme en lista de espera',
     href: '#',
