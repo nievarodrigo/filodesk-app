@@ -4,7 +4,7 @@ import styles from './landing.module.css'
 import UserMenu from './UserMenu'
 import MobileNav from './MobileNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import Logo from '@/components/ui/Logo'
+import Image from 'next/image'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -13,8 +13,11 @@ export default async function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Logo size={30} />
+      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 34, height: 34, position: 'relative', flexShrink: 0 }}>
+          <Image src="/logo-dark.png"  alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-dark"  sizes="34px" />
+          <Image src="/logo-light.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-light" sizes="34px" />
+        </div>
         Filo<span>Desk</span>
       </div>
 
