@@ -11,7 +11,7 @@ const plans = [
     disabled: false,
     highlight: false,
     features: [
-      'Barberos ilimitados',
+      'Hasta 5 barberos',
       'Dashboard con ingresos y ventas en tiempo real',
       'Comisiones calculadas automáticamente',
       'Ganancia neta descontando gastos y comisiones',
@@ -32,6 +32,7 @@ const plans = [
     highlight: true,
     badge: 'Próximamente',
     features: [
+      'Barberos ilimitados',
       'Todo lo del plan Base',
       'Rol Dueño — acceso total',
       'Rol Encargado — gestiona sin ver finanzas',

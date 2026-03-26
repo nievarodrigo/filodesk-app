@@ -8,14 +8,14 @@ const plans = [
     name: 'Base',
     price: '$11.999',
     period: 'ARS/mes',
-    features: ['Barberos ilimitados', 'Comisiones automáticas', 'Ganancia neta en tiempo real', 'Control de stock y gastos'],
+    features: ['Hasta 5 barberos', 'Comisiones automáticas', 'Ganancia neta en tiempo real', 'Control de stock y gastos'],
     available: true,
   },
   {
     name: 'Pro',
     price: '$19.999',
     period: 'ARS/mes',
-    features: ['Todo lo del plan Base', 'Roles: Dueño, Encargado, Barbero', 'Historial completo', 'Reportes exportables'],
+    features: ['Barberos ilimitados', 'Todo lo del plan Base', 'Roles: Dueño, Encargado, Barbero', 'Historial completo'],
     available: false,
   },
   {
