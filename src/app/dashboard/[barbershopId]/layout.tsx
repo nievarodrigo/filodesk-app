@@ -30,8 +30,9 @@ export default async function DashboardLayout({
   if (status === 'expired') {
     redirect(`/suscripcion?barbershopId=${barbershopId}`)
   }
-  if (status === 'trial' && barbershop.trial_ends_at) {
-    if (new Date(barbershop.trial_ends_at) < new Date()) {
+  if (status === 'trial') {
+    const endsAt = barbershop.trial_ends_at ? new Date(barbershop.trial_ends_at) : new Date(0)
+    if (endsAt < new Date()) {
       redirect(`/suscripcion?barbershopId=${barbershopId}`)
     }
   }
