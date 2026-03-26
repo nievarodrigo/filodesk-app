@@ -52,3 +52,9 @@ body {
 }
 
 a { text-decoration: none; color: inherit; }
+
+/* Logo theme switching */
+.logo-dark  { display: block; }
+.logo-light { display: none; }
+[data-theme="light"] .logo-dark  { display: none; }
+[data-theme="light"] .logo-light { display: block; }

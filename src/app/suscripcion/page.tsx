@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { createMPSubscription } from '@/app/actions/subscription'
+import Image from 'next/image'
 
 const plans = [
   {
@@ -61,7 +62,10 @@ export default async function SuscripcionPage({
 
       {/* Header */}
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '2rem', marginBottom: 12 }}>✂️</div>
+        <div style={{ marginBottom: 12 }}>
+          <Image src="/logo-dark.png" alt="FiloDesk" width={72} height={72} className="logo-dark" />
+          <Image src="/logo-light.png" alt="FiloDesk" width={72} height={72} className="logo-light" />
+        </div>
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--cream)', marginBottom: 8 }}>
           {barbershop.subscription_status === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
         </h1>
