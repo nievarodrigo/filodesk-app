@@ -25,7 +25,22 @@ export async function createMPCheckout(barbershopId: string): Promise<void> {
   if (!user) redirect('/auth/login')
 
   const result = await subscriptionService.createMPCheckout(
-    supabase, barbershopId, user.id
+    supabase, barbershopId, user.id, 1
+  )
+
+  if (result.error === 'not_found') redirect('/dashboard')
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+
+  redirect(result.redirectUrl!)
+}
+
+export async function createMPCheckoutWithMonths(barbershopId: string, months: number): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const result = await subscriptionService.createMPCheckout(
+    supabase, barbershopId, user.id, months
   )
 
   if (result.error === 'not_found') redirect('/dashboard')

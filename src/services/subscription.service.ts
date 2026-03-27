@@ -45,22 +45,30 @@ export async function createMPSubscription(
   return { redirectUrl: data.init_point as string }
 }
 
+const BASE_PRICE = 11999
+const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
+
 export async function createMPCheckout(
   supabase: SupabaseClient,
   barbershopId: string,
   userId: string,
+  months = 1,
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
   const siteUrl = 'https://filodesk.app'
+  const discount = DISCOUNTS[months] ?? 0
+  const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
+  const totalPrice = pricePerMonth * months
+  const label = months === 1 ? '1 mes' : `${months} meses`
 
-  // Checkout Pro: pago único de un mes — acepta todos los medios de pago
+  // Checkout Pro: pago único — acepta todos los medios de pago
   const body = {
     items: [{
-      title: `FiloDesk — ${barbershop.name} (1 mes)`,
+      title: `FiloDesk — ${barbershop.name} (${label})`,
       quantity: 1,
-      unit_price: 11999,
+      unit_price: totalPrice,
       currency_id: 'ARS',
     }],
     back_urls: {
