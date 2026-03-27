@@ -28,13 +28,13 @@ export default async function DashboardPage({
   // Obtener info de suscripción
   const { data: barbershopData } = await supabase
     .from('barbershops')
-    .select('subscription_status, trial_ends_at, subscription_ends_at')
+    .select('subscription_status, trial_ends_at, subscription_renews_at')
     .eq('id', barbershopId)
     .single()
 
   const subscriptionDate = barbershopData?.subscription_status === 'trial'
     ? barbershopData?.trial_ends_at
-    : barbershopData?.subscription_ends_at
+    : barbershopData?.subscription_renews_at
 
   const formattedSubDate = subscriptionDate
     ? new Date(subscriptionDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
