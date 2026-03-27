@@ -10,6 +10,11 @@ const PLANS = [
     id: 'base',
     name: 'Base',
     price: 11999,
+    badge: 'BASE',
+    badgeColor: 'gold',
+    accent: 'var(--gold)',
+    sub: '14 días gratis · Cancelás cuando querés',
+    note: 'Sin compromiso, cancelás cuando querés',
     features: ['Hasta 5 barberos', 'Comisiones automáticas', 'Ganancia neta en tiempo real', 'Control de stock y gastos'],
     available: true,
   },
@@ -17,6 +22,11 @@ const PLANS = [
     id: 'pro',
     name: 'Pro',
     price: 19999,
+    badge: 'PRÓXIMAMENTE',
+    badgeColor: 'blue',
+    accent: 'var(--blue)',
+    sub: 'En desarrollo — disponible pronto',
+    note: 'En desarrollo — disponible pronto',
     features: ['Barberos ilimitados', 'Todo lo del plan Base', 'Roles: Dueño, Encargado, Barbero', 'Historial completo'],
     available: false,
   },
@@ -24,6 +34,11 @@ const PLANS = [
     id: 'premium',
     name: 'Premium IA',
     price: 29999,
+    badge: 'PRÓXIMAMENTE',
+    badgeColor: 'green',
+    accent: 'linear-gradient(to right, var(--gold), var(--green))',
+    sub: 'En desarrollo — disponible pronto',
+    note: 'En desarrollo — disponible pronto',
     features: ['Todo lo del plan Pro', 'Predicción de demanda', 'Alertas de ingresos', 'Asistente IA'],
     available: false,
   },
@@ -144,7 +159,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                     key={p.id}
                     style={{
                       background: 'var(--surface)',
-                      border: `1px solid var(--gold)`,
+                      border: `1.5px solid ${p.available ? p.accent === 'var(--gold)' ? 'var(--gold)' : 'var(--border)' : 'var(--border)'}`,
                       borderRadius: 14,
                       padding: '24px 20px',
                       display: 'flex',
@@ -153,6 +168,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       position: 'relative',
                       cursor: p.available ? 'pointer' : 'default',
                       transition: 'all 0.15s ease',
+                      opacity: p.available ? 1 : 0.75,
                     }}
                     onMouseEnter={(e) => {
                       if (p.available) (e.currentTarget as HTMLDivElement).style.background = 'rgba(212,168,42,0.05)'
@@ -162,34 +178,74 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                     }}
                     onClick={() => p.available && selectPlan(p.id)}
                   >
+                    {/* Top accent bar */}
                     <div style={{
                       position: 'absolute',
                       top: -1,
                       left: -1,
                       right: -1,
                       height: 3,
-                      background: 'var(--gold)',
+                      background: p.accent,
                       borderRadius: '14px 14px 0 0',
                     }} />
 
-                    <div>
-                      <p style={{ fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--gold)', marginBottom: 6 }}>
-                        {p.name}
-                      </p>
-                      <p style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--cream)', lineHeight: 1 }}>
-                        {fmt(p.price)} <span style={{ fontSize: '.85rem', fontWeight: 400, color: 'var(--muted)' }}>/mes</span>
-                      </p>
+                    {/* Badge */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      padding: '4px 12px',
+                      borderRadius: 20,
+                      fontSize: '.65rem',
+                      fontWeight: 700,
+                      letterSpacing: '.4px',
+                      textTransform: 'uppercase',
+                      ...(p.badgeColor === 'gold' && {
+                        background: 'rgba(212,168,42,0.2)',
+                        color: 'var(--gold)',
+                        border: '1px solid rgba(212,168,42,0.3)',
+                      }),
+                      ...(p.badgeColor === 'blue' && {
+                        background: 'rgba(196,30,58,0.15)',
+                        color: '#ff6b6b',
+                        border: '1px solid rgba(196,30,58,0.3)',
+                      }),
+                      ...(p.badgeColor === 'green' && {
+                        background: 'linear-gradient(135deg, rgba(212,168,42,0.15), rgba(94,207,135,0.15))',
+                        color: 'var(--green)',
+                        border: '1px solid rgba(94,207,135,0.3)',
+                      }),
+                    }}>
+                      {p.badge}
                     </div>
 
+                    {/* Price section */}
+                    <div style={{ marginTop: 8 }}>
+                      <p style={{
+                        fontSize: '1.8rem',
+                        fontWeight: 800,
+                        color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--cream)',
+                        lineHeight: 1
+                      }}>
+                        {fmt(p.price)} <span style={{ fontSize: '.8rem', fontWeight: 400, color: 'var(--muted)' }}>ARS/mes</span>
+                      </p>
+                      <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>{p.sub}</p>
+                    </div>
+
+                    {/* Features */}
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
                       {p.features.map(f => (
                         <li key={f} style={{ fontSize: '.82rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                          <span style={{ color: 'var(--gold)', flexShrink: 0 }}>✓</span>
+                          <span style={{
+                            color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--gold)',
+                            flexShrink: 0
+                          }}>✓</span>
                           {f}
                         </li>
                       ))}
                     </ul>
 
+                    {/* Button */}
                     {p.available ? (
                       <button style={{
                         width: '100%', background: 'var(--gold)', color: 'var(--bg)',
@@ -206,9 +262,14 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                         fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed',
                         marginTop: 'auto',
                       }}>
-                        En desarrollo
+                        Próximamente
                       </button>
                     )}
+
+                    {/* Note */}
+                    <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>
+                      {p.note}
+                    </p>
                   </div>
                 ))}
               </div>
