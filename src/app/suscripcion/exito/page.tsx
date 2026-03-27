@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
 export default async function SuscripcionExitoPage({
@@ -10,7 +10,7 @@ export default async function SuscripcionExitoPage({
   const { barbershopId } = await searchParams
 
   if (barbershopId) {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
     await subscriptionService.activateByBarbershopId(supabase, barbershopId)
   }
 
