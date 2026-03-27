@@ -7,7 +7,9 @@ export default async function SuscripcionExitoPage({
 }: {
   searchParams: Promise<{ barbershopId?: string }>
 }) {
-  const { barbershopId } = await searchParams
+  const { barbershopId: rawBarbershopId } = await searchParams
+  // MP agrega ?preapproval_id=... a la back_url que ya tiene ?, esto lo limpia
+  const barbershopId = rawBarbershopId?.split('?')[0]
 
   if (barbershopId) {
     const supabase = createServiceClient()

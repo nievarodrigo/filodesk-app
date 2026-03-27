@@ -77,7 +77,9 @@ export async function activateByBarbershopId(
   const data = await mpRes.json()
   console.log('[activateByBarbershopId] MP search response:', JSON.stringify(data))
 
-  const subscription = data?.results?.[0]
+  // Preferimos la más reciente con status authorized; si no hay, la más reciente
+  const results: { id: string; status: string }[] = data?.results ?? []
+  const subscription = results.find(s => s.status === 'authorized') ?? results[0]
   if (!subscription) {
     console.error('[activateByBarbershopId] No subscription found for barbershopId:', barbershopId)
     return { error: 'not_found' }
