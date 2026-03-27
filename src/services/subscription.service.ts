@@ -12,7 +12,7 @@ export async function createMPSubscription(
 
   const siteUrl = 'https://filodesk.app'
 
-  const body: Record<string, unknown> = {
+  const body = {
     reason: `FiloDesk — ${barbershop.name}`,
     auto_recurring: {
       frequency: 1,
@@ -21,13 +21,8 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    payer_email: process.env.MP_TEST_PAYER_EMAIL || userEmail,
     external_reference: barbershopId,
-  }
-
-  // Solo mandar payer_email en sandbox (fuerza cuenta de prueba)
-  // En producción NO se manda — MP acepta cualquier email del pagador
-  if (process.env.MP_TEST_PAYER_EMAIL) {
-    body.payer_email = process.env.MP_TEST_PAYER_EMAIL
   }
 
   const res = await fetch('https://api.mercadopago.com/preapproval', {
