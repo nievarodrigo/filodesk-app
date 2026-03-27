@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   const { data: barbershop } = await supabase
     .from('barbershops')
-    .select('id, name, subscription_status, trial_ends_at')
+    .select('id, name, subscription_status, trial_ends_at, subscription_renews_at, subscription_payment_method')
     .eq('id', barbershopId)
     .eq('owner_id', session.user.id)
     .single()
@@ -33,6 +33,15 @@ export default async function DashboardLayout({
   if (status === 'trial') {
     const endsAt = barbershop.trial_ends_at ? new Date(barbershop.trial_ends_at) : new Date(0)
     if (endsAt < new Date()) {
+      redirect(`/suscripcion?barbershopId=${barbershopId}`)
+    }
+  }
+  // Pago único vencido: si pagó con checkout_pro y la fecha de renovación ya pasó
+  if (status === 'active' && barbershop.subscription_payment_method === 'checkout_pro') {
+    const renewsAt = barbershop.subscription_renews_at ? new Date(barbershop.subscription_renews_at) : null
+    if (renewsAt && renewsAt < new Date()) {
+      // Marcar como expirado y redirigir
+      await supabase.from('barbershops').update({ subscription_status: 'expired' }).eq('id', barbershopId)
       redirect(`/suscripcion?barbershopId=${barbershopId}`)
     }
   }

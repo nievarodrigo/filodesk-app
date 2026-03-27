@@ -31,7 +31,7 @@ export async function updateSubscription(
   supabase: SupabaseClient,
   barbershopId: string,
   status: 'active' | 'expired',
-  mpSubscriptionId: string,
+  mpSubscriptionId: string | null,
   startsAt?: string | null,
   renewsAt?: string | null,
   amount?: number | null,

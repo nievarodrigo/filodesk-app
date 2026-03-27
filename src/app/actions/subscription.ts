@@ -18,3 +18,18 @@ export async function createMPSubscription(barbershopId: string): Promise<void> 
 
   redirect(result.redirectUrl!)
 }
+
+export async function createMPCheckout(barbershopId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const result = await subscriptionService.createMPCheckout(
+    supabase, barbershopId, user.id
+  )
+
+  if (result.error === 'not_found') redirect('/dashboard')
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+
+  redirect(result.redirectUrl!)
+}

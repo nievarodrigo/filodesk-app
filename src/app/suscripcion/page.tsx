@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { createMPSubscription } from '@/app/actions/subscription'
+import { createMPSubscription, createMPCheckout } from '@/app/actions/subscription'
 import Image from 'next/image'
 
 const plans = [
@@ -51,7 +51,8 @@ export default async function SuscripcionPage({
     ? new Date(barbershop.trial_ends_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
     : null
 
-  const action = createMPSubscription.bind(null, barbershopId)
+  const subscriptionAction = createMPSubscription.bind(null, barbershopId)
+  const checkoutAction = createMPCheckout.bind(null, barbershopId)
 
   return (
     <div style={{
@@ -123,15 +124,30 @@ export default async function SuscripcionPage({
             </ul>
 
             {plan.available ? (
-              <form action={action}>
-                <button type="submit" style={{
-                  width: '100%', background: 'var(--gold)', color: 'var(--bg)',
-                  border: 'none', borderRadius: 8, padding: '11px 20px',
-                  fontSize: '.9rem', fontWeight: 700, cursor: 'pointer',
-                }}>
-                  Suscribirme
-                </button>
-              </form>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <form action={checkoutAction}>
+                  <button type="submit" style={{
+                    width: '100%', background: 'var(--gold)', color: 'var(--bg)',
+                    border: 'none', borderRadius: 8, padding: '11px 20px',
+                    fontSize: '.9rem', fontWeight: 700, cursor: 'pointer',
+                  }}>
+                    Pagar este mes
+                  </button>
+                </form>
+                <form action={subscriptionAction}>
+                  <button type="submit" style={{
+                    width: '100%', background: 'transparent', color: 'var(--gold)',
+                    border: '1px solid var(--gold)', borderRadius: 8, padding: '10px 20px',
+                    fontSize: '.82rem', fontWeight: 600, cursor: 'pointer',
+                  }}>
+                    Débito automático mensual
+                  </button>
+                </form>
+                <p style={{ fontSize: '.68rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.4 }}>
+                  &quot;Pagar este mes&quot; acepta todos los medios de pago.<br/>
+                  &quot;Débito automático&quot; se cobra solo cada mes.
+                </p>
+              </div>
             ) : (
               <button disabled style={{
                 width: '100%', background: 'transparent', color: 'var(--muted)',

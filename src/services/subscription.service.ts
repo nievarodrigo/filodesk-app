@@ -45,6 +45,66 @@ export async function createMPSubscription(
   return { redirectUrl: data.init_point as string }
 }
 
+export async function createMPCheckout(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string,
+) {
+  const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
+  if (!barbershop) return { error: 'not_found' as const }
+
+  const siteUrl = 'https://filodesk.app'
+
+  // Checkout Pro: pago único de un mes — acepta todos los medios de pago
+  const body = {
+    items: [{
+      title: `FiloDesk — ${barbershop.name} (1 mes)`,
+      quantity: 1,
+      unit_price: 11999,
+      currency_id: 'ARS',
+    }],
+    back_urls: {
+      success: `${siteUrl}/suscripcion/exito-pago?barbershopId=${barbershopId}`,
+      failure: `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
+      pending: `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
+    },
+    auto_return: 'approved',
+    external_reference: barbershopId,
+  }
+
+  const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok || !data.init_point) {
+    console.error('[MP checkout]', data)
+    return { error: 'mp_error' as const }
+  }
+
+  return { redirectUrl: data.init_point as string }
+}
+
+export async function activateOneMonthPayment(
+  supabase: SupabaseClient,
+  barbershopId: string,
+) {
+  const now = new Date()
+  const renewsAt = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()).toISOString()
+
+  await barbershopRepo.updateSubscription(
+    supabase, barbershopId, 'active', null,
+    now.toISOString(), renewsAt, 11999, 'checkout_pro'
+  )
+  return {}
+}
+
 export async function processWebhook(
   supabase: SupabaseClient,
   subscriptionId: string
