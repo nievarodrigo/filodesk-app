@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { createMPCheckoutWithMonths, createMPSubscription } from '@/app/actions/subscription'
+import { createGalioPAyPaymentLink } from '@/app/actions/galiopay'
 
 const BASE_PRICE = 11999
 
@@ -20,7 +21,7 @@ const FEATURES = [
   'Control de stock y gastos',
 ]
 
-type Method = 'checkout' | 'subscription'
+type Method = 'checkout' | 'subscription' | 'transfer'
 
 interface Props {
   barbershopId:       string
@@ -53,6 +54,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
     start(async () => {
       if (method === 'subscription') {
         await createMPSubscription(barbershopId)
+      } else if (method === 'transfer') {
+        await createGalioPAyPaymentLink(barbershopId, months)
       } else {
         await createMPCheckoutWithMonths(barbershopId, months)
       }
@@ -223,6 +226,18 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva automáticamente cada mes'}
               badge="MENSUAL"
             />
+
+            {/* Transferencia bancaria */}
+            <MethodCard
+              active={method === 'transfer'}
+              disabled={false}
+              onClick={() => setMethod('transfer')}
+              icon="🏦"
+              title="Transferencia bancaria"
+              subtitle="Sin retenciones · Dinero directo en tu cuenta"
+              badge="RECOMENDADO"
+              badgeColor="gold"
+            />
           </div>
 
           {/* ── CTA ── */}
@@ -262,19 +277,34 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             ) : (
               method === 'checkout'
                 ? `Pagar ${fmt(total)} →`
+                : method === 'transfer'
+                ? `Transferir ${fmt(total)} →`
                 : 'Activar débito automático →'
             )}
           </button>
 
           {/* ── Footer ── */}
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
-              🔒 Pagos procesados de forma segura por MercadoPago
-            </p>
-            {method === 'checkout' && (
-              <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
-                No necesitás tener cuenta en MercadoPago
-              </p>
+            {method === 'transfer' ? (
+              <>
+                <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
+                  🔒 Procesado de forma segura por GalioPay
+                </p>
+                <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
+                  Dinero acreditado sin retenciones
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
+                  🔒 Pagos procesados de forma segura por MercadoPago
+                </p>
+                {method === 'checkout' && (
+                  <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
+                    No necesitás tener cuenta en MercadoPago
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -295,7 +325,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 function MethodCard({
-  active, disabled, onClick, icon, title, subtitle, badge,
+  active, disabled, onClick, icon, title, subtitle, badge, badgeColor,
 }: {
   active: boolean
   disabled: boolean
@@ -304,6 +334,7 @@ function MethodCard({
   title: string
   subtitle: string
   badge?: string
+  badgeColor?: 'green' | 'gold'
 }) {
   return (
     <button
@@ -342,8 +373,10 @@ function MethodCard({
           {badge && (
             <span style={{
               fontSize: '.58rem', fontWeight: 700, padding: '1px 7px',
-              background: 'rgba(94,207,135,0.1)', color: 'var(--green)',
-              border: '1px solid rgba(94,207,135,0.22)', borderRadius: 20,
+              background: badgeColor === 'gold' ? 'rgba(212,168,42,0.12)' : 'rgba(94,207,135,0.1)',
+              color: badgeColor === 'gold' ? 'var(--gold)' : 'var(--green)',
+              border: badgeColor === 'gold' ? '1px solid rgba(212,168,42,0.3)' : '1px solid rgba(94,207,135,0.22)',
+              borderRadius: 20,
               letterSpacing: '.4px',
             }}>
               {badge}
