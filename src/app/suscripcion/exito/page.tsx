@@ -1,11 +1,18 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import * as subscriptionService from '@/services/subscription.service'
 
 export default async function SuscripcionExitoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ barbershopId?: string }>
+  searchParams: Promise<{ barbershopId?: string; preapproval_id?: string }>
 }) {
-  const { barbershopId } = await searchParams
+  const { barbershopId, preapproval_id } = await searchParams
+
+  if (preapproval_id) {
+    const supabase = await createClient()
+    await subscriptionService.processWebhook(supabase, preapproval_id)
+  }
 
   return (
     <div style={{
