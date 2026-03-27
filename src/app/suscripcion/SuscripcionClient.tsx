@@ -141,7 +141,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         }}>
           <p>Hoy: <strong style={{ color: 'var(--text)' }}>{capitalize(today)}</strong></p>
           {trialEnd && (
-            <p>Trial vence: <strong style={{ color: 'var(--gold)' }}>{trialEnd}</strong></p>
+            <p>{subscriptionStatus === 'trial' ? 'Trial' : 'Plan'} vence: <strong style={{ color: 'var(--gold)' }}>{trialEnd}</strong></p>
           )}
         </div>
         <div style={{ width: '100%', maxWidth: 920, display: 'flex', flexDirection: 'column', gap: 24 }}>
