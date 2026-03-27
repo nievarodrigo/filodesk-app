@@ -144,15 +144,14 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                     key={p.id}
                     style={{
                       background: 'var(--surface)',
-                      border: `1px solid ${p.available ? 'var(--gold)' : 'var(--border)'}`,
+                      border: `1px solid var(--gold)`,
                       borderRadius: 14,
                       padding: '24px 20px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 16,
-                      opacity: p.available ? 1 : 0.6,
                       position: 'relative',
-                      cursor: p.available ? 'pointer' : 'not-allowed',
+                      cursor: p.available ? 'pointer' : 'default',
                       transition: 'all 0.15s ease',
                     }}
                     onMouseEnter={(e) => {
@@ -163,17 +162,15 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                     }}
                     onClick={() => p.available && selectPlan(p.id)}
                   >
-                    {p.available && (
-                      <div style={{
-                        position: 'absolute',
-                        top: -1,
-                        left: -1,
-                        right: -1,
-                        height: 3,
-                        background: 'var(--gold)',
-                        borderRadius: '14px 14px 0 0',
-                      }} />
-                    )}
+                    <div style={{
+                      position: 'absolute',
+                      top: -1,
+                      left: -1,
+                      right: -1,
+                      height: 3,
+                      background: 'var(--gold)',
+                      borderRadius: '14px 14px 0 0',
+                    }} />
 
                     <div>
                       <p style={{ fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--gold)', marginBottom: 6 }}>
@@ -204,12 +201,12 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       </button>
                     ) : (
                       <button disabled style={{
-                        width: '100%', background: 'transparent', color: 'var(--muted)',
-                        border: '1px solid var(--border)', borderRadius: 8, padding: '11px 20px',
+                        width: '100%', background: 'var(--border)', color: 'var(--muted)',
+                        border: 'none', borderRadius: 8, padding: '11px 20px',
                         fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed',
                         marginTop: 'auto',
                       }}>
-                        Próximamente
+                        En desarrollo
                       </button>
                     )}
                   </div>
