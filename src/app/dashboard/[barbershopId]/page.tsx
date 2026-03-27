@@ -25,6 +25,21 @@ export default async function DashboardPage({
 
   const todayDate = today()
 
+  // Obtener info de suscripción
+  const { data: barbershopData } = await supabase
+    .from('barbershops')
+    .select('subscription_status, trial_ends_at, subscription_ends_at')
+    .eq('id', barbershopId)
+    .single()
+
+  const subscriptionDate = barbershopData?.subscription_status === 'trial'
+    ? barbershopData?.trial_ends_at
+    : barbershopData?.subscription_ends_at
+
+  const formattedSubDate = subscriptionDate
+    ? new Date(subscriptionDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+    : null
+
   const [
     { data: barbers },
     { data: rawServiceTypes },
@@ -83,9 +98,18 @@ export default async function DashboardPage({
     <div>
       <div className={styles.header}>
         <h1 className={styles.title}>Inicio</h1>
-        <p className={styles.date}>
-          {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
-        </p>
+        <div style={{ textAlign: 'right', fontSize: '.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>
+          <p>
+            Hoy: <strong style={{ color: 'var(--text)' }}>
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
+            </strong>
+          </p>
+          {formattedSubDate && (
+            <p>
+              {barbershopData?.subscription_status === 'trial' ? 'Trial' : 'Plan'} vence: <strong style={{ color: 'var(--gold)' }}>{formattedSubDate}</strong>
+            </p>
+          )}
+        </div>
       </div>
 
       {/* KPIs */}
