@@ -234,7 +234,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               onClick={() => setMethod('transfer')}
               icon="🏦"
               title="Transferencia bancaria"
-              subtitle="Sin retenciones · Dinero directo en tu cuenta"
+              subtitle="Desde cualquier banco · Rápido y seguro"
               badge="RECOMENDADO"
               badgeColor="gold"
             />
