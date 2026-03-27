@@ -41,6 +41,7 @@ Las migraciones están en `migrations/` ordenadas por timestamp. **No se aplican
 | `20260324000003_expenses_category.sql` | Categoría en gastos |
 | `20260327000000_subscription_dates.sql` | `subscription_starts_at` y `subscription_renews_at` |
 | `20260327000001_subscription_amount_method.sql` | `subscription_amount` y `subscription_payment_method` |
+| `20260327000002_admin_tables.sql` | Tablas `admin_users` y `admin_expenses` |
 
 ### Cómo aplicar una migración nueva
 
