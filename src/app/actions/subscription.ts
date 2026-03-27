@@ -4,15 +4,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
-export async function createMPSubscription(barbershopId: string, formData: FormData): Promise<void> {
+export async function createMPSubscription(barbershopId: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const mpEmail = (formData.get('mpEmail') as string)?.trim() || user.email!
-
   const result = await subscriptionService.createMPSubscription(
-    supabase, barbershopId, user.id, mpEmail
+    supabase, barbershopId, user.id
   )
 
   if (result.error === 'not_found') redirect('/dashboard')

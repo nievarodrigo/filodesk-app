@@ -5,13 +5,15 @@ export async function createMPSubscription(
   supabase: SupabaseClient,
   barbershopId: string,
   userId: string,
-  userEmail: string
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
   const siteUrl = 'https://filodesk.app'
 
+  // Usamos /preapproval_plan en vez de /preapproval
+  // Con plan, el usuario ingresa su propio email de MP en el checkout
+  // No se requiere payer_email — cualquiera puede suscribirse
   const body = {
     reason: `FiloDesk — ${barbershop.name}`,
     auto_recurring: {
@@ -21,11 +23,10 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
-    payer_email: process.env.MP_TEST_PAYER_EMAIL || userEmail,
     external_reference: barbershopId,
   }
 
-  const res = await fetch('https://api.mercadopago.com/preapproval', {
+  const res = await fetch('https://api.mercadopago.com/preapproval_plan', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

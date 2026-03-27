@@ -123,28 +123,7 @@ export default async function SuscripcionPage({
             </ul>
 
             {plan.available ? (
-              <form action={action} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: '.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.7px', color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
-                    Email de Mercado Pago
-                  </label>
-                  <input
-                    name="mpEmail"
-                    type="email"
-                    defaultValue={session.user.email ?? ''}
-                    placeholder="tu@email.com"
-                    required
-                    style={{
-                      width: '100%', boxSizing: 'border-box',
-                      background: 'var(--bg)', border: '1px solid var(--border)',
-                      borderRadius: 8, padding: '9px 12px',
-                      fontSize: '.85rem', color: 'var(--text)', outline: 'none',
-                    }}
-                  />
-                  <p style={{ fontSize: '.68rem', color: 'var(--muted)', marginTop: 4 }}>
-                    Usá el email con el que usás Mercado Pago
-                  </p>
-                </div>
+              <form action={action}>
                 <button type="submit" style={{
                   width: '100%', background: 'var(--gold)', color: 'var(--bg)',
                   border: 'none', borderRadius: 8, padding: '11px 20px',
