@@ -37,7 +37,7 @@ export default async function DashboardPage({
     : barbershopData?.subscription_renews_at
 
   const formattedSubDate = subscriptionDate
-    ? new Date(subscriptionDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+    ? new Date(subscriptionDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
     : null
 
   const [

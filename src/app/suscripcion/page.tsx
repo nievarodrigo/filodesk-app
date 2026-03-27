@@ -23,7 +23,7 @@ export default async function SuscripcionPage({
   if (barbershop.subscription_status === 'active') redirect(`/dashboard/${barbershopId}`)
 
   const trialEnd = barbershop.trial_ends_at
-    ? new Date(barbershop.trial_ends_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+    ? new Date(barbershop.trial_ends_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
     : null
 
   return (
