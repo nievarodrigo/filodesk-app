@@ -69,16 +69,24 @@ export async function activateByBarbershopId(
   supabase: SupabaseClient,
   barbershopId: string
 ) {
+  // Buscamos sin filtrar por status para ver qué devuelve MP en sandbox
   const mpRes = await fetch(
-    `https://api.mercadopago.com/preapproval/search?external_reference=${barbershopId}&status=authorized`,
+    `https://api.mercadopago.com/preapproval/search?external_reference=${barbershopId}`,
     { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
   )
   const data = await mpRes.json()
+  console.log('[activateByBarbershopId] MP search response:', JSON.stringify(data))
 
   const subscription = data?.results?.[0]
-  if (!subscription) return { error: 'not_found' }
+  if (!subscription) {
+    console.error('[activateByBarbershopId] No subscription found for barbershopId:', barbershopId)
+    return { error: 'not_found' }
+  }
+
+  console.log('[activateByBarbershopId] subscription id:', subscription.id, 'status:', subscription.status)
 
   const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
-  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id)
+  const dbResult = await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id)
+  console.log('[activateByBarbershopId] DB update result:', JSON.stringify(dbResult))
   return {}
 }
