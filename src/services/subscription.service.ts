@@ -64,3 +64,21 @@ export async function processWebhook(
   await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId)
   return {}
 }
+
+export async function activateByBarbershopId(
+  supabase: SupabaseClient,
+  barbershopId: string
+) {
+  const mpRes = await fetch(
+    `https://api.mercadopago.com/preapproval/search?external_reference=${barbershopId}&status=authorized`,
+    { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
+  )
+  const data = await mpRes.json()
+
+  const subscription = data?.results?.[0]
+  if (!subscription) return { error: 'not_found' }
+
+  const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
+  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id)
+  return {}
+}

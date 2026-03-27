@@ -5,13 +5,13 @@ import * as subscriptionService from '@/services/subscription.service'
 export default async function SuscripcionExitoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ barbershopId?: string; preapproval_id?: string }>
+  searchParams: Promise<{ barbershopId?: string }>
 }) {
-  const { barbershopId, preapproval_id } = await searchParams
+  const { barbershopId } = await searchParams
 
-  if (preapproval_id) {
+  if (barbershopId) {
     const supabase = await createClient()
-    await subscriptionService.processWebhook(supabase, preapproval_id)
+    await subscriptionService.activateByBarbershopId(supabase, barbershopId)
   }
 
   return (
