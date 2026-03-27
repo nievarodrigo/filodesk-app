@@ -10,7 +10,7 @@ export async function createMPSubscription(barbershopId: string): Promise<void> 
   if (!user) redirect('/auth/login')
 
   const result = await subscriptionService.createMPSubscription(
-    supabase, barbershopId, user.id
+    supabase, barbershopId, user.id, user.email!
   )
 
   if (result.error === 'not_found') redirect('/dashboard')

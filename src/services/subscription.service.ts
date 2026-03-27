@@ -4,7 +4,8 @@ import * as barbershopRepo from '@/repositories/barbershop.repository'
 export async function createMPSubscription(
   supabase: SupabaseClient,
   barbershopId: string,
-  userId: string
+  userId: string,
+  userEmail: string
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
@@ -20,6 +21,7 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    payer_email: userEmail,
     external_reference: barbershopId,
   }
 
