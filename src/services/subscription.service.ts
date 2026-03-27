@@ -62,8 +62,10 @@ export async function processWebhook(
   const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
   const startsAt = subscription.date_created ?? null
   const renewsAt = subscription.next_payment_date ?? null
+  const amount = subscription.auto_recurring?.transaction_amount ?? null
+  const paymentMethod = subscription.payment_method_id ?? null
 
-  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId, startsAt, renewsAt)
+  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId, startsAt, renewsAt, amount, paymentMethod)
   return {}
 }
 
@@ -92,7 +94,9 @@ export async function activateByBarbershopId(
   const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
   const startsAt = subscription.date_created ?? null
   const renewsAt = subscription.next_payment_date ?? null
-  const dbResult = await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id, startsAt, renewsAt)
+  const amount = (subscription as any).auto_recurring?.transaction_amount ?? null
+  const paymentMethod = (subscription as any).payment_method_id ?? null
+  const dbResult = await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id, startsAt, renewsAt, amount, paymentMethod)
   console.log('[activateByBarbershopId] DB update result:', JSON.stringify(dbResult))
   return {}
 }
