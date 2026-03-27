@@ -107,6 +107,9 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
     })
   }
 
+  const today = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
   return (
     <>
       <style>{`
@@ -124,7 +127,23 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         justifyContent: 'center',
         background: 'var(--bg)',
         padding: '40px 20px',
+        position: 'relative',
       }}>
+        {/* ── Header con fechas ── */}
+        <div style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          textAlign: 'right',
+          fontSize: '.8rem',
+          color: 'var(--muted)',
+          lineHeight: 1.5,
+        }}>
+          <p>Hoy: <strong style={{ color: 'var(--text)' }}>{capitalize(today)}</strong></p>
+          {trialEnd && (
+            <p>Trial vence: <strong style={{ color: 'var(--gold)' }}>{trialEnd}</strong></p>
+          )}
+        </div>
         <div style={{ width: '100%', maxWidth: 920, display: 'flex', flexDirection: 'column', gap: 24 }}>
 
           {screen === 'plans' ? (
