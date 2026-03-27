@@ -21,7 +21,7 @@ export async function createMPSubscription(
       currency_id: 'ARS',
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
-    payer_email: userEmail,
+    payer_email: process.env.MP_TEST_PAYER_EMAIL || userEmail,
     external_reference: barbershopId,
   }
 
