@@ -121,8 +121,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                   <Image src="/logo-light.png" alt="FiloDesk" width={68} height={68} className="logo-light" style={{ borderRadius: 14 }} />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
-                    {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
+                  <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#ff6b6b', marginBottom: 6 }}>
+                    TEST: {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
                   </h1>
                   <p style={{ fontSize: '.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
                     {trialEnd ? `Tu prueba venció el ${trialEnd}.` : 'Tu suscripción está vencida.'}{' '}
