@@ -31,10 +31,17 @@ export async function updateSubscription(
   supabase: SupabaseClient,
   barbershopId: string,
   status: 'active' | 'expired',
-  mpSubscriptionId: string
+  mpSubscriptionId: string,
+  startsAt?: string | null,
+  renewsAt?: string | null,
 ) {
   return supabase
     .from('barbershops')
-    .update({ subscription_status: status, mp_subscription_id: mpSubscriptionId })
+    .update({
+      subscription_status: status,
+      mp_subscription_id: mpSubscriptionId,
+      ...(startsAt !== undefined && { subscription_starts_at: startsAt }),
+      ...(renewsAt !== undefined && { subscription_renews_at: renewsAt }),
+    })
     .eq('id', barbershopId)
 }

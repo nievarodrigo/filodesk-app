@@ -60,8 +60,10 @@ export async function processWebhook(
 
   const barbershopId = subscription.external_reference
   const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
+  const startsAt = subscription.date_created ?? null
+  const renewsAt = subscription.next_payment_date ?? null
 
-  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId)
+  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId, startsAt, renewsAt)
   return {}
 }
 
@@ -78,7 +80,7 @@ export async function activateByBarbershopId(
   console.log('[activateByBarbershopId] MP search response:', JSON.stringify(data))
 
   // Preferimos la más reciente con status authorized; si no hay, la más reciente
-  const results: { id: string; status: string }[] = data?.results ?? []
+  const results: { id: string; status: string; date_created?: string; next_payment_date?: string }[] = data?.results ?? []
   const subscription = results.find(s => s.status === 'authorized') ?? results[0]
   if (!subscription) {
     console.error('[activateByBarbershopId] No subscription found for barbershopId:', barbershopId)
@@ -88,7 +90,9 @@ export async function activateByBarbershopId(
   console.log('[activateByBarbershopId] subscription id:', subscription.id, 'status:', subscription.status)
 
   const status: 'active' | 'expired' = subscription.status === 'authorized' ? 'active' : 'expired'
-  const dbResult = await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id)
+  const startsAt = subscription.date_created ?? null
+  const renewsAt = subscription.next_payment_date ?? null
+  const dbResult = await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscription.id, startsAt, renewsAt)
   console.log('[activateByBarbershopId] DB update result:', JSON.stringify(dbResult))
   return {}
 }
