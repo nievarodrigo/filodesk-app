@@ -18,21 +18,11 @@ interface Props {
 
 export default function BarberosTable({ barbershopId, barbers }: Props) {
   const [isEditing, setIsEditing] = useState(false)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
   const [commissions, setCommissions] = useState<Record<string, string>>(
     Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')]))
   )
   const [pending, startTransition] = useTransition()
-
-  function toggleSelection(id: string) {
-    const newSelected = new Set(selectedIds)
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
-      newSelected.add(id)
-    }
-    setSelectedIds(newSelected)
-  }
 
   function handleCommissionChange(id: string, value: string) {
     setCommissions(prev => ({ ...prev, [id]: value }))
@@ -40,25 +30,22 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
 
   function handleSaveChanges() {
     startTransition(async () => {
-      for (const barberId of selectedIds) {
-        const barber = barbers.find(b => b.id === barberId)
-        if (barber) {
-          const newCommission = commissions[barber.id]
-          const oldCommission = String(barber.commission_pct ?? '')
-          if (newCommission !== oldCommission) {
-            await updateBarberCommission(barbershopId, barber.id, Number(newCommission))
-          }
+      for (const barber of barbers) {
+        const newCommission = commissions[barber.id]
+        const oldCommission = String(barber.commission_pct ?? '')
+        if (newCommission !== oldCommission) {
+          await updateBarberCommission(barbershopId, barber.id, Number(newCommission))
         }
       }
       setIsEditing(false)
-      setSelectedIds(new Set())
+      setFocusedRowId(null)
     })
   }
 
   function handleCancel() {
     setCommissions(Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')])))
     setIsEditing(false)
-    setSelectedIds(new Set())
+    setFocusedRowId(null)
   }
 
   function handleToggle(barberId: string, newActive: boolean) {
@@ -86,7 +73,6 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
 
       <div className={styles.table}>
         <div className={styles.tableHead}>
-          {isEditing && <span style={{ width: '40px', textAlign: 'center' }}>✓</span>}
           <span>Nombre</span>
           <span style={{ textAlign: 'center' }}>Comisión</span>
           <span style={{ textAlign: 'center' }}>Estado</span>
@@ -99,22 +85,17 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
           </div>
         ) : (
           barbers.map(barber => {
-            const isSelected = selectedIds.has(barber.id)
-            const canEdit = isEditing && isSelected
+            const isFocused = focusedRowId === barber.id
             return (
-              <div key={barber.id} className={styles.tableRow} style={canEdit ? { background: 'rgba(212, 168, 42, 0.08)' } : {}}>
-                {isEditing && (
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelection(barber.id)}
-                    style={{ width: '40px', cursor: 'pointer', accentColor: 'var(--gold)' }}
-                  />
-                )}
+              <div
+                key={barber.id}
+                className={styles.tableRow}
+                style={isEditing && isFocused ? { background: 'rgba(212, 168, 42, 0.12)', borderLeft: '3px solid var(--gold)' } : {}}
+              >
                 <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{barber.name}</span>
 
                 <span style={{ textAlign: 'center' }}>
-                  {canEdit ? (
+                  {isEditing ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                       <input
                         type="number"
@@ -125,6 +106,8 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
                         style={{ width: '60px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--gold)', color: 'var(--text)', borderRadius: '4px', padding: '4px' }}
                         value={commissions[barber.id]}
                         onChange={e => handleCommissionChange(barber.id, e.target.value)}
+                        onFocus={() => setFocusedRowId(barber.id)}
+                        onBlur={() => setFocusedRowId(null)}
                         disabled={pending}
                       />
                       <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>%</span>
