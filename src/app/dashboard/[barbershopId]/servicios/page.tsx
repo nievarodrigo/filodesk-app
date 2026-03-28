@@ -43,7 +43,7 @@ export default async function ServiciosPage({
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Nombre</span>
-          <span>Precio sugerido</span>
+          <span>Precio</span>
           <span>Estado</span>
           <span></span>
         </div>

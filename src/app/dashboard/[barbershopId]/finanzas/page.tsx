@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { currentYM } from '@/lib/date'
+import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
 import GraficoProductos from '../productos/GraficoProductos'
 import styles from './finanzas.module.css'
 
 export const metadata: Metadata = { title: 'Finanzas — FiloDesk' }
+export const dynamic = 'force-dynamic'
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -15,6 +17,22 @@ function formatARS(n: number) {
 function pctChange(current: number, previous: number) {
   if (previous === 0) return current > 0 ? 100 : 0
   return Math.round(((current - previous) / previous) * 100)
+}
+
+// Helpers para normalizar acceso a relaciones de Supabase
+function getBarber(barbers: unknown): { name?: string; commission_pct?: number } | null {
+  if (Array.isArray(barbers)) return barbers[0] || null
+  return barbers as { name?: string; commission_pct?: number } || null
+}
+
+function getServiceType(service_types: unknown): { name?: string } | null {
+  if (Array.isArray(service_types)) return service_types[0] || null
+  return service_types as { name?: string } || null
+}
+
+function getProduct(products: unknown): { name?: string } | null {
+  if (Array.isArray(products)) return products[0] || null
+  return products as { name?: string } || null
 }
 
 function monthLabel(ym: string) {
@@ -100,9 +118,11 @@ export default async function FinanzasPage({
   const ingProductos = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const ingresosMes  = ingServicios + ingProductos
   const gastosMes    = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
-  const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: any) => {
-    const pct = r.barbers?.commission_pct ?? 0
-    return s + Math.round((r.amount ?? 0) * pct / 100)
+  const comisionesMes = (salesMonthWithComm ?? [] as SaleWithCommission[]).reduce((s, r) => {
+    const barber = getBarber(r.barbers)
+    const pct = barber?.commission_pct ?? 0
+    const amount = r.amount ?? 0
+    return s + Math.round(amount * pct / 100)
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
 
@@ -153,23 +173,25 @@ export default async function FinanzasPage({
     .map(([ymk, v]) => ({ mes: MESES[Number(ymk.split('-')[1]) - 1], ingresos: Math.round(v.ingresos), gastos: Math.round(v.gastos) }))
 
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
-  for (const s of barberSalesMonth ?? []) {
-    const b = (s as any).barbers
-    if (!b) continue
-    const id = (s as any).barber_id
-    if (!barberMap[id]) barberMap[id] = { name: b.name, total: 0, pct: b.commission_pct ?? 0 }
-    barberMap[id].total += (s as any).amount ?? 0
+  for (const s of barberSalesMonth ?? [] as SaleWithBarber[]) {
+    const barber = getBarber(s.barbers)
+    // Saltar si no hay datos de barbero
+    if (!barber || !barber.name) continue
+    const id = s.barber_id
+    if (!barberMap[id]) barberMap[id] = { name: barber.name, total: 0, pct: barber.commission_pct ?? 0 }
+    barberMap[id].total += s.amount ?? 0
   }
   const barberData = Object.values(barberMap)
     .map(b => ({ name: b.name, total: Math.round(b.total), comision: Math.round(b.total * b.pct / 100) }))
     .sort((a, b) => b.total - a.total)
 
   const svcMap: Record<string, { count: number; total: number }> = {}
-  for (const s of serviceCountMonth ?? []) {
-    const name = (s as any).service_types?.name ?? 'Otro'
+  for (const s of serviceCountMonth ?? [] as SaleWithServiceType[]) {
+    const serviceType = getServiceType(s.service_types)
+    const name = serviceType?.name ?? 'Otro'
     if (!svcMap[name]) svcMap[name] = { count: 0, total: 0 }
     svcMap[name].count += 1
-    svcMap[name].total += (s as any).amount ?? 0
+    svcMap[name].total += s.amount ?? 0
   }
   const svcRanking = Object.entries(svcMap)
     .map(([name, v]) => ({ name, ...v }))
@@ -177,11 +199,12 @@ export default async function FinanzasPage({
     .slice(0, 6)
 
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
-  for (const s of prodSalesMonth ?? []) {
-    const name = (s as any).products?.name ?? 'Otro'
+  for (const s of prodSalesMonth ?? [] as ProductSaleWithProduct[]) {
+    const product = getProduct(s.products)
+    const name = product?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
-    pieMap[name].cantidad += (s as any).quantity ?? 1
-    pieMap[name].ingresos += ((s as any).sale_price ?? 0) * ((s as any).quantity ?? 1)
+    pieMap[name].cantidad += s.quantity ?? 1
+    pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
   }
   const pieData = Object.entries(pieMap)
     .map(([name, v]) => ({ name, ...v }))
@@ -190,8 +213,8 @@ export default async function FinanzasPage({
 
   const catMap: Record<string, number> = {}
   for (const e of expensesMonth ?? []) {
-    const cat = (e as any).category ?? 'Otros'
-    catMap[cat] = (catMap[cat] ?? 0) + ((e as any).amount ?? 0)
+    const cat = e.category ?? 'Otros'
+    catMap[cat] = (catMap[cat] ?? 0) + (e.amount ?? 0)
   }
 
   const ingDelta = pctChange(ingresosMes, ingPrev)

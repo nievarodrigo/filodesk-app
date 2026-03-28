@@ -112,7 +112,7 @@
 .priceBtn:hover .editHint { opacity: 1; }
 
 .editHint {
-  font-size: .7rem; color: var(--gold); opacity: 0;
+  font-size: .7rem; color: var(--gold); opacity: 1;
   transition: opacity .15s;
 }
 

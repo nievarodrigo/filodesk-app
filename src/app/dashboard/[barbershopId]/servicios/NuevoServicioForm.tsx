@@ -29,7 +29,7 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
                 {state?.errors?.name && <p className={styles.error}>{state.errors.name[0]}</p>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label} htmlFor="default_price">Precio sugerido (ARS)</label>
+                <label className={styles.label} htmlFor="default_price">Precio (ARS)</label>
                 <input id="default_price" name="default_price" type="number" inputMode="numeric" min="0" step="1" className={styles.input} placeholder="Ej: 5000" />
                 {state?.errors?.default_price && <p className={styles.error}>{state.errors.default_price[0]}</p>}
               </div>
