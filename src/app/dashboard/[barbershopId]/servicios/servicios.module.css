@@ -6,6 +6,12 @@
   gap: 12px;
 }
 
+.headerButtons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .title { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
 .subtitle { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 
@@ -83,13 +89,13 @@
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .tableHead {
-  display: grid; grid-template-columns: 1.5fr 1fr 1fr auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 100px;
   padding: 12px 20px; font-size: .72rem; text-transform: uppercase;
   letter-spacing: .7px; color: var(--muted); font-weight: 600;
   border-bottom: 1px solid var(--border); background: var(--card);
 }
 .tableRow {
-  display: grid; grid-template-columns: 1.5fr 1fr 1fr auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 100px;
   padding: 14px 20px; font-size: .9rem; color: var(--text);
   border-bottom: 1px solid var(--border); align-items: center;
   transition: background .12s;
@@ -157,7 +163,8 @@
 
 @media (max-width: 768px) {
   .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead, .tableRow { min-width: 440px; padding: 10px 14px; font-size: .82rem; }
+  .tableHead, .tableRow { min-width: 500px; padding: 10px 14px; font-size: .82rem; }
   .formCard { padding: 16px; }
   .priceInput { width: 80px; }
+  .headerButtons { flex-direction: column; width: 100%; }
 }

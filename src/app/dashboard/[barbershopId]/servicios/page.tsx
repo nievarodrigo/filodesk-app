@@ -37,7 +37,9 @@ export default async function ServiciosPage({
             Los servicios &quot;global&quot; son predeterminados. Podés editar su precio o agregar los tuyos.
           </p>
         </div>
-        <NuevoServicioForm barbershopId={barbershopId} />
+        <div className={styles.headerButtons}>
+          <NuevoServicioForm barbershopId={barbershopId} />
+        </div>
       </div>
 
       <ServiciosTable barbershopId={barbershopId} services={services} />

@@ -148,16 +148,14 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                   >
                     {s.active ? 'Desactivar' : 'Activar'}
                   </button>
-                  {!isGlobal(s.barbershop_id) && (
-                    <button
-                      className={styles.btnDelete}
-                      disabled={pending}
-                      onClick={() => handleDelete(s.id, s.name)}
-                      title="Eliminar servicio"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <button
+                    className={styles.btnDelete}
+                    disabled={pending}
+                    onClick={() => handleDelete(s.id, s.name)}
+                    title="Eliminar servicio"
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
             </div>
