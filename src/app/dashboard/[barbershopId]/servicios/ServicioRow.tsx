@@ -50,6 +50,7 @@ export default function ServicioRow({ barbershopId, service }: Props) {
             <span className={styles.prefix}>$</span>
             <input
               type="number"
+              inputMode="numeric"
               min="0"
               step="1"
               className={styles.priceInput}

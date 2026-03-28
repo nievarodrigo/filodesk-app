@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import { useState, useMemo } from 'react'
+import { TooltipContent } from '@/lib/definitions'
 import styles from '../ventas/ventas.module.css'
 
 interface DayData { fecha: string; amount: number; category: string }
@@ -29,15 +30,19 @@ function fmtARS(n: number) {
 
 const shortDate = (iso: string) => { const [,m,d] = iso.split('-'); return `${d}/${m}` }
 
-const Tooltip_ = ({ active, payload, label, cat, categories }: any) => {
+interface TooltipProps extends TooltipContent {
+  cat?: string
+}
+
+const Tooltip_ = ({ active, payload, label, cat }: TooltipProps) => {
   if (!active || !payload?.length) return null
-  const total = payload.reduce((s: number, p: any) => s + (p.value ?? 0), 0)
+  const total = payload.reduce((s: number, p) => s + (p.value ?? 0), 0)
   return (
     <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
-      <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>{shortDate(label)}</p>
+      <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>{shortDate(label as string)}</p>
       {cat === 'Todos' ? (
         <>
-          {payload.map((p: any) => p.value > 0 && (
+          {payload.map((p) => p.value > 0 && (
             <p key={p.dataKey} style={{ color: CATEGORY_COLORS[p.dataKey] ?? '#a0a0a0' }}>
               {p.dataKey}: {fmtFull(p.value)}
             </p>
@@ -49,7 +54,7 @@ const Tooltip_ = ({ active, payload, label, cat, categories }: any) => {
           )}
         </>
       ) : (
-        <p style={{ color: CATEGORY_COLORS[cat] ?? '#a0a0a0', fontWeight:600 }}>{fmtFull(total)}</p>
+        <p style={{ color: CATEGORY_COLORS[cat!] ?? '#a0a0a0', fontWeight:600 }}>{fmtFull(total)}</p>
       )}
     </div>
   )
@@ -62,6 +67,7 @@ export default function GraficoGastos({ data }: Props) {
   }, [data])
 
   const [cat, setCat] = useState<string>('Todos')
+  const activeCats = cat === 'Todos' ? categories.filter(c => c !== 'Todos') : [cat]
 
   // When Todos: one field per category per day (for stacked bars)
   // When filtered: single `amount` field
@@ -89,10 +95,6 @@ export default function GraficoGastos({ data }: Props) {
   }, [data, cat])
 
   if (data.length === 0) return null
-
-  const activeCats = cat === 'Todos'
-    ? categories.filter(c => c !== 'Todos')
-    : [cat]
 
   const barSize  = chartData.length > 20 ? 8 : chartData.length > 10 ? 12 : 18
   const xInterval = chartData.length > 14 ? Math.floor(chartData.length / 7) : 0
@@ -127,7 +129,7 @@ export default function GraficoGastos({ data }: Props) {
             axisLine={false} tickLine={false}
             width={48}
           />
-          <Tooltip content={<Tooltip_ cat={cat} categories={activeCats} />} cursor={{ fill:'rgba(255,255,255,.04)' }} />
+          <Tooltip content={<Tooltip_ cat={cat} />} cursor={{ fill:'rgba(255,255,255,.04)' }} />
           {activeCats.map((c, i) => (
             <Bar
               key={c}

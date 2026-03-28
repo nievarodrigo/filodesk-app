@@ -42,8 +42,8 @@ export default function MobileNav({ user }: Props) {
         <div className={styles.mobileOverlay} onClick={() => setOpen(false)}>
           <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
             <nav className={styles.mobileLinks}>
-              <a href="/#features" onClick={() => setOpen(false)}>Features</a>
-              <a href="/#precio" onClick={() => setOpen(false)}>Precio</a>
+              <Link href="/#features" onClick={() => setOpen(false)}>Features</Link>
+              <Link href="/#precio" onClick={() => setOpen(false)}>Precio</Link>
               <Link href="/nosotros" onClick={() => setOpen(false)}>Nosotros</Link>
               <Link href="/faq" onClick={() => setOpen(false)}>FAQ</Link>
             </nav>

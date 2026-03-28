@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import { useState, useMemo } from 'react'
+import { TooltipContent } from '@/lib/definitions'
 import styles from './ventas.module.css'
 
 interface DayData { fecha: string; servicios: number; productos: number }
@@ -48,14 +49,20 @@ const VISTAS: { key: Vista; label: string }[] = [
   { key: 'productos', label: 'Productos' },
 ]
 
-const Tooltip_ = ({ active, payload, label, vista, weekly }: any) => {
+interface TooltipProps extends TooltipContent {
+  vista?: Vista
+  weekly?: boolean
+}
+
+const Tooltip_ = ({ active, payload, label, vista, weekly }: TooltipProps) => {
   if (!active || !payload?.length) return null
-  const s = payload.find((p: any) => p.dataKey === 'servicios')?.value ?? 0
-  const pr = payload.find((p: any) => p.dataKey === 'productos')?.value ?? 0
+  const s = payload.find((p) => p.dataKey === 'servicios')?.value ?? 0
+  const pr = payload.find((p) => p.dataKey === 'productos')?.value ?? 0
+  const labelStr = String(label ?? '')
   return (
     <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontSize:'.82rem' }}>
       <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>
-        {weekly ? `Semana del ${weekLabel(label)}` : shortDate(label)}
+        {weekly ? `Semana del ${weekLabel(labelStr)}` : shortDate(labelStr)}
       </p>
       {vista === 'total' ? (
         <>
@@ -136,7 +143,7 @@ export default function GraficoIngresos({ data }: Props) {
             )}
             {(vista === 'total' || vista === 'servicios') && (
               <Line dataKey="servicios" stroke="var(--gold)" strokeWidth={2.5}
-                dot={(props: any) => {
+                dot={(props: { cx: number; cy: number; value: number }) => {
                   const { cx, cy, value } = props
                   return value > 0
                     ? <circle key={`d${cx}`} cx={cx} cy={cy} r={3} fill="var(--gold)" stroke="var(--surface)" strokeWidth={1.5} />

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { today } from '@/lib/date'
+import { type ServiceType, type Sale, type ProductSale } from '@/lib/definitions'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
 import BarberosCard from './BarberosCard'
+import CollapsibleCard from './CollapsibleCard'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Dashboard — FiloDesk' }
@@ -57,15 +59,15 @@ export default async function DashboardPage({
   ])
 
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
-  const overrideNames = new Set((rawServiceTypes ?? []).filter(s => (s as any).barbershop_id).map(s => s.name))
-  const serviceTypes = (rawServiceTypes ?? []).filter(s => (s as any).barbershop_id || !overrideNames.has(s.name))
+  const overrideNames = new Set((rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id).map(s => s.name))
+  const serviceTypes = (rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id || !overrideNames.has(s.name))
 
   const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = (salesToday ?? []).length
 
-  const comisionesHoy = (recentSales ?? []).reduce((s, r: any) =>
+  const comisionesHoy = (recentSales ?? []).reduce((s, r: Sale) =>
     s + Math.round((r.amount ?? 0) * ((r.barbers?.commission_pct ?? 0) / 100)), 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
@@ -88,57 +90,71 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      {/* KPIs */}
-      <div className={styles.kpis}>
-        {kpis.map(k => (
-          <div key={k.label} className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
-          </div>
-        ))}
-      </div>
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:kpis`}
+        title="Resumen del dia"
+      >
+        <div className={styles.kpis}>
+          {kpis.map(k => (
+            <div key={k.label} className={styles.kpiCard}>
+              <p className={styles.kpiLabel}>{k.label}</p>
+              <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+      </CollapsibleCard>
 
       <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
 
-      {/* Forms: servicio + producto lado a lado */}
-      {activeBarbers.length === 0 ? (
-        <div className={styles.noBarbers}>
-          Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
-        </div>
-      ) : (
-        <div className={styles.formRow}>
-          <NuevaVentaForm
-            barbershopId={barbershopId}
-            barbers={activeBarbers}
-            serviceTypes={serviceTypes ?? []}
-            compact
-          />
-          <VenderProductoWidget
-            barbershopId={barbershopId}
-            products={products ?? []}
-          />
-        </div>
-      )}
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:registro`}
+        title="Registro rapido"
+        collapseOnMobile
+      >
+        {/* Forms: servicio + producto lado a lado */}
+        {activeBarbers.length === 0 ? (
+          <div className={styles.noBarbers}>
+            Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
+          </div>
+        ) : (
+          <div className={styles.formRow}>
+            <NuevaVentaForm
+              barbershopId={barbershopId}
+              barbers={activeBarbers}
+              serviceTypes={serviceTypes ?? []}
+              compact
+            />
+            <VenderProductoWidget
+              barbershopId={barbershopId}
+              products={products ?? []}
+            />
+          </div>
+        )}
+      </CollapsibleCard>
 
-      {/* Ventas de hoy */}
-      <VentasHoySection
-        serviceSales={(recentSales ?? []).map((s: any) => ({
-          id: s.id,
-          type: 'servicio' as const,
-          barber: s.barbers?.name ?? '—',
-          service: s.service_types?.name ?? '—',
-          amount: s.amount ?? 0,
-          notes: s.notes ?? null,
-        }))}
-        productSales={(productSalesToday ?? []).map((s: any) => ({
-          id: s.id,
-          type: 'producto' as const,
-          product: s.products?.name ?? '—',
-          quantity: s.quantity ?? 1,
-          amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
-        }))}
-      />
-
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:ventas-hoy`}
+        title="Ventas de hoy"
+        collapseOnMobile
+      >
+        <VentasHoySection
+          serviceSales={(recentSales ?? []).map((s: Sale) => ({
+            id: s.id,
+            type: 'servicio' as const,
+            barber: s.barbers?.name ?? '—',
+            service: s.service_types?.name ?? '—',
+            amount: s.amount ?? 0,
+            notes: s.notes ?? null,
+          }))}
+          productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
+            id: s.id,
+            type: 'producto' as const,
+            product: s.products?.name ?? '—',
+            quantity: s.quantity ?? 1,
+            amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+          }))}
+        />
+      </CollapsibleCard>
     </div>
   )
 }

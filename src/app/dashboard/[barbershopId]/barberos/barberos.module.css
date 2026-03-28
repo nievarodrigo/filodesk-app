@@ -42,12 +42,16 @@
   background: transparent;
   border: 1px solid rgba(224,112,112,.4);
   color: var(--red);
-  padding: 6px 14px;
+  min-height: 44px;
+  padding: 10px 14px;
   border-radius: 6px;
   font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   transition: background .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btnToggleOff:hover { background: rgba(224,112,112,.08); }
 .btnToggleOff:disabled { opacity: .5; cursor: not-allowed; }
@@ -56,12 +60,16 @@
   background: transparent;
   border: 1px solid rgba(94,207,135,.4);
   color: var(--green);
-  padding: 6px 14px;
+  min-height: 44px;
+  padding: 10px 14px;
   border-radius: 6px;
   font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   transition: background .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btnToggleOn:hover { background: rgba(94,207,135,.08); }
 .btnToggleOn:disabled { opacity: .5; cursor: not-allowed; }
@@ -78,9 +86,14 @@
   color: var(--muted);
   font-size: .8rem;
   cursor: pointer;
-  padding: 4px 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
   border-radius: 4px;
   transition: color .15s, background .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btnDelete:hover { color: var(--red); background: rgba(224,112,112,.08); }
 .btnDelete:disabled { opacity: .4; cursor: not-allowed; }

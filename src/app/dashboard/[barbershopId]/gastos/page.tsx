@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { today as todayAR, currentYM } from '@/lib/date'
+import { currentYM } from '@/lib/date'
 import NuevoGastoForm from './NuevoGastoForm'
 import DeleteGastoButton from './DeleteGastoButton'
 import GraficoGastos from './GraficoGastos'
@@ -65,8 +65,8 @@ export default async function GastosPage({
   const totalPages = Math.ceil((expenseCount ?? 0) / PAGE_SIZE)
 
   // Chart data: flat list of { fecha, amount, category }
-  const chartExpenses = (allExpenses ?? []).map(e => ({
-    fecha:    (e as any).date ?? '',
+  const chartExpenses = (allExpenses ?? []).map((e: { date?: string; amount?: number; category?: string }) => ({
+    fecha:    e.date ?? '',
     amount:   e.amount ?? 0,
     category: e.category ?? 'Otros',
   })).filter(e => e.fecha)

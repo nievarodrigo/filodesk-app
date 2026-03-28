@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
+import { type Barbershop } from '@/lib/definitions'
 import * as adminRepo from '@/repositories/admin.repository'
 import styles from './page.module.css'
 
@@ -29,7 +30,7 @@ export default async function AdminClientesPage() {
   const activos = clients.filter(c => c.subscription_status === 'active').length
   const mrr = clients
     .filter(c => c.subscription_status === 'active')
-    .reduce((s, c) => s + ((c as any).subscription_amount ?? 11999), 0)
+    .reduce((s, c: Barbershop) => s + ((c.subscription_amount) ?? 11999), 0)
 
   return (
     <div>
@@ -55,7 +56,7 @@ export default async function AdminClientesPage() {
             <span>Método</span>
             <span>Monto</span>
           </div>
-          {clients.map((c: any) => (
+          {clients.map((c: Barbershop) => (
             <div key={c.id} className={styles.tableRow}>
               <span className={styles.name}>{c.name}</span>
               <span style={{ color: STATUS_COLOR[c.subscription_status] ?? 'var(--muted)', fontSize: '.82rem', fontWeight: 600 }}>

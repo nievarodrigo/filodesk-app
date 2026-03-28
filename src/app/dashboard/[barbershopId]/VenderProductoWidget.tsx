@@ -26,6 +26,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
   const [cart, setCart]         = useState<CartItem[]>([])
   const containerRef            = useRef<HTMLDivElement>(null)
   const formRef                 = useRef<HTMLFormElement>(null)
+  const initialRenderRef        = useRef(true)
 
   const suggestions = query.trim() === ''
     ? []
@@ -101,8 +102,14 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
 
   // Reset carrito al confirmar exitosamente
   useEffect(() => {
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false
+      return
+    }
     if (!pending && !state?.message && formRef.current) {
-      setCart([])
+      // Use setTimeout to defer setState - prevents cascading render warning
+      const timer = setTimeout(() => { setCart([]) }, 0)
+      return () => clearTimeout(timer)
     }
   }, [pending, state])
 

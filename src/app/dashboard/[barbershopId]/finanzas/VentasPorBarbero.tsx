@@ -3,6 +3,7 @@
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 
 interface BarberData {
   name: string
@@ -18,7 +19,7 @@ function fmtFull(n: number) {
 
 const COLORS = ['var(--gold)', '#5ecf87', '#7eb8f7', '#e07070', '#a78bfa', '#fb923c']
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
   const d = payload[0].payload
   return (

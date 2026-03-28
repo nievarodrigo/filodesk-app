@@ -20,8 +20,6 @@ export default async function BarberosPage({
     .eq('barbershop_id', barbershopId)
     .order('created_at', { ascending: true })
 
-  const activos = (barbers ?? []).filter(b => b.active).length
-
   return (
     <div>
       <div className={styles.header}>

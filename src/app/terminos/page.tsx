@@ -88,7 +88,7 @@ export default function TerminosPage() {
           <p>
             FiloDesk no se hace responsable por pérdidas de datos causadas por mal uso del
             servicio, ni por decisiones comerciales tomadas en base a la información de la app.
-            El servicio se provee "tal cual es".
+            El servicio se provee &quot;tal cual es&quot;.
           </p>
         </div>
 

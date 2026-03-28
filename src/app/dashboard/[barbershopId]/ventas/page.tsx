@@ -81,16 +81,15 @@ export default async function VentasPage({
   const ticketPromedio = (allSalesTotals ?? []).length > 0 ? totalServicios / (allSalesTotals ?? []).length : 0
 
   // Daily data for chart — only when range is ≤ 62 days to keep it readable
-  const daysDiff = (new Date(to).getTime() - new Date(from).getTime()) / 86400000
   const chartData = (() => {
     const map: Record<string, { servicios: number; productos: number }> = {}
     for (const s of allSalesTotals ?? []) {
-      const d = (s as any).date ?? ''
+      const d = (s as { date?: string }).date ?? ''
       if (!map[d]) map[d] = { servicios: 0, productos: 0 }
       map[d].servicios += s.amount ?? 0
     }
     for (const p of allProdTotals ?? []) {
-      const d = (p as any).date ?? ''
+      const d = (p as { date?: string }).date ?? ''
       if (!map[d]) map[d] = { servicios: 0, productos: 0 }
       map[d].productos += (p.sale_price ?? 0) * (p.quantity ?? 1)
     }
@@ -112,13 +111,10 @@ export default async function VentasPage({
 
   // Resumen por barbero (todos, sin paginar)
   const byBarber: Record<string, { name: string; count: number; total: number; commission: number }> = {}
-  for (const sale of allSalesTotals ?? []) {
-    // Note: allSalesTotals only has amount, no barber info — skip byBarber from totals
-  }
   // Use paginated sales for byBarber (approximate, but good enough for UX)
   for (const sale of sales ?? []) {
-    const name    = (sale as any).barbers?.name ?? 'Sin asignar'
-    const commPct = (sale as any).barbers?.commission_pct ?? 0
+    const name    = (sale as { barbers?: { name: string; commission_pct: number } }).barbers?.name ?? 'Sin asignar'
+    const commPct = (sale as { barbers?: { name: string; commission_pct: number } }).barbers?.commission_pct ?? 0
     if (!byBarber[name]) byBarber[name] = { name, count: 0, total: 0, commission: 0 }
     byBarber[name].count++
     byBarber[name].total      += sale.amount ?? 0
@@ -228,7 +224,7 @@ export default async function VentasPage({
                     <span>Notas</span>
                     <span></span>
                   </div>
-                  {(sales as any[]).map(sale => {
+                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: { name: string; commission_pct: number }; service_types?: { name: string } }>).map(sale => {
                     const commission = sale.barbers
                       ? Math.round(sale.amount * sale.barbers.commission_pct / 100)
                       : null
@@ -270,7 +266,7 @@ export default async function VentasPage({
                     <span>Cantidad</span>
                     <span>Monto</span>
                   </div>
-                  {(productSales as any[]).map(ps => (
+                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: { name: string } }>).map(ps => (
                     <div key={ps.id} className={styles.tableRowProduct}>
                       <span className={styles.muted}>{ps.date}</span>
                       <span>{ps.products?.name ?? '—'}</span>

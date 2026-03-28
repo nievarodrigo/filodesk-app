@@ -111,6 +111,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
             <input
               name="quantity[]"
               type="number"
+              inputMode="numeric"
               min="1"
               step="1"
               className={styles.input}
@@ -123,6 +124,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
             <input
               name="amount[]"
               type="number"
+              inputMode="numeric"
               min="1"
               step="1"
               placeholder="precio"

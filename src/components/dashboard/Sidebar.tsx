@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
@@ -84,9 +84,18 @@ export default function Sidebar({ barbershopId, barbershopName }: Props) {
   const base = `/dashboard/${barbershopId}`
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const initialRenderRef = useRef(true)
 
   // Close drawer on route change
-  useEffect(() => { setOpen(false) }, [pathname])
+  useEffect(() => {
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false
+      return
+    }
+    // Use setTimeout to defer setState - prevents cascading render warning
+    const timer = setTimeout(() => { setOpen(false) }, 0)
+    return () => clearTimeout(timer)
+  }, [pathname])
 
   // Lock body scroll when drawer is open
   useEffect(() => {

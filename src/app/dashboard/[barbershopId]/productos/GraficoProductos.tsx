@@ -3,6 +3,7 @@
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 
 interface ProductoData {
   name: string
@@ -18,7 +19,7 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
   const d = payload[0].payload
   return (
@@ -33,8 +34,10 @@ const CustomTooltip = ({ active, payload }: any) => {
   )
 }
 
-const renderLabel = ({ name, percent }: any) =>
-  percent > 0.07 ? `${Math.round(percent * 100)}%` : ''
+const renderLabel = (props: { percent: number }) => {
+  const { percent } = props
+  return percent > 0.07 ? `${Math.round(percent * 100)}%` : ''
+}
 
 export default function GraficoProductos({ data }: Props) {
   if (data.length === 0) return null

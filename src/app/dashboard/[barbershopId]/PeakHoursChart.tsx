@@ -3,11 +3,12 @@
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 import styles from './peakHours.module.css'
 
 type Point = { label: string; y: number }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: TooltipContent) {
   if (!active || !payload?.length) return null
   const d = payload[0]?.payload as Point
   if (!d) return null

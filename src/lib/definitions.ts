@@ -35,3 +35,90 @@ export type AuthFormState =
       message?: string
     }
   | undefined
+
+// Tipos de Supabase para Dashboard y Admin
+export interface ServiceType {
+  id: string
+  name: string
+  default_price: number
+  barbershop_id: string | null
+  active: boolean
+}
+
+export interface Sale {
+  id: string
+  amount: number
+  date: string
+  notes: string | null
+  barbers?: {
+    name: string
+    commission_pct: number
+  }
+  service_types?: {
+    name: string
+  }
+}
+
+export interface ProductSale {
+  id: string
+  sale_price: number
+  quantity: number
+  products?: {
+    name: string
+  }
+}
+
+export interface Barber {
+  id: string
+  name: string
+  commission_pct: number
+  active: boolean
+}
+
+export interface Expense {
+  id: string
+  amount: number
+  date: string
+}
+
+export interface AdminExpense {
+  id: string
+  amount: number
+  date: string
+  description: string
+  category: string
+}
+
+export interface Product {
+  id: string
+  name: string
+  sale_price: number
+  stock: number
+}
+
+export interface Barbershop {
+  id: string
+  name: string
+  created_at: string
+  subscription_status: 'active' | 'trial' | 'expired'
+  subscription_starts_at: string | null
+  subscription_renews_at: string | null
+  subscription_amount: number | null
+  subscription_payment_method: string | null
+  trial_ends_at: string | null
+}
+
+// Tipos para Recharts
+export interface PayloadEntry {
+  name: string
+  value: number
+  dataKey?: string
+  [key: string]: unknown
+}
+
+export interface TooltipContent {
+  active?: boolean
+  payload?: PayloadEntry[]
+  label?: string | number
+  [key: string]: unknown
+}

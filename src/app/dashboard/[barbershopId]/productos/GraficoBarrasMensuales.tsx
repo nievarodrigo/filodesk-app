@@ -4,6 +4,7 @@ import { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 
 interface MesData {
   mes: string   // "Ene", "Feb", etc.
@@ -16,7 +17,7 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
   return (
     <div style={{

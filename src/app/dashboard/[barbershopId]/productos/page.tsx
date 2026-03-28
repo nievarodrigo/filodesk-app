@@ -18,8 +18,9 @@ export default async function ProductosPage({
   const { barbershopId } = await params
   const supabase = await createClient()
 
-  const last90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
-  const last6m = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10)
+  const now = new Date()
+  const last90 = new Date(now.getTime() - 90 * 86400000).toISOString().slice(0, 10)
+  const last6m = new Date(now.getTime() - 180 * 86400000).toISOString().slice(0, 10)
 
   const [{ data: products }, { data: recentSales }, { data: salesLast90 }, { data: salesLast6m }] = await Promise.all([
     supabase.from('products').select('id, name, cost_price, sale_price, stock, active').eq('barbershop_id', barbershopId).order('name'),
@@ -61,7 +62,7 @@ export default async function ProductosPage({
   // Aggregate for pie chart
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
   for (const s of salesLast90 ?? []) {
-    const name = (s as any).products?.name ?? 'Otro'
+    const name = (s as { products?: { name: string } }).products?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += s.quantity ?? 1
     pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
@@ -130,7 +131,7 @@ export default async function ProductosPage({
         <div className={styles.histSection}>
           <h2 className={styles.histTitle}>Últimas ventas</h2>
           <div className={styles.histTable}>
-            {(recentSales as any[]).map(s => (
+            {(recentSales as Array<{ id: string; quantity: number; sale_price: number; date: string; products?: { name: string } }>).map(s => (
               <div key={s.id} className={styles.histRow}>
                 <span className={styles.muted}>{s.date}</span>
                 <span>{s.products?.name ?? '—'}</span>

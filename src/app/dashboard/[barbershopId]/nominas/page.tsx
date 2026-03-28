@@ -45,7 +45,7 @@ export default async function NominasPage({
       {!payrolls || payrolls.length === 0 ? (
         <div className={styles.empty}>
           <p>Todavía no hay nóminas liquidadas.</p>
-          <p style={{ fontSize: '.82rem', marginTop: 6 }}>Hacé click en "Liquidar nómina" para calcular la comisión de un barbero.</p>
+          <p style={{ fontSize: '.82rem', marginTop: 6 }}>Hacé click en &quot;Liquidar nómina&quot; para calcular la comisión de un barbero.</p>
         </div>
       ) : (
         <div className={styles.table}>
@@ -57,7 +57,7 @@ export default async function NominasPage({
             <span>Estado</span>
             <span></span>
           </div>
-          {(payrolls as any[]).map(p => (
+          {(payrolls as Array<{ id: string; period_start: string; period_end: string; total_sales: number; commission_amount: number; status: string; barbers?: { name: string } }>).map(p => (
             <div key={p.id} className={styles.tableRow}>
               <span style={{ fontWeight: 600 }}>{p.barbers?.name ?? '—'}</span>
               <span className={styles.muted} style={{ fontSize: '.82rem' }}>

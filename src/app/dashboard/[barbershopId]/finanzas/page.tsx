@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { currentYM } from '@/lib/date'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
-import GraficoProductos from '../productos/GraficoProductos'
+import RankingSelector from './RankingSelector'
 import styles from './finanzas.module.css'
 
 export const metadata: Metadata = { title: 'Finanzas — FiloDesk' }
@@ -113,7 +113,7 @@ export default async function FinanzasPage({
   const ingProductos = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const ingresosMes  = ingServicios + ingProductos
   const gastosMes    = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
-  const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: any) => {
+  const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: { amount?: number; barbers?: { commission_pct: number } }) => {
     const pct = r.barbers?.commission_pct ?? 0
     return s + Math.round((r.amount ?? 0) * pct / 100)
   }, 0)
@@ -173,7 +173,7 @@ export default async function FinanzasPage({
   // ── Ventas por barbero ───────────────────────────────────────
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? []) {
-    const b = (s as any).barbers
+    const b = (s as { barbers?: { name: string; commission_pct: number } }).barbers
     if (!b) continue
     const id = s.barber_id
     if (!barberMap[id]) barberMap[id] = { name: b.name, total: 0, pct: b.commission_pct ?? 0 }
@@ -186,7 +186,7 @@ export default async function FinanzasPage({
   // ── Ranking servicios ────────────────────────────────────────
   const svcMap: Record<string, { count: number; total: number }> = {}
   for (const s of serviceCountMonth ?? []) {
-    const name = (s as any).service_types?.name ?? 'Otro'
+    const name = (s as { service_types?: { name: string } }).service_types?.name ?? 'Otro'
     if (!svcMap[name]) svcMap[name] = { count: 0, total: 0 }
     svcMap[name].count += 1
     svcMap[name].total += s.amount ?? 0
@@ -196,10 +196,15 @@ export default async function FinanzasPage({
     .sort((a, b) => b.total - a.total)
     .slice(0, 6)
 
+  // ── Servicios (pie format) ───────────────────────────────────
+  const svcPieData = Object.entries(svcMap)
+    .map(([name, v]) => ({ name, cantidad: v.count, ingresos: v.total }))
+    .sort((a, b) => b.ingresos - a.ingresos)
+
   // ── Productos (pie) ──────────────────────────────────────────
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
   for (const s of prodSalesMonth ?? []) {
-    const name = (s as any).products?.name ?? 'Otro'
+    const name = (s as { products?: { name: string } }).products?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += s.quantity ?? 1
     pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
@@ -207,7 +212,8 @@ export default async function FinanzasPage({
   const pieData = Object.entries(pieMap)
     .map(([name, v]) => ({ name, ...v }))
     .sort((a, b) => b.ingresos - a.ingresos)
-    .slice(0, 8)
+
+  const prodRanking = pieData.slice(0, 6)
 
   // ── Gastos por categoría ─────────────────────────────────────
   const catMap: Record<string, number> = {}
@@ -314,31 +320,14 @@ export default async function FinanzasPage({
         </div>
       </div>
 
-      {/* Two columns: ranking servicios + productos */}
-      <div className={styles.twoCol}>
-        {svcRanking.length > 0 && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-            <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-              Top servicios
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {svcRanking.map((svc, i) => (
-                <div key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid var(--hover)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
-                    <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{svc.name}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-                    <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{svc.count} servicios</span>
-                    <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, minWidth: 70, textAlign: 'right' }}>{formatARS(svc.total)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {pieData.length > 0 && <GraficoProductos data={pieData} />}
-      </div>
+      {/* Ranking selector + chart */}
+      <RankingSelector
+        svcRanking={svcRanking}
+        prodRanking={prodRanking}
+        svcPieData={svcPieData}
+        prodPieData={pieData}
+        formatARS={formatARS}
+      />
     </div>
   )
 }

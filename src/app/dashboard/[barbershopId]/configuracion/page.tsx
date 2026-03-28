@@ -75,7 +75,7 @@ export default async function ConfiguracionPage({
         <div className={styles.blockHeader}>
           <div>
             <h2 className={styles.blockTitle}>Servicios</h2>
-            <p className={styles.blockSub}>Los "global" son predeterminados — editá su precio o agregá los tuyos</p>
+            <p className={styles.blockSub}>Los &quot;global&quot; son predeterminados — editá su precio o agregá los tuyos</p>
           </div>
         </div>
 

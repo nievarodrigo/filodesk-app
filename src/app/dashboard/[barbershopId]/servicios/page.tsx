@@ -34,7 +34,7 @@ export default async function ServiciosPage({
         <div>
           <h1 className={styles.title}>Servicios</h1>
           <p className={styles.subtitle}>
-            Los servicios "global" son predeterminados. Podés editar su precio o agregar los tuyos.
+            Los servicios &quot;global&quot; son predeterminados. Podés editar su precio o agregar los tuyos.
           </p>
         </div>
         <NuevoServicioForm barbershopId={barbershopId} />

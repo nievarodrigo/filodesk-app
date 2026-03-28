@@ -69,13 +69,13 @@ type ViewMode = 'desktop' | 'mobile'
 
 export default function MockupCarousel() {
   const [current, setCurrent] = useState(0)
-  const [viewMode, setViewMode] = useState<ViewMode>('desktop')
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'mobile'
+    }
+    return 'desktop'
+  })
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // Default según el dispositivo del visitante
-  useEffect(() => {
-    if (window.innerWidth < 768) setViewMode('mobile')
-  }, [])
 
   function start() {
     timerRef.current = setInterval(() => {

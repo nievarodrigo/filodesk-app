@@ -8,10 +8,10 @@
 .btnSecondary { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: .88rem; cursor: pointer; }
 .btnSecondary:hover { color: var(--text); border-color: rgba(196,30,58,.35); }
 
-.btnPay { background: rgba(94,207,135,.15); border: 1px solid rgba(94,207,135,.4); color: var(--green); padding: 6px 14px; border-radius: 6px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
+.btnPay { background: rgba(94,207,135,.15); border: 1px solid rgba(94,207,135,.4); color: var(--green); min-height: 44px; padding: 10px 14px; border-radius: 6px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
 .btnPay:hover { background: rgba(94,207,135,.25); }
 .btnPay:disabled { opacity: .5; cursor: not-allowed; }
-.btnDelete { background: transparent; border: none; color: var(--muted); font-size: .85rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: color .15s; }
+.btnDelete { background: transparent; border: none; color: var(--muted); font-size: .85rem; cursor: pointer; min-width: 44px; min-height: 44px; padding: 8px; border-radius: 4px; transition: color .15s; display: inline-flex; align-items: center; justify-content: center; }
 .btnDelete:hover { color: var(--red); }
 .btnDelete:disabled { opacity: .4; }
 

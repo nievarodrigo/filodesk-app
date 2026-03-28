@@ -126,7 +126,6 @@ async function main() {
     .select('id, name')
   const customMap = Object.fromEntries((customSvcs ?? []).map(s => [s.name, s.id]))
   const allSvcs = { ...svcMap, ...customMap }
-  const svcIds = Object.values(allSvcs)
   console.log('🔧 Servicios:', Object.keys(allSvcs).join(', '))
 
   // Productos
@@ -158,8 +157,24 @@ async function main() {
   console.log('💰 Generando ventas...')
   const allSvcNames = Object.keys(allSvcs)
 
-  const salesRows: any[] = []
-  const prodSalesRows: any[] = []
+  interface SalesRow {
+    barbershop_id: string
+    barber_id: string
+    service_type_id: string
+    amount: number
+    date: string
+  }
+
+  interface ProdSalesRow {
+    barbershop_id: string
+    product_id: string
+    quantity: number
+    sale_price: number
+    date: string
+  }
+
+  const salesRows: SalesRow[] = []
+  const prodSalesRows: ProdSalesRow[] = []
 
   for (const [rangeStart, rangeEnd] of [
     [m0start, new Date(today.getFullYear(), today.getMonth() - 2, 0)],
@@ -240,9 +255,15 @@ async function main() {
 
   // ─── GASTOS ──────────────────────────────────────────────────────────────
   console.log('🧾 Cargando gastos...')
-  const gastos: any[] = []
+  interface ExpenseRow {
+    barbershop_id: string
+    description: string
+    amount: number
+    date: string
+  }
+  const gastos: ExpenseRow[] = []
 
-  for (const [ms, me] of [
+  for (const [ms] of [
     [m0start, new Date(today.getFullYear(), today.getMonth() - 2, 0)],
     [m1start, new Date(today.getFullYear(), today.getMonth() - 1, 0)],
     [m2start, m2end],
@@ -267,7 +288,18 @@ async function main() {
 
   // ─── NÓMINAS (meses cerrados) ────────────────────────────────────────────
   console.log('📋 Generando nóminas...')
-  const payrolls: any[] = []
+  interface PayrollRow {
+    barbershop_id: string
+    barber_id: string
+    period_start: string
+    period_end: string
+    total_sales: number
+    commission_pct: number
+    commission_amount: number
+    status: string
+    paid_at: string
+  }
+  const payrolls: PayrollRow[] = []
 
   for (const [ps, pe] of [
     [m0start, new Date(today.getFullYear(), today.getMonth() - 2, 0)],
