@@ -114,8 +114,8 @@ export default async function FinanzasPage({
   const ingresosMes  = ingServicios + ingProductos
   const gastosMes    = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: unknown) => {
-    const row = r as { amount?: number; barbers?: Array<{ commission_pct?: number }> }
-    const pct = row.barbers?.[0]?.commission_pct ?? 0
+    const row = r as { amount?: number; barbers?: { commission_pct?: number } }
+    const pct = row.barbers?.commission_pct ?? 0
     return s + Math.round((row.amount ?? 0) * pct / 100)
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
@@ -174,8 +174,8 @@ export default async function FinanzasPage({
   // ── Ventas por barbero ───────────────────────────────────────
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? []) {
-    const row = s as unknown as { barber_id: string; amount?: number; barbers?: Array<{ name: string; commission_pct: number }> }
-    const b = row.barbers?.[0]
+    const row = s as unknown as { barber_id: string; amount?: number; barbers?: { name: string; commission_pct: number } }
+    const b = row.barbers
     if (!b) continue
     const id = row.barber_id
     if (!barberMap[id]) barberMap[id] = { name: b.name, total: 0, pct: b.commission_pct ?? 0 }
@@ -188,8 +188,8 @@ export default async function FinanzasPage({
   // ── Ranking servicios ────────────────────────────────────────
   const svcMap: Record<string, { count: number; total: number }> = {}
   for (const s of serviceCountMonth ?? []) {
-    const row = s as unknown as { amount?: number; service_types?: Array<{ name: string }> }
-    const name = row.service_types?.[0]?.name ?? 'Otro'
+    const row = s as unknown as { amount?: number; service_types?: { name: string } }
+    const name = row.service_types?.name ?? 'Otro'
     if (!svcMap[name]) svcMap[name] = { count: 0, total: 0 }
     svcMap[name].count += 1
     svcMap[name].total += row.amount ?? 0
@@ -207,8 +207,8 @@ export default async function FinanzasPage({
   // ── Productos (pie) ──────────────────────────────────────────
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
   for (const s of prodSalesMonth ?? []) {
-    const row = s as unknown as { quantity?: number; sale_price?: number; products?: Array<{ name: string }> }
-    const name = row.products?.[0]?.name ?? 'Otro'
+    const row = s as unknown as { quantity?: number; sale_price?: number; products?: { name: string } }
+    const name = row.products?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += row.quantity ?? 1
     pieMap[name].ingresos += (row.sale_price ?? 0) * (row.quantity ?? 1)
