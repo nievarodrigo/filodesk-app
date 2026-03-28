@@ -13,6 +13,8 @@ export default async function Navbar() {
 
   return (
     <nav className={styles.nav}>
+      <MobileNav user={user ? { email: user.email! } : null} />
+
       <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 34, height: 34, position: 'relative', flexShrink: 0 }}>
           <Image src="/logo-dark.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-dark" sizes="34px" />
@@ -43,8 +45,6 @@ export default async function Navbar() {
           </>
         )}
       </div>
-
-      <MobileNav user={user ? { email: user.email! } : null} />
     </nav>
   )
 }
