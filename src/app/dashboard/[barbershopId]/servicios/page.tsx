@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import NuevoServicioForm from './NuevoServicioForm'
-import ServicioRow from './ServicioRow'
+import ServiciosTable from './ServiciosTable'
 import styles from './servicios.module.css'
 
 export const metadata: Metadata = { title: 'Servicios — FiloDesk' }
@@ -40,26 +40,7 @@ export default async function ServiciosPage({
         <NuevoServicioForm barbershopId={barbershopId} />
       </div>
 
-      <div className={styles.table}>
-        <div className={styles.tableHead}>
-          <span>Nombre</span>
-          <span>Precio</span>
-          <span>Estado</span>
-          <span></span>
-        </div>
-
-        {!services || services.length === 0 ? (
-          <div className={styles.empty}>No hay servicios todavía.</div>
-        ) : (
-          services.map(s => (
-            <ServicioRow
-              key={s.id}
-              barbershopId={barbershopId}
-              service={s}
-            />
-          ))
-        )}
-      </div>
+      <ServiciosTable barbershopId={barbershopId} services={services} />
     </div>
   )
 }
