@@ -71,12 +71,7 @@ type ViewMode = 'desktop' | 'mobile'
 
 export default function MockupCarousel() {
   const [current, setCurrent] = useState(0)
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT) {
-      return 'mobile'
-    }
-    return 'desktop'
-  })
+  const [viewMode, setViewMode] = useState<ViewMode>('desktop')
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const touchStartX = useRef<number | null>(null)
@@ -107,6 +102,12 @@ export default function MockupCarousel() {
     start()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT) {
+      setViewMode('mobile')
     }
   }, [])
 
