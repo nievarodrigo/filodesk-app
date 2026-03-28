@@ -92,31 +92,23 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      <nav className={styles.mobileQuickNav} aria-label="Accesos rápidos">
-        <a href="#resumen" className={styles.mobileQuickLink}>Resumen</a>
-        <a href="#registro" className={styles.mobileQuickLink}>Registro</a>
-        <a href="#ventas-hoy" className={styles.mobileQuickLink}>Ventas</a>
-      </nav>
-
-      <div id="resumen" className={styles.anchorTarget}>
-        <CollapsibleCard
-          storageKey={`${barbershopId}:inicio:kpis`}
-          title="Resumen del dia"
-        >
-          <div className={styles.kpis}>
-            {kpis.map(k => (
-              <div key={k.label} className={styles.kpiCard}>
-                <p className={styles.kpiLabel}>{k.label}</p>
-                <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
-              </div>
-            ))}
-          </div>
-        </CollapsibleCard>
-      </div>
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:kpis`}
+        title="Resumen del dia"
+      >
+        <div className={styles.kpis}>
+          {kpis.map(k => (
+            <div key={k.label} className={styles.kpiCard}>
+              <p className={styles.kpiLabel}>{k.label}</p>
+              <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+      </CollapsibleCard>
 
       <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
 
-      <div id="registro" className={styles.anchorTarget} style={{ marginTop: 16 }}>
+      <div style={{ marginTop: 16 }}>
         <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>Registro rápido</h2>
         {/* Forms: servicio + producto lado a lado */}
         {activeBarbers.length === 0 ? (
@@ -139,33 +131,31 @@ export default async function DashboardPage({
         )}
       </div>
 
-      <div id="ventas-hoy" className={styles.anchorTarget}>
-        <CollapsibleCard
-          storageKey={`${barbershopId}:inicio:ventas-hoy`}
-          title="Ventas de hoy"
-          collapseOnMobile
-        >
-          <VentasHoySection
-            serviceSales={(recentSales ?? []).map((s: Sale) => ({
-              id: s.id,
-              barber_id: s.barber_id ?? '',
-              type: 'servicio' as const,
-              barber: (Array.isArray(s.barbers) ? s.barbers?.[0]?.name : s.barbers?.name) ?? '—',
-              service: (Array.isArray(s.service_types) ? s.service_types?.[0]?.name : s.service_types?.name) ?? '—',
-              amount: s.amount ?? 0,
-              created_at: s.created_at ?? '',
-              notes: s.notes ?? null,
-            }))}
-            productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
-              id: s.id,
-              type: 'producto' as const,
-              product: (Array.isArray(s.products) ? s.products?.[0]?.name : s.products?.name) ?? '—',
-              quantity: s.quantity ?? 1,
-              amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
-            }))}
-          />
-        </CollapsibleCard>
-      </div>
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:ventas-hoy`}
+        title="Ventas de hoy"
+        collapseOnMobile
+      >
+        <VentasHoySection
+          serviceSales={(recentSales ?? []).map((s: Sale) => ({
+            id: s.id,
+            barber_id: s.barber_id ?? '',
+            type: 'servicio' as const,
+            barber: (Array.isArray(s.barbers) ? s.barbers?.[0]?.name : s.barbers?.name) ?? '—',
+            service: (Array.isArray(s.service_types) ? s.service_types?.[0]?.name : s.service_types?.name) ?? '—',
+            amount: s.amount ?? 0,
+            created_at: s.created_at ?? '',
+            notes: s.notes ?? null,
+          }))}
+          productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
+            id: s.id,
+            type: 'producto' as const,
+            product: (Array.isArray(s.products) ? s.products?.[0]?.name : s.products?.name) ?? '—',
+            quantity: s.quantity ?? 1,
+            amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+          }))}
+        />
+      </CollapsibleCard>
     </div>
   )
 }
