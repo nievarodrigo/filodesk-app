@@ -30,7 +30,6 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
 
   function handleSaveChanges() {
     startTransition(async () => {
-      // Actualizar solo los servicios cuyo precio cambió
       for (const service of services) {
         const newPrice = prices[service.id]
         const oldPrice = String(service.default_price ?? '')
@@ -59,33 +58,20 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
     })
   }
 
-  const isGlobal = (barbershopId: string | null) => barbershopId === null
-
   return (
     <>
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+      <div className={styles.tableControls}>
         {isEditing ? (
-          <>
-            <button
-              className={styles.btnPrimary}
-              onClick={handleSaveChanges}
-              disabled={pending}
-            >
-              {pending ? 'Guardando…' : 'Guardar cambios'}
+          <div className={styles.headerButtons}>
+            <button className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
+              {pending ? 'Guardando…' : 'Guardar precios'}
             </button>
-            <button
-              className={styles.btnSecondary}
-              onClick={handleCancel}
-              disabled={pending}
-            >
+            <button className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
               Cancelar
             </button>
-          </>
+          </div>
         ) : (
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setIsEditing(true)}
-          >
+          <button className={styles.btnEditGeneral} onClick={() => setIsEditing(true)}>
             Editar precios
           </button>
         )}
@@ -94,9 +80,9 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Nombre</span>
-          <span>Precio</span>
-          <span>Estado</span>
-          <span></span>
+          <span style={{ textAlign: 'center' }}>Precio</span>
+          <span style={{ textAlign: 'center' }}>Estado</span>
+          <span style={{ textAlign: 'right' }}>Acciones</span>
         </div>
 
         {!services || services.length === 0 ? (
@@ -104,20 +90,18 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
         ) : (
           services.map(s => (
             <div key={s.id} className={styles.tableRow}>
-              <span>
+              <span className={styles.cellName}>
                 {s.name}
-                {isGlobal(s.barbershop_id) && <span className={styles.tagGlobal}>global</span>}
+                {s.barbershop_id === null && <span className={styles.tagGlobal}>global</span>}
               </span>
 
-              <span>
+              <span className={styles.cellPrice}>
                 {isEditing ? (
                   <div className={styles.priceEdit}>
                     <span className={styles.prefix}>$</span>
                     <input
                       type="number"
                       inputMode="numeric"
-                      min="0"
-                      step="1"
                       className={styles.priceInput}
                       value={prices[s.id]}
                       onChange={e => handlePriceChange(s.id, e.target.value)}
@@ -125,39 +109,30 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                     />
                   </div>
                 ) : (
-                  <span>
-                    {s.default_price != null
-                      ? `$${Number(s.default_price).toLocaleString('es-AR')}`
-                      : <span className={styles.noPrice}>sin precio</span>}
+                  <span className={styles.priceValue}>
+                    {s.default_price != null ? `$${Number(s.default_price).toLocaleString('es-AR')}` : '—'}
                   </span>
                 )}
               </span>
 
-              <span>
+              <span className={styles.cellStatus}>
                 <span className={s.active ? styles.badgeActive : styles.badgeInactive}>
                   {s.active ? 'Activo' : 'Inactivo'}
                 </span>
               </span>
 
-              {!isEditing && (
-                <div className={styles.btnActions}>
-                  <button
-                    className={s.active ? styles.btnToggleOff : styles.btnToggleOn}
-                    disabled={pending}
-                    onClick={() => handleToggle(s.id, !s.active)}
-                  >
-                    {s.active ? 'Desactivar' : 'Activar'}
-                  </button>
-                  <button
-                    className={styles.btnDelete}
-                    disabled={pending}
-                    onClick={() => handleDelete(s.id, s.name)}
-                    title="Eliminar servicio"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
+              <div className={styles.cellActions}>
+                {!isEditing && (
+                  <>
+                    <button className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
+                      {s.active ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button className={styles.btnDelete} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
+                      ✕
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))
         )}

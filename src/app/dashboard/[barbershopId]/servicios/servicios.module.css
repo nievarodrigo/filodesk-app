@@ -153,11 +153,31 @@
   font-size: .75rem; font-weight: 600;
   background: rgba(94,207,135,.12); color: var(--green);
 }
-.badgeInactive {
-  display: inline-block; padding: 3px 10px; border-radius: 20px;
-  font-size: .75rem; font-weight: 600;
-  background: rgba(122,112,96,.12); color: var(--muted);
+.tableControls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
 }
+
+.btnEditGeneral {
+  background: var(--surface);
+  color: var(--cream);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.cellName { font-weight: 500; color: var(--cream); }
+.cellPrice { text-align: center; }
+.cellStatus { text-align: center; }
+.cellActions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.priceValue { color: var(--green); fontWeight: 600; }
+
 
 .empty { padding: 48px; text-align: center; color: var(--muted); font-size: .9rem; }
 

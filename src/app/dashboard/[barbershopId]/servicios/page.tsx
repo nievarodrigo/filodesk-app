@@ -20,7 +20,6 @@ export default async function ServiciosPage({
     .or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`)
     .order('name')
 
-  // Si existe un override propio, ocultar el servicio global del mismo nombre
   const overrideNames = new Set(
     (rawServices ?? []).filter(s => s.barbershop_id).map(s => s.name)
   )
@@ -31,13 +30,9 @@ export default async function ServiciosPage({
   return (
     <div>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Servicios</h1>
-          <p className={styles.subtitle}>
-            Los servicios &quot;global&quot; son predeterminados. Podés editar su precio o agregar los tuyos.
-          </p>
-        </div>
-        <div className={styles.headerButtons}>
+        <h1 className={styles.title}>Servicios</h1>
+        <div className={styles.headerActions}>
+          {/* Los botones de acción ahora se inyectarán aquí o se manejarán coordinados */}
           <NuevoServicioForm barbershopId={barbershopId} />
         </div>
       </div>
