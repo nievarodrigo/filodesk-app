@@ -27,18 +27,20 @@ export default async function LandingPage({
   return (
     <>
       <Navbar />
-      <AuthErrorBanner searchParams={params} />
-      <Hero />
-      <hr className={styles.divider} />
-      <SocialProof />
-      <hr className={styles.divider} />
-      <MockupCarousel defaultViewMode={isMobileDevice ? 'mobile' : 'desktop'} />
-      <hr className={styles.divider} />
-      <Features />
-      <hr className={styles.divider} />
-      <Pricing />
-      <CTASection />
-      <Footer />
+      <div className={styles.mobileTopbarOffset}>
+        <AuthErrorBanner searchParams={params} />
+        <Hero />
+        <hr className={styles.divider} />
+        <SocialProof />
+        <hr className={styles.divider} />
+        <MockupCarousel defaultViewMode={isMobileDevice ? 'mobile' : 'desktop'} />
+        <hr className={styles.divider} />
+        <Features />
+        <hr className={styles.divider} />
+        <Pricing />
+        <CTASection />
+        <Footer />
+      </div>
     </>
   )
 }

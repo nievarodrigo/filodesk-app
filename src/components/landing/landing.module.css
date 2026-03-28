@@ -170,11 +170,31 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .nav { padding: 14px 16px; grid-template-columns: auto 1fr; column-gap: 10px; }
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 14px 16px;
+    grid-template-columns: auto 1fr;
+    column-gap: 10px;
+    z-index: 300;
+  }
   .navLinks { display: none; }
   .navAuth { display: none; }
   .hamburger { display: flex; }
   .logo { font-size: 1.2rem; letter-spacing: 1.2px; }
+}
+
+.mobileTopbarOffset {
+  padding-top: 0;
+}
+
+@media (max-width: 768px) {
+  .mobileTopbarOffset {
+    padding-top: 70px;
+  }
 }
 
 /* ── BUTTONS ── */
