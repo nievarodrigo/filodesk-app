@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
 import SocialProof from '@/components/landing/SocialProof'
@@ -16,6 +17,9 @@ export default async function LandingPage({
   searchParams: Promise<{ code?: string; error?: string; error_description?: string }>
 }) {
   const params = await searchParams
+  const hdrs = await headers()
+  const ua = (hdrs.get('user-agent') ?? '').toLowerCase()
+  const isMobileDevice = /android|iphone|ipod|windows phone|blackberry|mobile/.test(ua)
   if (params.code) {
     redirect(`/auth/callback?code=${params.code}`)
   }
@@ -28,7 +32,7 @@ export default async function LandingPage({
       <hr className={styles.divider} />
       <SocialProof />
       <hr className={styles.divider} />
-      <MockupCarousel />
+      <MockupCarousel defaultViewMode={isMobileDevice ? 'mobile' : 'desktop'} />
       <hr className={styles.divider} />
       <Features />
       <hr className={styles.divider} />
