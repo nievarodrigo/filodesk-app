@@ -9,7 +9,7 @@ import styles from './ventas.module.css'
 
 export const metadata: Metadata = { title: 'Ventas — FiloDesk' }
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -210,6 +210,7 @@ export default async function VentasPage({
             ))}
           </div>
         </div>
+        <p className={styles.pagNota}>Se muestran hasta 10 registros por tipo y por página.</p>
 
         {/* Servicios */}
         {(tipo === 'todos' || tipo === 'servicio') && (
