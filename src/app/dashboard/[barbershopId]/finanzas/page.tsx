@@ -134,7 +134,8 @@ export default async function FinanzasPage({
   const comisionesMes = (salesMonthWithComm ?? [] as SaleWithCommission[]).reduce((s, r) => {
     const barber = getBarber(r.barbers)
     const pct = barber?.commission_pct ?? 0
-    return s + Math.round((r.amount ?? 0) * pct / 100)
+    const amount = r.amount ?? 0
+    return s + Math.round(amount * pct / 100)
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
 
@@ -162,7 +163,7 @@ export default async function FinanzasPage({
   const bestDay = dayAvgs[0] ?? null
 
   // ── Proyección del mes ───────────────────────────────────────
-  const proyeccion = isCurrentMonth && dayOfMonth > 1
+  const proyeccion = isCurrentMonth && dayOfMonth > 1 && dayOfMonth !== 0
     ? Math.round(ingresosMes / dayOfMonth * daysInMonth)
     : null
 
@@ -193,7 +194,8 @@ export default async function FinanzasPage({
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? [] as SaleWithBarber[]) {
     const barber = getBarber(s.barbers)
-    if (!barber?.name) continue
+    // Saltar si no hay datos de barbero
+    if (!barber || !barber.name) continue
     const id = s.barber_id
     if (!barberMap[id]) barberMap[id] = { name: barber.name, total: 0, pct: barber.commission_pct ?? 0 }
     barberMap[id].total += s.amount ?? 0
@@ -332,7 +334,7 @@ export default async function FinanzasPage({
                     <span style={{ fontSize: '.85rem', color: 'var(--text)', fontWeight: 600 }}>{formatARS(amt)}</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: 'var(--hover)', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round(amt / gastosMes * 100)}%`, height: '100%', borderRadius: 3, background: CATEGORY_COLORS[cat] ?? 'var(--muted)' }} />
+                    <div style={{ width: `${gastosMes > 0 ? Math.round(amt / gastosMes * 100) : 0}%`, height: '100%', borderRadius: 3, background: CATEGORY_COLORS[cat] ?? 'var(--muted)' }} />
                   </div>
                 </div>
               ))}
