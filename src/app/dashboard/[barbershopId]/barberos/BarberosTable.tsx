@@ -51,29 +51,18 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
 
   return (
     <>
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '20px', marginTop: '-60px' }}>
         {isEditing ? (
           <>
-            <button
-              className={styles.btnPrimary}
-              onClick={handleSaveChanges}
-              disabled={pending}
-            >
-              {pending ? 'Guardando…' : 'Guardar cambios'}
+            <button className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
+              {pending ? 'Guardando…' : 'Guardar comisiones'}
             </button>
-            <button
-              className={styles.btnSecondary}
-              onClick={handleCancel}
-              disabled={pending}
-            >
+            <button className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
               Cancelar
             </button>
           </>
         ) : (
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setIsEditing(true)}
-          >
+          <button className={styles.btnPrimary} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: '160px' }} onClick={() => setIsEditing(true)}>
             Editar comisiones
           </button>
         )}
@@ -82,9 +71,9 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Nombre</span>
-          <span>Comisión</span>
-          <span>Estado</span>
-          <span></span>
+          <span style={{ textAlign: 'center' }}>Comisión</span>
+          <span style={{ textAlign: 'center' }}>Estado</span>
+          <span style={{ textAlign: 'right' }}>Acciones</span>
         </div>
 
         {!barbers || barbers.length === 0 ? (
@@ -94,37 +83,37 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
         ) : (
           barbers.map(barber => (
             <div key={barber.id} className={styles.tableRow}>
-              <span>{barber.name}</span>
+              <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{barber.name}</span>
 
-              <span>
+              <span style={{ textAlign: 'center' }}>
                 {isEditing ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <input
                       type="number"
                       inputMode="numeric"
                       min="0"
                       max="100"
-                      step="0.1"
-                      className={styles.commissionInput}
+                      step="1"
+                      style={{ width: '60px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--gold)', color: 'var(--text)', borderRadius: '4px', padding: '4px' }}
                       value={commissions[barber.id]}
                       onChange={e => handleCommissionChange(barber.id, e.target.value)}
                       disabled={pending}
                     />
-                    <span>%</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>%</span>
                   </div>
                 ) : (
-                  <span>{barber.commission_pct ?? 0}%</span>
+                  <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{barber.commission_pct ?? 0}%</span>
                 )}
               </span>
 
-              <span>
+              <span style={{ textAlign: 'center' }}>
                 <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
                   {barber.active ? 'Activo' : 'Inactivo'}
                 </span>
               </span>
 
-              {!isEditing && (
-                <div className={styles.btnActions}>
+              <div className={styles.btnActions} style={{ justifyContent: 'flex-end' }}>
+                {!isEditing && (
                   <button
                     className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
                     disabled={pending}
@@ -132,8 +121,8 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
                   >
                     {barber.active ? 'Desactivar' : 'Activar'}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))
         )}

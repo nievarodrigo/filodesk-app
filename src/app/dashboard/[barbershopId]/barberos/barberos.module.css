@@ -1,42 +1,93 @@
-.table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.header { margin-bottom: 28px; }
+.title  { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
+
+.block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.blockTitle { font-size: 1.1rem; font-weight: 700; color: var(--cream); }
+.blockSub   { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+
+/* Table */
+.table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .tableHead {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 120px;
-  padding: 12px 20px; font-size: .72rem; text-transform: uppercase;
-  letter-spacing: .7px; color: var(--muted); font-weight: 600;
-  border-bottom: 1px solid var(--border); background: var(--card);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 120px;
+  padding: 12px 20px;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
 }
 .tableRow {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 120px;
-  padding: 14px 20px; font-size: .9rem; color: var(--text);
-  border-bottom: 1px solid var(--border); align-items: center;
-  transition: background .12s; min-height: 64px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 120px;
+  padding: 16px 20px;
+  font-size: .92rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  min-height: 64px;
 }
 .tableRow:last-child { border-bottom: none; }
-.tableRow:hover { background: var(--card); }
-
-.cellName { font-weight: 600; color: var(--cream); }
-.cellData { text-align: center; display: flex; justify-content: center; align-items: center; }
-.cellActions { display: flex; justify-content: flex-end; gap: 8px; }
+.tableRow:hover { background: var(--hover); }
 
 .badgeActive {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 4px 12px; border-radius: 20px; min-width: 80px;
   font-size: .75rem; font-weight: 700;
-  background: rgba(94,207,135,.12); color: var(--green); border: 1px solid rgba(94,207,135,.2);
+  background: rgba(94,207,135,.1); color: var(--green); border: 1px solid rgba(94,207,135,0.2);
 }
 .badgeInactive {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 4px 12px; border-radius: 20px; min-width: 80px;
   font-size: .75rem; font-weight: 700;
-  background: rgba(224,112,112,.1); color: var(--red); border: 1px solid rgba(224,112,112,.2);
+  background: rgba(224,112,112,.08); color: var(--red); border: 1px solid rgba(224,112,112,0.2);
 }
 
 .btnPrimary {
   background: var(--gold); color: var(--bg); border: none;
-  padding: 12px 20px; border-radius: 8px; font-weight: 700;
-  cursor: pointer; min-height: 44px;
+  padding: 10px 20px; border-radius: 8px; font-weight: 700;
+  cursor: pointer; min-height: 44px; font-size: .88rem;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .btnSecondary {
   background: transparent; border: 1px solid var(--border); color: var(--muted);
-  padding: 10px 20px; border-radius: 8px; cursor: pointer; min-height: 44px;
+  padding: 10px 20px; border-radius: 8px; font-weight: 600;
+  cursor: pointer; min-height: 44px; font-size: .88rem;
+}
+
+.btnToggleOff {
+  background: transparent; border: 1px solid rgba(224,112,112,0.3); color: var(--red);
+  padding: 6px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+.btnToggleOn {
+  background: transparent; border: 1px solid rgba(94,207,135,0.3); color: var(--green);
+  padding: 6px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+
+.btnActions { display: flex; gap: 8px; align-items: center; }
+
+.empty { padding: 48px; text-align: center; color: var(--muted); }
+
+@media (max-width: 768px) {
+  .block { padding: 16px; }
+  .table { overflow-x: auto; }
+  .tableHead, .tableRow { min-width: 500px; padding: 12px 16px; }
+  .blockHeader { flex-direction: column; align-items: flex-start; }
 }

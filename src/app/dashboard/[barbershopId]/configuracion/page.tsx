@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import NuevoBarberoForm from '../barberos/NuevoBarberoForm'
-import ToggleBarberButton from '../barberos/ToggleBarberButton'
+import BarberosTable from '../barberos/BarberosTable'
 import NuevoServicioForm from '../servicios/NuevoServicioForm'
-import ServicioRow from '../servicios/ServicioRow'
+import ServiciosTable from '../servicios/ServiciosTable'
 import styles from './configuracion.module.css'
 
 export const metadata: Metadata = { title: 'Barberos y Servicios — FiloDesk' }
@@ -42,32 +42,10 @@ export default async function ConfiguracionPage({
             <h2 className={styles.blockTitle}>Barberos</h2>
             <p className={styles.blockSub}>Gestioná tu equipo y sus comisiones</p>
           </div>
+          <NuevoBarberoForm barbershopId={barbershopId} />
         </div>
 
-        <NuevoBarberoForm barbershopId={barbershopId} />
-
-        <div className={styles.table} style={{ marginTop: 16 }}>
-          <div className={styles.tableHead}>
-            <span>Nombre</span>
-            <span>Comisión</span>
-            <span>Estado</span>
-            <span></span>
-          </div>
-          {!barbers || barbers.length === 0 ? (
-            <p className={styles.empty}>Todavía no hay barberos.</p>
-          ) : barbers.map(b => (
-            <div key={b.id} className={styles.tableRow}>
-              <span>{b.name}</span>
-              <span>{b.commission_pct}%</span>
-              <span>
-                <span className={b.active ? styles.badgeActive : styles.badgeInactive}>
-                  {b.active ? 'Activo' : 'Inactivo'}
-                </span>
-              </span>
-              <ToggleBarberButton barbershopId={barbershopId} barberId={b.id} active={b.active} />
-            </div>
-          ))}
-        </div>
+        <BarberosTable barbershopId={barbershopId} barbers={barbers ?? []} />
       </section>
 
       {/* ── Servicios ── */}
@@ -75,25 +53,12 @@ export default async function ConfiguracionPage({
         <div className={styles.blockHeader}>
           <div>
             <h2 className={styles.blockTitle}>Servicios</h2>
-            <p className={styles.blockSub}>Los &quot;global&quot; son predeterminados — editá su precio o agregá los tuyos</p>
+            <p className={styles.blockSub}>Gestioná tus servicios y sus precios</p>
           </div>
+          <NuevoServicioForm barbershopId={barbershopId} />
         </div>
 
-        <NuevoServicioForm barbershopId={barbershopId} />
-
-        <div className={styles.table} style={{ marginTop: 16 }}>
-          <div className={styles.tableHead}>
-            <span>Nombre</span>
-            <span>Precio sugerido</span>
-            <span>Estado</span>
-            <span></span>
-          </div>
-          {!services || services.length === 0 ? (
-            <p className={styles.empty}>No hay servicios.</p>
-          ) : services.map(s => (
-            <ServicioRow key={s.id} barbershopId={barbershopId} service={s} />
-          ))}
-        </div>
+        <ServiciosTable barbershopId={barbershopId} services={services} />
       </section>
     </div>
   )

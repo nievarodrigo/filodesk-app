@@ -71,7 +71,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
             </button>
           </div>
         ) : (
-          <button className={styles.btnEditGeneral} onClick={() => setIsEditing(true)}>
+          <button className={styles.btnPrimary} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: '160px' }} onClick={() => setIsEditing(true)}>
             Editar precios
           </button>
         )}
