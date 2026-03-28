@@ -31,9 +31,9 @@ export default async function LandingPage({
         <AuthErrorBanner searchParams={params} />
         <Hero />
         <hr className={styles.divider} />
-        <SocialProof />
-        <hr className={styles.divider} />
         <MockupCarousel defaultViewMode={isMobileDevice ? 'mobile' : 'desktop'} />
+        <hr className={styles.divider} />
+        <SocialProof />
         <hr className={styles.divider} />
         <Features />
         <hr className={styles.divider} />
