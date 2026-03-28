@@ -4,7 +4,7 @@ import NuevoBarberoForm from './NuevoBarberoForm'
 import BarberosTable from './BarberosTable'
 import NuevoServicioForm from './NuevoServicioForm'
 import ServiciosTable from './ServiciosTable'
-import styles from './configuracion.module.css'
+import styles from './barberosyservicios.module.css'
 
 export const metadata: Metadata = { title: 'Barberos y Servicios — FiloDesk' }
 
