@@ -38,7 +38,7 @@ export default async function DashboardPage({
     { data: productSalesToday },
     { data: expensesToday },
   ] = await Promise.all([
-    supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method').eq('id', barbershopId).single(),
+    supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
@@ -86,14 +86,16 @@ export default async function DashboardPage({
     { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
   ]
 
+  const planName = barbershop?.plan_name ?? (barbershop?.subscription_renews_at ? 'Plan Pro' : null)
   const subscriptionMessage = barbershop?.subscription_renews_at
     ? (() => {
         const isAutomatic = barbershop.subscription_payment_method === 'automatic'
         const date = new Date(barbershop.subscription_renews_at)
         const formattedDate = date.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
-        return isAutomatic
+        const renewalText = isAutomatic
           ? `El plan se renueva el ${formattedDate}`
           : `El plan vence el ${formattedDate}`
+        return { planName, renewalText }
       })()
     : null
 
@@ -106,8 +108,10 @@ export default async function DashboardPage({
             {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
           </p>
           {subscriptionMessage && (
-            <p style={{ color: 'var(--muted)', fontSize: '.95rem', marginTop: '4px' }}>
-              {subscriptionMessage}
+            <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{subscriptionMessage.planName}</span>
+              <span style={{ color: 'var(--muted)' }}>|</span>
+              <span style={{ color: 'var(--muted)' }}>{subscriptionMessage.renewalText}</span>
             </p>
           )}
         </div>
