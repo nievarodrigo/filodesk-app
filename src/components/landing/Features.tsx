@@ -10,7 +10,9 @@ const features = [
         <line x1="9" y1="16" x2="13" y2="16"/>
       </svg>
     ),
-    title: 'Arqueo de caja diario',
+    title: 'Registrá ventas en segundos',
+    desc: 'Anotás el barbero, los servicios y la cantidad. FiloDesk suma el total y registra todo al instante, sin papeles ni planillas.',
+    mobileTitle: 'Arqueo de caja diario',
   },
   {
     icon: (
@@ -21,7 +23,9 @@ const features = [
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
-    title: 'Comisiones automáticas por barbero',
+    title: 'Comisiones automáticas',
+    desc: 'Configurás el porcentaje de cada barbero una sola vez. Cada venta calcula su comisión automáticamente, sin fórmulas ni errores.',
+    mobileTitle: 'Comisiones automáticas por barbero',
   },
   {
     icon: (
@@ -30,7 +34,9 @@ const features = [
         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
       </svg>
     ),
-    title: 'Ganancia neta en tiempo real',
+    title: 'Tu ganancia real del mes',
+    desc: 'Ingresos menos comisiones menos gastos: el número que importa, calculado en automático.',
+    mobileTitle: 'Ganancia neta en tiempo real',
   },
   {
     icon: (
@@ -41,7 +47,9 @@ const features = [
         <line x1="16" y1="17" x2="8" y2="17"/>
       </svg>
     ),
-    title: 'Registro de gastos del local',
+    title: 'Gastos del local',
+    desc: 'Alquiler, insumos, publicidad y servicios, todo registrado y descontado de tu ganancia.',
+    mobileTitle: 'Registro de gastos del local',
   },
   {
     icon: (
@@ -52,7 +60,9 @@ const features = [
         <line x1="22" y1="11" x2="16" y2="11"/>
       </svg>
     ),
-    title: 'Múltiples usuarios y roles',
+    title: 'Armá tu equipo',
+    desc: 'Agregás cada barbero con su porcentaje y tus servicios. FiloDesk calcula todo sin fricción.',
+    mobileTitle: 'Múltiples usuarios y roles',
   },
   {
     icon: (
@@ -64,6 +74,7 @@ const features = [
       </svg>
     ),
     title: 'Análisis de reportes y estadísticas',
+    desc: 'Visualizá ventas, rendimiento y tendencias para tomar decisiones con datos reales.',
   },
   {
     icon: (
@@ -73,21 +84,40 @@ const features = [
       </svg>
     ),
     title: 'Desde el celular, sin instalar apps',
+    desc: 'Abrís FiloDesk desde el navegador del celu y funciona igual que en la compu.',
   },
 ]
 
 export default function Features() {
   return (
     <section id="features" className={styles.section}>
-      <div className={styles.featuresListTitle}>Descubrí todo lo que podés hacer con nuestro sistema:</div>
-      <ul className={styles.featuresMinimalList}>
-        {features.map((f) => (
-          <li key={f.title} className={styles.featureRow}>
-            <span className={styles.featureRowIcon} aria-hidden="true">{f.icon}</span>
-            <span className={styles.featureRowText}>{f.title}</span>
-          </li>
-        ))}
-      </ul>
+      <div className={styles.featuresDesktop}>
+        <div className={styles.sectionLabel}>Funciones</div>
+        <div className={styles.sectionTitle}>Todo lo que necesitás para gestionar</div>
+        <div className={styles.sectionSub}>Sin complicaciones, sin planillas y sin perder tiempo.</div>
+
+        <div className={styles.featuresGrid}>
+          {features.map((f) => (
+            <div key={f.title} className={styles.featureCard}>
+              <div className={styles.featureIcon}>{f.icon}</div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.featuresMobile}>
+        <div className={styles.featuresListTitle}>Descubrí todo lo que podés hacer con nuestro sistema:</div>
+        <ul className={styles.featuresMinimalList}>
+          {features.map((f) => (
+            <li key={f.title} className={styles.featureRow}>
+              <span className={styles.featureRowIcon} aria-hidden="true">{f.icon}</span>
+              <span className={styles.featureRowText}>{f.mobileTitle ?? f.title}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   )
 }

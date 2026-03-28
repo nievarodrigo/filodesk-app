@@ -488,6 +488,9 @@
 }
 
 /* ── FEATURES ── */
+.featuresDesktop { display: block; }
+.featuresMobile { display: none; }
+
 .featuresGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .featureCard {
   background: var(--card);
@@ -976,6 +979,8 @@
   .section { padding: 56px 20px; }
   .sectionTitle { font-size: 1.6rem; }
 
+  .featuresDesktop { display: none; }
+  .featuresMobile { display: block; }
   .featuresGrid { grid-template-columns: 1fr; }
   .featuresListTitle { font-size: 1.95rem; line-height: 1.25; margin-bottom: 24px; }
   .featuresMinimalList { gap: 16px; }
