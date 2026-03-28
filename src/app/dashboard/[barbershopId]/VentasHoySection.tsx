@@ -29,6 +29,39 @@ function extractTime(isoString: string): string {
   return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
 }
 
+function PaginationControls({
+  currentPage,
+  totalPages,
+  onPrevious,
+  onNext,
+}: {
+  currentPage: number
+  totalPages: number
+  onPrevious: () => void
+  onNext: () => void
+}) {
+  if (totalPages <= 1) return null
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', margin: '12px 0', fontSize: '.78rem', color: 'var(--muted)' }}>
+      <button
+        onClick={onPrevious}
+        disabled={currentPage === 1}
+        style={{ padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: currentPage === 1 ? 'transparent' : 'var(--surface)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
+      >
+        &lt;
+      </button>
+      <span>{currentPage} / {totalPages}</span>
+      <button
+        onClick={onNext}
+        disabled={currentPage === totalPages}
+        style={{ padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: currentPage === totalPages ? 'transparent' : 'var(--surface)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
+      >
+        &gt;
+      </button>
+    </div>
+  )
+}
+
 interface GroupedBarber {
   barber_id: string
   barber: string
@@ -87,6 +120,11 @@ interface Props {
 export default function VentasHoySection({ serviceSales, productSales }: Props) {
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
+  const [barberPage, setBarberPage] = useState(1)
+  const [servicePagesPerBarber, setServicePagesPerBarber] = useState<Record<string, number>>({})
+  const [productPage, setProductPage] = useState(1)
+
+  const ITEMS_PER_PAGE = 10
 
   const grouped = groupServicesByBarber(serviceSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
@@ -103,6 +141,18 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
   const showProducts = filter === 'todos' || filter === 'producto'
 
   const totalCount = serviceSales.length + productSales.length
+
+  // Paginación de barberos
+  const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
+  const barberStart = (barberPage - 1) * ITEMS_PER_PAGE
+  const barberEnd = barberStart + ITEMS_PER_PAGE
+  const paginatedBarbers = grouped.slice(barberStart, barberEnd)
+
+  // Paginación de productos
+  const totalProductsPages = Math.ceil(productSales.length / ITEMS_PER_PAGE)
+  const productStart = (productPage - 1) * ITEMS_PER_PAGE
+  const productEnd = productStart + ITEMS_PER_PAGE
+  const paginatedProducts = productSales.slice(productStart, productEnd)
 
   return (
     <div className={styles.section}>
@@ -148,7 +198,14 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                 <span>Servicios</span>
                 <span>Total</span>
               </div>
-              {grouped.map(g => (
+              {paginatedBarbers.map(g => {
+                const servicePage = servicePagesPerBarber[g.barber_id] || 1
+                const totalServicePages = Math.ceil(g.services.length / ITEMS_PER_PAGE)
+                const serviceStart = (servicePage - 1) * ITEMS_PER_PAGE
+                const serviceEnd = serviceStart + ITEMS_PER_PAGE
+                const paginatedServices = g.services.slice(serviceStart, serviceEnd)
+
+                return (
                 <div key={g.barber_id}>
                   <div
                     className={`${styles.tableRow} ${styles.tableRowService}`}
@@ -180,7 +237,7 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                         <span>Cant.</span>
                         <span>Monto</span>
                       </div>
-                      {g.services.map(svc => (
+                      {paginatedServices.map(svc => (
                         <div key={svc.id} className={styles.tableRow} style={{ fontSize: '.9rem', paddingLeft: 32 }}>
                           <span style={{ color: 'var(--muted)', fontSize: '.75rem' }}>{extractTime(svc.created_at)}</span>
                           <span style={{ color: 'var(--muted)' }}>{svc.service}</span>
@@ -188,10 +245,27 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                           <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatARS(svc.amount)}</span>
                         </div>
                       ))}
+                      {totalServicePages > 1 && (
+                        <PaginationControls
+                          currentPage={servicePage}
+                          totalPages={totalServicePages}
+                          onPrevious={() => setServicePagesPerBarber(prev => ({ ...prev, [g.barber_id]: Math.max(1, servicePage - 1) }))}
+                          onNext={() => setServicePagesPerBarber(prev => ({ ...prev, [g.barber_id]: Math.min(totalServicePages, servicePage + 1) }))}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
-              ))}
+              )
+              })}
+              {totalBarbersPages > 1 && (
+                <PaginationControls
+                  currentPage={barberPage}
+                  totalPages={totalBarbersPages}
+                  onPrevious={() => setBarberPage(Math.max(1, barberPage - 1))}
+                  onNext={() => setBarberPage(Math.min(totalBarbersPages, barberPage + 1))}
+                />
+              )}
             </>
           )}
 
@@ -209,7 +283,7 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                 <span>Cant.</span>
                 <span>Total</span>
               </div>
-              {productSales.map(p => (
+              {paginatedProducts.map(p => (
                 <div key={p.id} className={`${styles.tableRow} ${styles.tableRowProduct}`}>
                   <span></span>
                   <span style={{ fontWeight: 500 }}>{p.product}</span>
@@ -217,6 +291,14 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                   <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(p.amount)}</span>
                 </div>
               ))}
+              {totalProductsPages > 1 && (
+                <PaginationControls
+                  currentPage={productPage}
+                  totalPages={totalProductsPages}
+                  onPrevious={() => setProductPage(Math.max(1, productPage - 1))}
+                  onNext={() => setProductPage(Math.min(totalProductsPages, productPage + 1))}
+                />
+              )}
             </>
           )}
 
