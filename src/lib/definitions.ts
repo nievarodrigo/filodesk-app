@@ -52,11 +52,16 @@ export interface Sale {
   date: string
   created_at?: string
   notes: string | null
-  barbers?: Array<{
+  barbers?: {
+    name: string
+    commission_pct: number
+  } | Array<{
     name: string
     commission_pct: number
   }>
-  service_types?: Array<{
+  service_types?: {
+    name: string
+  } | Array<{
     name: string
   }>
 }
@@ -65,7 +70,9 @@ export interface ProductSale {
   id: string
   sale_price: number
   quantity: number
-  products?: Array<{
+  products?: {
+    name: string
+  } | Array<{
     name: string
   }>
 }

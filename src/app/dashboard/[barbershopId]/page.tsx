@@ -67,8 +67,10 @@ export default async function DashboardPage({
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = (salesToday ?? []).length
 
-  const comisionesHoy = (recentSales ?? []).reduce((s, r: Sale) =>
-    s + Math.round((r.amount ?? 0) * ((r.barbers?.[0]?.commission_pct ?? 0) / 100)), 0)
+  const comisionesHoy = (recentSales ?? []).reduce((s, r: Sale) => {
+    const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
+    return s + Math.round((r.amount ?? 0) * (pct / 100))
+  }, 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
 
@@ -142,8 +144,8 @@ export default async function DashboardPage({
             id: s.id,
             barber_id: s.barber_id ?? '',
             type: 'servicio' as const,
-            barber: s.barbers?.[0]?.name ?? '—',
-            service: s.service_types?.[0]?.name ?? '—',
+            barber: (Array.isArray(s.barbers) ? s.barbers?.[0]?.name : s.barbers?.name) ?? '—',
+            service: (Array.isArray(s.service_types) ? s.service_types?.[0]?.name : s.service_types?.name) ?? '—',
             amount: s.amount ?? 0,
             created_at: s.created_at ?? '',
             notes: s.notes ?? null,
@@ -151,7 +153,7 @@ export default async function DashboardPage({
           productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
             id: s.id,
             type: 'producto' as const,
-            product: s.products?.[0]?.name ?? '—',
+            product: (Array.isArray(s.products) ? s.products?.[0]?.name : s.products?.name) ?? '—',
             quantity: s.quantity ?? 1,
             amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
           }))}
