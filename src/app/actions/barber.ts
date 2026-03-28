@@ -39,3 +39,16 @@ export async function deleteBarber(barbershopId: string, barberId: string) {
   if (result.error) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberos`)
 }
+
+export async function updateBarberCommission(barbershopId: string, barberId: string, commission: number) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('barbers')
+    .update({ commission_pct: commission })
+    .eq('id', barberId)
+    .eq('barbershop_id', barbershopId)
+
+  if (error) return { error: error.message }
+  revalidatePath(`/dashboard/${barbershopId}/barberos`)
+  return { success: true }
+}

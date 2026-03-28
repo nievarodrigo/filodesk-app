@@ -17,9 +17,9 @@
 
 .btnPrimary {
   background: var(--gold); color: var(--bg); border: none;
-  padding: 12px 18px; border-radius: 8px; font-weight: 700;
+  padding: 12px 24px; border-radius: 8px; font-weight: 700;
   font-size: .88rem; cursor: pointer; transition: background .15s; white-space: nowrap;
-  min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 180px; display: inline-flex; align-items: center; justify-content: center;
 }
 .btnPrimary:hover:not(:disabled) { background: var(--gold-soft); }
 .btnPrimary:disabled { opacity: .6; cursor: not-allowed; }

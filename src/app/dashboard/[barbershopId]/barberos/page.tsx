@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import NuevoBarberoForm from './NuevoBarberoForm'
-import ToggleBarberButton from './ToggleBarberButton'
+import BarberosTable from './BarberosTable'
 import styles from './barberos.module.css'
 
 export const metadata: Metadata = { title: 'Barberos — FiloDesk' }
@@ -30,38 +30,7 @@ export default async function BarberosPage({
 
       <NuevoBarberoForm barbershopId={barbershopId} />
 
-      {!barbers || barbers.length === 0 ? (
-        <div className={styles.table}>
-          <div className={styles.empty}>
-            Todavía no hay barberos. Agregá el primero arriba.
-          </div>
-        </div>
-      ) : (
-        <div className={styles.table}>
-          <div className={styles.tableHead}>
-            <span>Nombre</span>
-            <span>Comisión</span>
-            <span>Estado</span>
-            <span></span>
-          </div>
-          {barbers.map((barber) => (
-            <div key={barber.id} className={styles.tableRow}>
-              <span>{barber.name}</span>
-              <span>{barber.commission_pct}%</span>
-              <span>
-                <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
-                  {barber.active ? 'Activo' : 'Inactivo'}
-                </span>
-              </span>
-              <ToggleBarberButton
-                barbershopId={barbershopId}
-                barberId={barber.id}
-                active={barber.active}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      <BarberosTable barbershopId={barbershopId} barbers={barbers ?? []} />
     </div>
   )
 }
