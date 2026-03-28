@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { updateServicioPrice, toggleServicio, deleteServicio } from '@/app/actions/servicio'
+import { useTransition } from 'react'
+import { toggleServicio, deleteServicio } from '@/app/actions/servicio'
 import styles from './servicios.module.css'
 
 interface Props {
@@ -16,8 +16,6 @@ interface Props {
 }
 
 export default function ServicioRow({ barbershopId, service }: Props) {
-  const [editing, setEditing]   = useState(false)
-  const [price, setPrice]       = useState(String(service.default_price ?? ''))
   const [pending, startTransition] = useTransition()
 
   const isGlobal = service.barbershop_id === null
@@ -30,13 +28,6 @@ export default function ServicioRow({ barbershopId, service }: Props) {
     })
   }
 
-  function savePrice() {
-    startTransition(async () => {
-      await updateServicioPrice(barbershopId, service.id, Number(price))
-      setEditing(false)
-    })
-  }
-
   return (
     <div className={styles.tableRow}>
       <span>
@@ -45,33 +36,9 @@ export default function ServicioRow({ barbershopId, service }: Props) {
       </span>
 
       <span>
-        {editing ? (
-          <div className={styles.priceEdit}>
-            <span className={styles.prefix}>$</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min="0"
-              step="1"
-              className={styles.priceInput}
-              value={price}
-              onChange={e => setPrice(e.target.value)}
-              autoFocus
-              onKeyDown={e => { if (e.key === 'Enter') savePrice(); if (e.key === 'Escape') setEditing(false) }}
-            />
-            <button className={styles.btnSave} onClick={savePrice} disabled={pending}>
-              {pending ? '…' : '✓'}
-            </button>
-            <button className={styles.btnCancel} onClick={() => setEditing(false)}>✕</button>
-          </div>
-        ) : (
-          <button className={styles.priceBtn} onClick={() => setEditing(true)}>
-            {service.default_price != null
-              ? `$${Number(service.default_price).toLocaleString('es-AR')}`
-              : <span className={styles.noPrice}>sin precio</span>}
-            <span className={styles.editHint}>editar</span>
-          </button>
-        )}
+        {service.default_price != null
+          ? `$${Number(service.default_price).toLocaleString('es-AR')}`
+          : <span className={styles.noPrice}>sin precio</span>}
       </span>
 
       <span>
