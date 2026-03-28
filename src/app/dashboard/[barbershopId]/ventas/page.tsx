@@ -15,6 +15,12 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
+function formatShortDate(date: string) {
+  const [yyyy, mm, dd] = date.slice(0, 10).split('-')
+  if (!yyyy || !mm || !dd) return date
+  return `${dd}-${mm}-${yyyy.slice(-2)}`
+}
+
 function monthLabel(ym: string) {
   const [y, m] = ym.split('-')
   return new Date(Number(y), Number(m) - 1, 1)
@@ -263,12 +269,12 @@ export default async function VentasPage({
                   <div className={styles.tableHeadProduct}>
                     <span>Fecha</span>
                     <span>Producto</span>
-                    <span>Cantidad</span>
+                    <span>Cant.</span>
                     <span>Monto</span>
                   </div>
                   {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> }>).map(ps => (
                     <div key={ps.id} className={styles.tableRowProduct}>
-                      <span className={styles.muted}>{ps.date}</span>
+                      <span className={styles.muted}>{formatShortDate(ps.date)}</span>
                       <span>{ps.products?.[0]?.name ?? '—'}</span>
                       <span className={styles.muted}>{ps.quantity} u.</span>
                       <span className={styles.amount}>{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
