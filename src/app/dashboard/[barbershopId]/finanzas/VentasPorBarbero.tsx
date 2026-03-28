@@ -21,7 +21,7 @@ const COLORS = ['var(--gold)', '#5ecf87', '#7eb8f7', '#e07070', '#a78bfa', '#fb9
 
 const CustomTooltip = ({ active, payload }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
-  const d = payload[0].payload
+  const d = payload[0].payload as BarberData
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: '.82rem' }}>
       <p style={{ color: 'var(--cream)', fontWeight: 600, marginBottom: 4 }}>{d.name}</p>
