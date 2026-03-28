@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type TouchEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './mockupCarousel.module.css'
@@ -64,6 +64,7 @@ const SLIDES: Slide[] = [
 ]
 
 const INTERVAL_MS = 8000
+const SWIPE_THRESHOLD = 40
 
 type ViewMode = 'desktop' | 'mobile'
 
@@ -75,43 +76,67 @@ export default function MockupCarousel() {
     }
     return 'desktop'
   })
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const touchStartX = useRef<number | null>(null)
 
   function start() {
+    if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
-      setCurrent(c => (c + 1) % SLIDES.length)
+      setCurrent((c) => (c + 1) % SLIDES.length)
     }, INTERVAL_MS)
   }
 
+  function goNext() {
+    setCurrent((c) => (c + 1) % SLIDES.length)
+    start()
+  }
+
+  function goPrev() {
+    setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length)
+    start()
+  }
+
   function resetTo(i: number) {
-    if (timerRef.current) clearInterval(timerRef.current)
     setCurrent(i)
     start()
   }
 
   useEffect(() => {
     start()
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
   }, [])
 
   const isMobile = viewMode === 'mobile'
 
+  const onTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isMobile) return
+    touchStartX.current = e.touches[0]?.clientX ?? null
+  }
+
+  const onTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isMobile || touchStartX.current === null) return
+
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current
+    const delta = endX - touchStartX.current
+    touchStartX.current = null
+
+    if (Math.abs(delta) < SWIPE_THRESHOLD) return
+    if (delta < 0) goNext()
+    else goPrev()
+  }
+
   return (
     <section className={styles.section}>
-      <div className={styles.viewport}>
-        <div
-          className={styles.track}
-          style={{ transform: `translateX(-${current * 100}vw)` }}
-        >
+      <div className={styles.viewport} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div className={styles.track} style={{ transform: `translateX(-${current * 100}vw)` }}>
           {SLIDES.map((s, i) => (
             <div key={i} className={`${styles.slide} ${isMobile ? styles.slideMobile : ''}`}>
-
               <div className={styles.copy}>
                 <span className={styles.tag}>{s.tag}</span>
-                <h2
-                  className={styles.title}
-                  dangerouslySetInnerHTML={{ __html: s.titleHtml }}
-                />
+                <h2 className={styles.title} dangerouslySetInnerHTML={{ __html: s.titleHtml }} />
                 <p className={styles.desc}>{s.description}</p>
                 <Link href={s.ctaHref} className={styles.cta}>
                   {s.cta}
@@ -128,13 +153,11 @@ export default function MockupCarousel() {
                   priority={i === 0}
                 />
               </div>
-
             </div>
           ))}
         </div>
       </div>
 
-      {/* Toggle + dots */}
       <div className={styles.controls}>
         <div className={styles.viewToggle}>
           <button

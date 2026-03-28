@@ -241,3 +241,8 @@
   .controls { margin-top: 20px; }
   .mockupPhone .mockupImg { max-width: 200px; }
 }
+
+/* Mobile swipe support */
+.viewport {
+  touch-action: pan-y;
+}
