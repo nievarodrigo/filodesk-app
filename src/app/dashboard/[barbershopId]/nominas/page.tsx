@@ -57,9 +57,9 @@ export default async function NominasPage({
             <span>Estado</span>
             <span></span>
           </div>
-          {(payrolls as Array<{ id: string; period_start: string; period_end: string; total_sales: number; commission_amount: number; status: string; barbers?: Array<{ name: string }> }>).map(p => (
+          {(payrolls as Array<{ id: string; period_start: string; period_end: string; total_sales: number; commission_amount: number; status: string; barbers?: Array<{ name: string }> | { name: string } }>).map(p => (
             <div key={p.id} className={styles.tableRow}>
-              <span style={{ fontWeight: 600 }}>{p.barbers?.[0]?.name ?? '—'}</span>
+              <span style={{ fontWeight: 600 }}>{(Array.isArray(p.barbers) ? p.barbers?.[0]?.name : p.barbers?.name) ?? '—'}</span>
               <span className={styles.muted} style={{ fontSize: '.82rem' }}>
                 {p.period_start} → {p.period_end}
               </span>

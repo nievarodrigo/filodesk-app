@@ -557,7 +557,23 @@
   .tableHead,
   .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
   .tableHeadService,
-  .tableRowService { min-width: 640px; padding: 10px 14px; font-size: .82rem; }
+  .tableRowService { min-width: 700px; padding: 10px 14px; font-size: .82rem; }
+  .tableHeadService,
+  .tableRowService {
+    grid-template-columns: 74px minmax(96px, 1fr) minmax(120px, 1.1fr) 88px 88px minmax(120px, 1fr) 40px;
+    column-gap: 8px;
+  }
+  .tableHeadService > span:nth-child(2),
+  .tableRowService > span:nth-child(2),
+  .tableHeadService > span:nth-child(3),
+  .tableRowService > span:nth-child(3),
+  .tableHeadService > span:nth-child(6),
+  .tableRowService > span:nth-child(6) {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .tableHeadProduct,
   .tableRowProduct { min-width: 420px; padding: 10px 14px; font-size: .82rem; }
   .tableHeadProduct,
