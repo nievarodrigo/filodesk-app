@@ -77,7 +77,15 @@ export default function RankingSelector({
           </div>
         )}
 
-        {pieData.length > 0 && <GraficoProductos data={pieData} />}
+        {pieData.length > 0 && (
+          <GraficoProductos 
+            data={pieData.map(item => ({
+              name: item.name,
+              cantidad: isServicios ? (item.count ?? 0) : (item.cantidad ?? 0),
+              ingresos: isServicios ? (item.total ?? 0) : (item.ingresos ?? 0)
+            }))} 
+          />
+        )}
       </div>
     </div>
   )
