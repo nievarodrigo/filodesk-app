@@ -485,6 +485,43 @@
 .featureCard h3 { font-size: 1rem; color: var(--cream); margin-bottom: 10px; }
 .featureCard p  { font-size: .85rem; color: var(--muted); line-height: 1.6; }
 
+/* ── FEATURES MINIMAL ── */
+.featuresListTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 28px;
+}
+
+.featuresMinimalList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.featureRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text);
+}
+
+.featureRowIcon {
+  color: var(--gold);
+  line-height: 1;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.featureRowText {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
 /* ── HOW IT WORKS ── */
 .stepsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .step { text-align: center; padding: 0 16px; }
@@ -915,6 +952,9 @@
   .sectionTitle { font-size: 1.6rem; }
 
   .featuresGrid { grid-template-columns: 1fr; }
+  .featuresListTitle { font-size: 1.95rem; line-height: 1.25; margin-bottom: 24px; }
+  .featuresMinimalList { gap: 16px; }
+  .featureRowText { font-size: 1.02rem; }
 
   .stepsGrid { grid-template-columns: 1fr; gap: 24px; }
   .step { padding: 0; }
