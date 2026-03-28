@@ -19,6 +19,7 @@ export default function NetoCard({ neto, ingresos, comisiones, gastos }: Props) 
 
   useEffect(() => {
     const saved = localStorage.getItem('neto_visible')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisible(saved !== null ? saved === 'true' : true)
   }, [])
 

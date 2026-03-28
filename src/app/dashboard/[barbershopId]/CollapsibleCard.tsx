@@ -26,6 +26,7 @@ export default function CollapsibleCard({
     const key = `${STORAGE_PREFIX}${storageKey}`
     const saved = localStorage.getItem(key)
     if (saved === '1' || saved === '0') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCollapsed(saved === '1')
     } else if (collapseOnMobile && window.matchMedia('(max-width: 768px)').matches) {
       setCollapsed(true)
