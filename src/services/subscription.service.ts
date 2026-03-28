@@ -200,13 +200,16 @@ export async function verifyCheckoutPayment(
 
     // 9. Marcar como completado de forma ATÓMICA (solo si aún está pending)
     // Esto garantiza one-time use: si llega 2x el mismo paymentId, la segunda falla
-    console.log('[MP verify] attempting markCompletedIfPending with intentId:', intentId, 'paymentId:', paymentId)
+    console.log('[MP verify] ===== STARTING markCompletedIfPending =====')
+    console.log('[MP verify] intentId:', intentId, '| paymentId:', paymentId)
     const updateResult = await checkoutIntentRepo.markCompletedIfPending(
       supabase,
       intentId,
       paymentId
     )
-    console.log('[MP verify] updateResult:', JSON.stringify({ error: updateResult.error?.message, dataLength: Array.isArray(updateResult.data) ? updateResult.data.length : updateResult.data }))
+    console.log('[MP verify] ===== UPDATE RESULT =====')
+    console.log('[MP verify] error:', updateResult.error)
+    console.log('[MP verify] data:', updateResult.data)
 
     // Verificar que se actualizó exactamente 1 fila
     // .single() lanza error si no hay exactamente 1 fila actualizada
