@@ -23,7 +23,7 @@
 .table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .tableHead {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 120px;
+  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 132px;
   padding: 12px 20px;
   font-size: .72rem;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
 }
 .tableRow {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 120px;
+  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 132px;
   padding: 16px 20px;
   font-size: .92rem;
   color: var(--text);
@@ -45,6 +45,28 @@
 }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); }
+
+.cellName {
+  font-weight: 600;
+  color: var(--cream);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cellCommission { text-align: center; display: flex; justify-content: center; align-items: center; }
+.cellStatus { text-align: center; display: flex; justify-content: center; align-items: center; }
+.cellActions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.commissionValue { color: var(--gold); font-weight: 600; }
+
+.commissionEdit { display: flex; align-items: center; gap: 4px; justify-content: center; }
+.commissionInput {
+  background: var(--bg); border: 1px solid var(--gold); border-radius: 6px;
+  padding: 6px 10px; color: var(--text); font-size: .9rem; outline: none; width: 70px;
+  text-align: center;
+}
+.commissionSuffix { font-size: .85rem; color: var(--muted); }
 
 .badgeActive {
   display: inline-flex; align-items: center; justify-content: center;
@@ -81,6 +103,17 @@
 }
 
 .btnActions { display: flex; gap: 8px; align-items: center; }
+
+.tableControls {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 12px;
+}
 
 .empty { padding: 48px; text-align: center; color: var(--muted); }
 

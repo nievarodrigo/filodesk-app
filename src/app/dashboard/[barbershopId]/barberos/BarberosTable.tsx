@@ -51,16 +51,16 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '20px', marginTop: '-60px' }}>
+      <div className={styles.tableControls}>
         {isEditing ? (
-          <>
+          <div className={styles.headerButtons}>
             <button className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
               {pending ? 'Guardando…' : 'Guardar comisiones'}
             </button>
             <button className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
               Cancelar
             </button>
-          </>
+          </div>
         ) : (
           <button className={styles.btnPrimary} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: '160px' }} onClick={() => setIsEditing(true)}>
             Editar comisiones
@@ -77,42 +77,40 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
         </div>
 
         {!barbers || barbers.length === 0 ? (
-          <div className={styles.empty}>
-            Todavía no hay barberos. Agregá el primero arriba.
-          </div>
+          <div className={styles.empty}>Todavía no hay barberos. Agregá el primero arriba.</div>
         ) : (
           barbers.map(barber => (
             <div key={barber.id} className={styles.tableRow}>
-              <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{barber.name}</span>
+              <span className={styles.cellName}>{barber.name}</span>
 
-              <span style={{ textAlign: 'center' }}>
+              <span className={styles.cellCommission}>
                 {isEditing ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <div className={styles.commissionEdit}>
                     <input
                       type="number"
                       inputMode="numeric"
                       min="0"
                       max="100"
                       step="1"
-                      style={{ width: '60px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--gold)', color: 'var(--text)', borderRadius: '4px', padding: '4px' }}
+                      className={styles.commissionInput}
                       value={commissions[barber.id]}
                       onChange={e => handleCommissionChange(barber.id, e.target.value)}
                       disabled={pending}
                     />
-                    <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>%</span>
+                    <span className={styles.commissionSuffix}>%</span>
                   </div>
                 ) : (
-                  <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{barber.commission_pct ?? 0}%</span>
+                  <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
                 )}
               </span>
 
-              <span style={{ textAlign: 'center' }}>
+              <span className={styles.cellStatus}>
                 <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
                   {barber.active ? 'Activo' : 'Inactivo'}
                 </span>
               </span>
 
-              <div className={styles.btnActions} style={{ justifyContent: 'flex-end' }}>
+              <div className={styles.cellActions}>
                 {!isEditing && (
                   <button
                     className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}

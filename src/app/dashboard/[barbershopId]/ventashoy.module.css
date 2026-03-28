@@ -50,20 +50,21 @@
 }
 
 /* Table */
-.table { display: flex; flex-direction: column; }
+.table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
 
 .tableHead {
-  display: grid; grid-template-columns: 1.4fr 1.4fr 0.5fr 1fr;
-  padding: 8px 12px; font-size: .7rem; text-transform: uppercase;
+  display: grid; grid-template-columns: 24px minmax(160px, 1.4fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  padding: 12px 20px; font-size: .72rem; text-transform: uppercase;
   letter-spacing: .7px; color: var(--muted); font-weight: 600;
-  border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
 }
 
 .tableRow {
-  display: grid; grid-template-columns: 1.4fr 1.4fr 0.5fr 1fr;
-  padding: 11px 12px; font-size: .88rem; color: var(--text);
-  border-radius: 6px; align-items: center; transition: background .12s;
+  display: grid; grid-template-columns: 24px minmax(160px, 1.4fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  padding: 16px 20px; font-size: .88rem; color: var(--text);
+  border-bottom: 1px solid var(--border); align-items: center; transition: background .12s; min-height: 64px;
 }
+.tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); }
 .tableRowService:hover { box-shadow: inset 3px 0 0 rgba(126,184,247,.35); }
 .tableRowProduct:hover { box-shadow: inset 3px 0 0 rgba(94,207,135,.35); }
