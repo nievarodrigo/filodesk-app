@@ -10,6 +10,7 @@ import CollapsibleCard from './CollapsibleCard'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Dashboard — FiloDesk' }
+export const revalidate = 0
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', {
@@ -113,7 +114,7 @@ export default async function DashboardPage({
         {/* Forms: servicio + producto lado a lado */}
         {activeBarbers.length === 0 ? (
           <div className={styles.noBarbers}>
-            Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
+            Agregá un barbero en <a href={`/dashboard/${barbershopId}/barberosyservicios`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
           </div>
         ) : (
           <div className={styles.formRow}>
@@ -137,23 +138,36 @@ export default async function DashboardPage({
         collapseOnMobile
       >
         <VentasHoySection
-          serviceSales={(recentSales ?? []).map((s: Sale) => ({
-            id: s.id,
-            barber_id: s.barber_id ?? '',
-            type: 'servicio' as const,
-            barber: (Array.isArray(s.barbers) ? s.barbers?.[0]?.name : s.barbers?.name) ?? '—',
-            service: (Array.isArray(s.service_types) ? s.service_types?.[0]?.name : s.service_types?.name) ?? '—',
-            amount: s.amount ?? 0,
-            created_at: s.created_at ?? '',
-            notes: s.notes ?? null,
-          }))}
-          productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
-            id: s.id,
-            type: 'producto' as const,
-            product: (Array.isArray(s.products) ? s.products?.[0]?.name : s.products?.name) ?? '—',
-            quantity: s.quantity ?? 1,
-            amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
-          }))}
+          serviceSales={(recentSales ?? []).map((s: Sale) => {
+            const barberName = (s.barbers && typeof s.barbers === 'object')
+              ? (Array.isArray(s.barbers) ? s.barbers[0]?.name : s.barbers.name)
+              : 'Sin nombre'
+            const serviceName = (s.service_types && typeof s.service_types === 'object')
+              ? (Array.isArray(s.service_types) ? s.service_types[0]?.name : s.service_types.name)
+              : 'Sin servicio'
+            return {
+              id: s.id,
+              barber_id: s.barber_id ?? '',
+              type: 'servicio' as const,
+              barber: barberName ?? '—',
+              service: serviceName ?? '—',
+              amount: s.amount ?? 0,
+              created_at: s.created_at ?? '',
+              notes: s.notes ?? null,
+            }
+          })}
+          productSales={(productSalesToday ?? []).map((s: ProductSale) => {
+            const productName = (s.products && typeof s.products === 'object')
+              ? (Array.isArray(s.products) ? s.products[0]?.name : s.products.name)
+              : 'Sin producto'
+            return {
+              id: s.id,
+              type: 'producto' as const,
+              product: productName ?? '—',
+              quantity: s.quantity ?? 1,
+              amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+            }
+          })}
         />
       </CollapsibleCard>
     </div>

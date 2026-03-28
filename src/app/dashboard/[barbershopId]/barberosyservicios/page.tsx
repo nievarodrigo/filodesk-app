@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import NuevoBarberoForm from '../barberos/NuevoBarberoForm'
-import BarberosTable from '../barberos/BarberosTable'
-import NuevoServicioForm from '../servicios/NuevoServicioForm'
-import ServiciosTable from '../servicios/ServiciosTable'
-import styles from './configuracion.module.css'
+import NuevoBarberoForm from './NuevoBarberoForm'
+import BarberosTable from './BarberosTable'
+import NuevoServicioForm from './NuevoServicioForm'
+import ServiciosTable from './ServiciosTable'
+import styles from './barberosyservicios.module.css'
 
 export const metadata: Metadata = { title: 'Barberos y Servicios — FiloDesk' }
 

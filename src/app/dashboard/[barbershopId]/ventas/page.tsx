@@ -9,10 +9,16 @@ import styles from './ventas.module.css'
 
 export const metadata: Metadata = { title: 'Ventas — FiloDesk' }
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
+}
+
+function formatShortDate(date: string) {
+  const [yyyy, mm, dd] = date.slice(0, 10).split('-')
+  if (!yyyy || !mm || !dd) return date
+  return `${dd}-${mm}-${yyyy.slice(-2)}`
 }
 
 function monthLabel(ym: string) {
@@ -113,8 +119,9 @@ export default async function VentasPage({
   const byBarber: Record<string, { name: string; count: number; total: number; commission: number }> = {}
   // Use paginated sales for byBarber (approximate, but good enough for UX)
   for (const sale of sales ?? []) {
-    const name    = (sale as { barbers?: Array<{ name: string; commission_pct: number }> }).barbers?.[0]?.name ?? 'Sin asignar'
-    const commPct = (sale as { barbers?: Array<{ name: string; commission_pct: number }> }).barbers?.[0]?.commission_pct ?? 0
+    const barbers = (sale as { barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number } }).barbers
+    const name    = (Array.isArray(barbers) ? barbers?.[0]?.name : barbers?.name) ?? 'Sin asignar'
+    const commPct = (Array.isArray(barbers) ? barbers?.[0]?.commission_pct : barbers?.commission_pct) ?? 0
     if (!byBarber[name]) byBarber[name] = { name, count: 0, total: 0, commission: 0 }
     byBarber[name].count++
     byBarber[name].total      += sale.amount ?? 0
@@ -203,6 +210,7 @@ export default async function VentasPage({
             ))}
           </div>
         </div>
+        <p className={styles.pagNota}>Se muestran hasta 10 registros por tipo y por página.</p>
 
         {/* Servicios */}
         {(tipo === 'todos' || tipo === 'servicio') && (
@@ -220,19 +228,18 @@ export default async function VentasPage({
                     <span>Barbero</span>
                     <span>Servicio</span>
                     <span>Monto</span>
-                    <span>Comisión</span>
-                    <span>Notas</span>
+                    <span>Com.</span>
+                    <span>Obs.</span>
                     <span></span>
                   </div>
-                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }>; service_types?: Array<{ name: string }> }>).map(sale => {
-                    const commission = sale.barbers?.[0]
-                      ? Math.round(sale.amount * sale.barbers[0].commission_pct / 100)
-                      : null
+                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }; service_types?: Array<{ name: string }> | { name: string } }>).map(sale => {
+                    const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
+                    const commission = barber ? Math.round(sale.amount * barber.commission_pct / 100) : null
                     return (
                       <div key={sale.id} className={styles.tableRowService}>
-                        <span className={styles.muted}>{sale.date}</span>
-                        <span>{sale.barbers?.[0]?.name ?? '—'}</span>
-                        <span>{sale.service_types?.[0]?.name ?? '—'}</span>
+                        <span className={styles.muted}>{formatShortDate(sale.date)}</span>
+                        <span>{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
+                        <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
                         <span className={styles.amount}>{formatARS(sale.amount)}</span>
                         <span className={styles.muted}>{commission !== null ? formatARS(commission) : '—'}</span>
                         <span className={styles.muted}>{sale.notes ?? '—'}</span>
@@ -263,15 +270,22 @@ export default async function VentasPage({
                   <div className={styles.tableHeadProduct}>
                     <span>Fecha</span>
                     <span>Producto</span>
-                    <span>Cantidad</span>
+                    <span>Cant.</span>
                     <span>Monto</span>
                   </div>
-                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> }>).map(ps => (
+                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => (
                     <div key={ps.id} className={styles.tableRowProduct}>
-                      <span className={styles.muted}>{ps.date}</span>
-                      <span>{ps.products?.[0]?.name ?? '—'}</span>
+                      {(() => {
+                        const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name) ?? ''
+                        return (
+                          <>
+                      <span className={styles.muted}>{formatShortDate(ps.date)}</span>
+                      <span>{productName.trim() || 'Producto eliminado'}</span>
                       <span className={styles.muted}>{ps.quantity} u.</span>
                       <span className={styles.amount}>{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
+                          </>
+                        )
+                      })()}
                     </div>
                   ))}
                 </div>
