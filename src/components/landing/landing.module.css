@@ -191,9 +191,34 @@
   padding-top: 0;
 }
 
+.whatsappFab {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .mobileTopbarOffset {
     padding-top: 70px;
+  }
+
+  .whatsappFab {
+    position: fixed;
+    right: 14px;
+    bottom: 16px;
+    width: 58px;
+    height: 58px;
+    border-radius: 999px;
+    background: #25d366;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
+    z-index: 350;
+    transition: transform .15s ease, opacity .2s ease;
+  }
+
+  .whatsappFab:active {
+    transform: scale(.96);
   }
 }
 
