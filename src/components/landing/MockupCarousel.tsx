@@ -65,13 +65,14 @@ const SLIDES: Slide[] = [
 
 const INTERVAL_MS = 8000
 const SWIPE_THRESHOLD = 40
+const MOBILE_BREAKPOINT = 860
 
 type ViewMode = 'desktop' | 'mobile'
 
 export default function MockupCarousel() {
   const [current, setCurrent] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT) {
       return 'mobile'
     }
     return 'desktop'
