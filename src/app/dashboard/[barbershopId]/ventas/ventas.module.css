@@ -564,6 +564,25 @@
   .serviceRow { grid-template-columns: 1fr 48px 1fr 28px; }
 }
 
+@media (max-width: 768px) {
+  .header { margin-bottom: 14px; gap: 8px; }
+  .title { font-size: 1.2rem; }
+  .summary { gap: 10px; font-size: .75rem; }
+  .summaryItem strong { font-size: .9rem; }
+  .filtro { padding: 10px 12px; gap: 10px; margin-bottom: 12px; border-radius: 10px; }
+  .monthNav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .monthTab, .monthActive { white-space: nowrap; font-size: .7rem; padding: 5px 9px; }
+  .summaryCard { padding: 10px 10px; border-top-width: 2px; }
+  .summaryLabel { font-size: .62rem; margin-bottom: 4px; }
+  .summaryValue { font-size: 1rem; }
+  .barberGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .barberCard { padding: 10px 10px; }
+  .barberName { font-size: .82rem; }
+  .barberStat, .barberComm { font-size: .7rem; }
+  .chartBox { padding: 10px 10px 4px; margin-bottom: 12px; }
+  .subTitle { font-size: .72rem; margin-bottom: 8px; }
+}
+
 .noBarbers {
   background: rgba(201,168,76,.08);
   border: 1px solid rgba(201,168,76,.2);

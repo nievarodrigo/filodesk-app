@@ -74,3 +74,19 @@
   .kpis { grid-template-columns: 1fr; max-width: none; }
   .reponerFields { gap: 8px; }
 }
+
+@media (max-width: 768px) {
+  .header { margin-bottom: 12px; }
+  .title { font-size: 1.2rem; }
+  .btnPrimary { padding: 8px 12px; font-size: .8rem; }
+  .kpis { gap: 8px; margin-bottom: 10px; }
+  .kpiCard { padding: 10px; border-top-width: 2px; }
+  .kpiLabel { font-size: .62rem; margin-bottom: 4px; }
+  .kpiValue { font-size: 1rem; }
+  .formCard { padding: 12px; margin-bottom: 10px; }
+  .formTitle { font-size: .9rem; margin-bottom: 10px; }
+  .histSection { margin-top: 12px; }
+  .histTitle { margin-bottom: 8px; }
+  .reponerRow { padding: 8px 10px; gap: 8px; }
+  .miniInput { width: 74px; padding: 6px 8px; }
+}
