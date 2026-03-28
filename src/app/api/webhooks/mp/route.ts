@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const subscriptionId = data?.id
+  const subscriptionId = data?.id as string
   if (!subscriptionId) {
     console.warn('[MP webhook] missing data.id')
     return NextResponse.json({ ok: false }, { status: 400 })
