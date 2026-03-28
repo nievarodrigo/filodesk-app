@@ -476,7 +476,7 @@
 /* Product table (4 cols) */
 .tableHeadProduct {
   display: grid;
-  grid-template-columns: 80px minmax(140px, 1.6fr) 64px minmax(96px, 1fr);
+  grid-template-columns: 0.8fr 1.6fr 0.8fr 1fr;
   padding: 10px 16px;
   font-size: .7rem; text-transform: uppercase; letter-spacing: .7px;
   color: var(--muted); font-weight: 600;
@@ -485,7 +485,7 @@
 }
 .tableRowProduct {
   display: grid;
-  grid-template-columns: 80px minmax(140px, 1.6fr) 64px minmax(96px, 1fr);
+  grid-template-columns: 0.8fr 1.6fr 0.8fr 1fr;
   padding: 11px 16px;
   font-size: .88rem; color: var(--text);
   border-bottom: 1px solid var(--hover);
@@ -493,15 +493,6 @@
 }
 .tableRowProduct:last-child { border-bottom: none; }
 .tableRowProduct:hover { background: var(--hover); }
-.tableHeadProduct > span:nth-child(3),
-.tableRowProduct > span:nth-child(3) { text-align: center; }
-.tableHeadProduct > span:nth-child(2),
-.tableRowProduct > span:nth-child(2) {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* ── Gráfico ── */
 .chartBox {
@@ -569,6 +560,17 @@
   .tableRowService { min-width: 640px; padding: 10px 14px; font-size: .82rem; }
   .tableHeadProduct,
   .tableRowProduct { min-width: 420px; padding: 10px 14px; font-size: .82rem; }
+  .tableHeadProduct,
+  .tableRowProduct { grid-template-columns: 80px minmax(140px, 1.6fr) 64px minmax(96px, 1fr); }
+  .tableHeadProduct > span:nth-child(3),
+  .tableRowProduct > span:nth-child(3) { text-align: center; }
+  .tableHeadProduct > span:nth-child(2),
+  .tableRowProduct > span:nth-child(2) {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .servicesHead,
   .serviceRow { grid-template-columns: 1fr 48px 1fr 28px; }
 }
