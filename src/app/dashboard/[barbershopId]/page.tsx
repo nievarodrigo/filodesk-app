@@ -40,7 +40,7 @@ export default async function DashboardPage({
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
     supabase.from('sales')
-      .select('id, amount, date, notes, barbers(name, commission_pct), service_types(name)')
+      .select('id, barber_id, amount, date, notes, barbers(name, commission_pct), service_types(name)')
       .eq('barbershop_id', barbershopId)
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
@@ -140,6 +140,7 @@ export default async function DashboardPage({
         <VentasHoySection
           serviceSales={(recentSales ?? []).map((s: Sale) => ({
             id: s.id,
+            barber_id: s.barber_id ?? '',
             type: 'servicio' as const,
             barber: s.barbers?.[0]?.name ?? '—',
             service: s.service_types?.[0]?.name ?? '—',

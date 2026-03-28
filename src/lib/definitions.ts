@@ -47,6 +47,7 @@ export interface ServiceType {
 
 export interface Sale {
   id: string
+  barber_id?: string
   amount: number
   date: string
   notes: string | null

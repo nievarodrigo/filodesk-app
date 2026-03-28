@@ -4,9 +4,13 @@ import { useState } from 'react'
 import styles from './ventashoy.module.css'
 
 interface ServiceSale {
-  id: string; type: 'servicio'
-  barber: string; service: string
-  amount: number; notes: string | null
+  id: string
+  barber_id: string
+  type: 'servicio'
+  barber: string
+  service: string
+  amount: number
+  notes: string | null
 }
 interface ProductSale {
   id: string; type: 'producto'
@@ -18,30 +22,51 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
-interface GroupedService {
-  key: string
+interface GroupedBarber {
+  barber_id: string
   barber: string
-  service: string
-  count: number
+  serviceCount: number
   total: number
+  services: Array<{
+    id: string
+    service: string
+    amount: number
+    notes: string | null
+  }>
 }
 
-function groupServices(sales: ServiceSale[]): GroupedService[] {
-  const map = new Map<string, GroupedService>()
+function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
+  const map = new Map<string, GroupedBarber>()
+
   for (const s of sales) {
-    const key = `${s.barber}||${s.service}`
-    const existing = map.get(key)
+    const existing = map.get(s.barber_id)
     if (existing) {
-      existing.count++
+      existing.serviceCount++
       existing.total += s.amount
+      existing.services.push({
+        id: s.id,
+        service: s.service,
+        amount: s.amount,
+        notes: s.notes,
+      })
     } else {
-      map.set(key, { key, barber: s.barber, service: s.service, count: 1, total: s.amount })
+      map.set(s.barber_id, {
+        barber_id: s.barber_id,
+        barber: s.barber,
+        serviceCount: 1,
+        total: s.amount,
+        services: [{
+          id: s.id,
+          service: s.service,
+          amount: s.amount,
+          notes: s.notes,
+        }],
+      })
     }
   }
-  // Ordenar por barbero luego servicio
-  return [...map.values()].sort((a, b) =>
-    a.barber.localeCompare(b.barber) || a.service.localeCompare(b.service)
-  )
+
+  // Ordenar por barbero
+  return [...map.values()].sort((a, b) => a.barber.localeCompare(b.barber))
 }
 
 interface Props {
@@ -51,8 +76,9 @@ interface Props {
 
 export default function VentasHoySection({ serviceSales, productSales }: Props) {
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
+  const [expandedBarberId, setExpandedBarberId] = useState<string | null>(null)
 
-  const grouped = groupServices(serviceSales)
+  const grouped = groupServicesByBarber(serviceSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
   const totalProductos = productSales.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
@@ -103,21 +129,43 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
       ) : (
         <div className={styles.table}>
 
-          {/* ── Servicios agrupados ── */}
+          {/* ── Servicios agrupados por barbero ── */}
           {showServices && grouped.length > 0 && (
             <>
               <div className={styles.tableHead}>
+                <span></span>
                 <span>Barbero</span>
-                <span>Servicio</span>
-                <span>Cant.</span>
+                <span>Servicios</span>
                 <span>Total</span>
               </div>
               {grouped.map(g => (
-                <div key={g.key} className={`${styles.tableRow} ${styles.tableRowService}`}>
-                  <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{g.barber}</span>
-                  <span>{g.service}</span>
-                  <span className={styles.countBadge}>×{g.count}</span>
-                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(g.total)}</span>
+                <div key={g.barber_id}>
+                  <div
+                    className={`${styles.tableRow} ${styles.tableRowService}`}
+                    onClick={() => setExpandedBarberId(expandedBarberId === g.barber_id ? null : g.barber_id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                      {expandedBarberId === g.barber_id ? '▼' : '▶'}
+                    </span>
+                    <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{g.barber}</span>
+                    <span className={styles.countBadge}>×{g.serviceCount}</span>
+                    <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(g.total)}</span>
+                  </div>
+
+                  {/* ── Detalle expandible de servicios ── */}
+                  {expandedBarberId === g.barber_id && (
+                    <div style={{ background: 'var(--hover)', paddingLeft: 16 }}>
+                      {g.services.map(svc => (
+                        <div key={svc.id} className={styles.tableRow} style={{ fontSize: '.9rem', paddingLeft: 32 }}>
+                          <span></span>
+                          <span style={{ color: 'var(--muted)' }}>{svc.service}</span>
+                          <span></span>
+                          <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatARS(svc.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </>
@@ -132,15 +180,15 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
           {showProducts && productSales.length > 0 && (
             <>
               <div className={styles.tableHead}>
-                <span>Producto</span>
                 <span></span>
+                <span>Producto</span>
                 <span>Cant.</span>
                 <span>Total</span>
               </div>
               {productSales.map(p => (
                 <div key={p.id} className={`${styles.tableRow} ${styles.tableRowProduct}`}>
+                  <span></span>
                   <span style={{ fontWeight: 500 }}>{p.product}</span>
-                  <span />
                   <span className={styles.countBadge}>×{p.quantity}</span>
                   <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(p.amount)}</span>
                 </div>
