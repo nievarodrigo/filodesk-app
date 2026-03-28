@@ -140,6 +140,7 @@ export async function verifyCheckoutPayment(
     return { error: 'missing_payment_or_intent_id' as const }
   }
 
+  // DEBUG: Force rebuild 2026-03-28 09:03
   try {
     // 1. Buscar la intención por intentId (no por paymentId — ese es el correlator secundario)
     const intentResult = await checkoutIntentRepo.findById(supabase, intentId)
