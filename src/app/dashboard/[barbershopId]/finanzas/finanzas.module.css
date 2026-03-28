@@ -108,3 +108,92 @@
   font-size: .72rem;
   color: var(--muted);
 }
+
+/* ── Mobile density pass ── */
+@media (max-width: 768px) {
+  .header {
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .monthNav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+  }
+
+  .monthTab,
+  .monthActive {
+    white-space: nowrap;
+    font-size: .72rem;
+    padding: 5px 11px;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .kpiCard {
+    padding: 10px 10px;
+    border-top-width: 2px;
+    border-radius: 8px;
+  }
+
+  .kpiLabel {
+    font-size: .62rem;
+    letter-spacing: .6px;
+    margin-bottom: 4px;
+  }
+
+  .kpiValue {
+    font-size: 1.02rem;
+    line-height: 1.15;
+  }
+
+  .kpiDelta {
+    font-size: .64rem;
+    margin-top: 4px;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .statCard {
+    padding: 10px 10px;
+    border-radius: 8px;
+  }
+
+  .statLabel {
+    font-size: .62rem;
+    margin-bottom: 4px;
+  }
+
+  .statValue {
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .statDetail {
+    font-size: .64rem;
+    line-height: 1.35;
+  }
+
+  .section,
+  .twoCol {
+    margin-bottom: 12px;
+  }
+
+  .twoCol {
+    gap: 10px;
+  }
+}
