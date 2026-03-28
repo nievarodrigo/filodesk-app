@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   // SECURITY: Validar que la firma proviene de MercadoPago
-  const isValid = await verifyMPSignature(req, rawBody)
+  const isValid = await verifyMPSignature(req)
   if (!isValid) {
     console.warn('[MP webhook] invalid signature — rejecting')
     // Retornar 200 para no revelar al atacante que la firma falló (recomendación de MP)
