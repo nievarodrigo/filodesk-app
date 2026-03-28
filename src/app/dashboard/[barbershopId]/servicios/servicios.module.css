@@ -1,9 +1,8 @@
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 28px;
-  gap: 16px;
 }
 
 .title { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
