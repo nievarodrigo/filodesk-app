@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './page.module.css'
 
 interface Props {
@@ -15,10 +15,12 @@ function formatARS(n: number) {
 }
 
 export default function NetoCard({ neto, ingresos, comisiones, gastos }: Props) {
-  const [visible, setVisible] = useState(() => {
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
     const saved = localStorage.getItem('neto_visible')
-    return saved !== null ? saved === 'true' : true
-  })
+    setVisible(saved !== null ? saved === 'true' : true)
+  }, [])
 
   function toggle() {
     setVisible(v => {

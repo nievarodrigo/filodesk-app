@@ -21,7 +21,7 @@ function formatARS(n: number) {
 
 const CustomTooltip = ({ active, payload }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
-  const d = payload[0].payload
+  const d = payload[0].payload as unknown as ProductoData
   return (
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
@@ -34,9 +34,9 @@ const CustomTooltip = ({ active, payload }: TooltipContent) => {
   )
 }
 
-const renderLabel = (props: { percent: number }) => {
+const renderLabel = (props: { percent?: number }) => {
   const { percent } = props
-  return percent > 0.07 ? `${Math.round(percent * 100)}%` : ''
+  return percent && percent > 0.07 ? `${Math.round(percent * 100)}%` : ''
 }
 
 export default function GraficoProductos({ data }: Props) {

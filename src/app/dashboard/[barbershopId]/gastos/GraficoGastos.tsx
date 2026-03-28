@@ -42,8 +42,8 @@ const Tooltip_ = ({ active, payload, label, cat }: TooltipProps) => {
       <p style={{ color:'var(--cream)', fontWeight:600, marginBottom:6 }}>{shortDate(label as string)}</p>
       {cat === 'Todos' ? (
         <>
-          {payload.map((p) => p.value > 0 && (
-            <p key={p.dataKey} style={{ color: CATEGORY_COLORS[p.dataKey] ?? '#a0a0a0' }}>
+          {payload.map((p, i) => p.value > 0 && p.dataKey && (
+            <p key={p.dataKey ?? i} style={{ color: CATEGORY_COLORS[p.dataKey as string] ?? '#a0a0a0' }}>
               {p.dataKey}: {fmtFull(p.value)}
             </p>
           ))}

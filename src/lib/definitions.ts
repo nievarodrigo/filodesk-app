@@ -50,22 +50,22 @@ export interface Sale {
   amount: number
   date: string
   notes: string | null
-  barbers?: {
+  barbers?: Array<{
     name: string
     commission_pct: number
-  }
-  service_types?: {
+  }>
+  service_types?: Array<{
     name: string
-  }
+  }>
 }
 
 export interface ProductSale {
   id: string
   sale_price: number
   quantity: number
-  products?: {
+  products?: Array<{
     name: string
-  }
+  }>
 }
 
 export interface Barber {

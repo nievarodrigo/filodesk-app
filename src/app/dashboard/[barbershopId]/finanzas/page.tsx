@@ -113,9 +113,10 @@ export default async function FinanzasPage({
   const ingProductos = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const ingresosMes  = ingServicios + ingProductos
   const gastosMes    = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
-  const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: { amount?: number; barbers?: { commission_pct: number } }) => {
-    const pct = r.barbers?.commission_pct ?? 0
-    return s + Math.round((r.amount ?? 0) * pct / 100)
+  const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: unknown) => {
+    const row = r as { amount?: number; barbers?: { commission_pct?: number } }
+    const pct = row.barbers?.commission_pct ?? 0
+    return s + Math.round((row.amount ?? 0) * pct / 100)
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
 
@@ -173,11 +174,12 @@ export default async function FinanzasPage({
   // ── Ventas por barbero ───────────────────────────────────────
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? []) {
-    const b = (s as { barbers?: { name: string; commission_pct: number } }).barbers
+    const row = s as unknown as { barber_id: string; amount?: number; barbers?: Array<{ name: string; commission_pct: number }> }
+    const b = row.barbers?.[0]
     if (!b) continue
-    const id = s.barber_id
+    const id = row.barber_id
     if (!barberMap[id]) barberMap[id] = { name: b.name, total: 0, pct: b.commission_pct ?? 0 }
-    barberMap[id].total += s.amount ?? 0
+    barberMap[id].total += row.amount ?? 0
   }
   const barberData = Object.values(barberMap)
     .map(b => ({ name: b.name, total: Math.round(b.total), comision: Math.round(b.total * b.pct / 100) }))
@@ -186,10 +188,11 @@ export default async function FinanzasPage({
   // ── Ranking servicios ────────────────────────────────────────
   const svcMap: Record<string, { count: number; total: number }> = {}
   for (const s of serviceCountMonth ?? []) {
-    const name = (s as { service_types?: { name: string } }).service_types?.name ?? 'Otro'
+    const row = s as unknown as { amount?: number; service_types?: Array<{ name: string }> }
+    const name = row.service_types?.[0]?.name ?? 'Otro'
     if (!svcMap[name]) svcMap[name] = { count: 0, total: 0 }
     svcMap[name].count += 1
-    svcMap[name].total += s.amount ?? 0
+    svcMap[name].total += row.amount ?? 0
   }
   const svcRanking = Object.entries(svcMap)
     .map(([name, v]) => ({ name, ...v }))
@@ -204,10 +207,11 @@ export default async function FinanzasPage({
   // ── Productos (pie) ──────────────────────────────────────────
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
   for (const s of prodSalesMonth ?? []) {
-    const name = (s as { products?: { name: string } }).products?.name ?? 'Otro'
+    const row = s as unknown as { quantity?: number; sale_price?: number; products?: Array<{ name: string }> }
+    const name = row.products?.[0]?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
-    pieMap[name].cantidad += s.quantity ?? 1
-    pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
+    pieMap[name].cantidad += row.quantity ?? 1
+    pieMap[name].ingresos += (row.sale_price ?? 0) * (row.quantity ?? 1)
   }
   const pieData = Object.entries(pieMap)
     .map(([name, v]) => ({ name, ...v }))

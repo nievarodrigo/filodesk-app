@@ -20,19 +20,21 @@ export default function CollapsibleCard({
   defaultCollapsed = false,
   collapseOnMobile = false,
 }: Props) {
-  const [collapsed, setCollapsed] = useState(() => {
-    const key = `${STORAGE_PREFIX}${storageKey}`
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
-    if (saved === '1' || saved === '0') {
-      return saved === '1'
-    } else if (collapseOnMobile && typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-      return true
-    }
-    return defaultCollapsed
-  })
+  const [collapsed, setCollapsed] = useState(defaultCollapsed)
+
   useEffect(() => {
     const key = `${STORAGE_PREFIX}${storageKey}`
-    window.localStorage.setItem(key, collapsed ? '1' : '0')
+    const saved = localStorage.getItem(key)
+    if (saved === '1' || saved === '0') {
+      setCollapsed(saved === '1')
+    } else if (collapseOnMobile && window.matchMedia('(max-width: 768px)').matches) {
+      setCollapsed(true)
+    }
+  }, [storageKey, collapseOnMobile])
+
+  useEffect(() => {
+    const key = `${STORAGE_PREFIX}${storageKey}`
+    localStorage.setItem(key, collapsed ? '1' : '0')
   }, [storageKey, collapsed])
 
   return (

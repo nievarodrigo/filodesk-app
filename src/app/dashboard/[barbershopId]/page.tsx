@@ -37,7 +37,7 @@ export default async function DashboardPage({
     { data: expensesToday },
   ] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
-    supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
+    supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
     supabase.from('sales')
       .select('id, amount, date, notes, barbers(name, commission_pct), service_types(name)')
@@ -68,7 +68,7 @@ export default async function DashboardPage({
   const countHoy = (salesToday ?? []).length
 
   const comisionesHoy = (recentSales ?? []).reduce((s, r: Sale) =>
-    s + Math.round((r.amount ?? 0) * ((r.barbers?.commission_pct ?? 0) / 100)), 0)
+    s + Math.round((r.amount ?? 0) * ((r.barbers?.[0]?.commission_pct ?? 0) / 100)), 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
 
@@ -141,15 +141,15 @@ export default async function DashboardPage({
           serviceSales={(recentSales ?? []).map((s: Sale) => ({
             id: s.id,
             type: 'servicio' as const,
-            barber: s.barbers?.name ?? '—',
-            service: s.service_types?.name ?? '—',
+            barber: s.barbers?.[0]?.name ?? '—',
+            service: s.service_types?.[0]?.name ?? '—',
             amount: s.amount ?? 0,
             notes: s.notes ?? null,
           }))}
           productSales={(productSalesToday ?? []).map((s: ProductSale) => ({
             id: s.id,
             type: 'producto' as const,
-            product: s.products?.name ?? '—',
+            product: s.products?.[0]?.name ?? '—',
             quantity: s.quantity ?? 1,
             amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
           }))}

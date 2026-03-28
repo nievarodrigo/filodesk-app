@@ -143,11 +143,11 @@ export default function GraficoIngresos({ data }: Props) {
             )}
             {(vista === 'total' || vista === 'servicios') && (
               <Line dataKey="servicios" stroke="var(--gold)" strokeWidth={2.5}
-                dot={(props: { cx: number; cy: number; value: number }) => {
+                dot={(props: { cx?: number; cy?: number; value?: number }) => {
                   const { cx, cy, value } = props
-                  return value > 0
+                  return cx && cy && value && value > 0
                     ? <circle key={`d${cx}`} cx={cx} cy={cy} r={3} fill="var(--gold)" stroke="var(--surface)" strokeWidth={1.5} />
-                    : <g key={`d${cx}`} />
+                    : <g key={`d${cx ?? 0}`} />
                 }}
               />
             )}

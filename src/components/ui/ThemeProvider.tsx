@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type Theme = 'dark' | 'light'
 
@@ -10,13 +10,15 @@ const ThemeContext = createContext<{
 }>({ theme: 'dark', toggle: () => {} })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<Theme>('dark')
+
+  useEffect(() => {
     const saved = localStorage.getItem('filodesk-theme') as Theme | null
     const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
     const initial = saved ?? preferred
+    setTheme(initial)
     document.documentElement.setAttribute('data-theme', initial)
-    return initial
-  })
+  }, [])
 
   const toggle = () => {
     setTheme(prev => {

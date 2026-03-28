@@ -62,7 +62,7 @@ export default async function ProductosPage({
   // Aggregate for pie chart
   const pieMap: Record<string, { cantidad: number; ingresos: number }> = {}
   for (const s of salesLast90 ?? []) {
-    const name = (s as { products?: { name: string } }).products?.name ?? 'Otro'
+    const name = (s as { products?: Array<{ name: string }> }).products?.[0]?.name ?? 'Otro'
     if (!pieMap[name]) pieMap[name] = { cantidad: 0, ingresos: 0 }
     pieMap[name].cantidad += s.quantity ?? 1
     pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
@@ -131,10 +131,10 @@ export default async function ProductosPage({
         <div className={styles.histSection}>
           <h2 className={styles.histTitle}>Últimas ventas</h2>
           <div className={styles.histTable}>
-            {(recentSales as Array<{ id: string; quantity: number; sale_price: number; date: string; products?: { name: string } }>).map(s => (
+            {(recentSales as Array<{ id: string; quantity: number; sale_price: number; date: string; products?: Array<{ name: string }> }>).map(s => (
               <div key={s.id} className={styles.histRow}>
                 <span className={styles.muted}>{s.date}</span>
-                <span>{s.products?.name ?? '—'}</span>
+                <span>{s.products?.[0]?.name ?? '—'}</span>
                 <span className={styles.muted}>{s.quantity} u.</span>
                 <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(s.sale_price * s.quantity)}</span>
               </div>

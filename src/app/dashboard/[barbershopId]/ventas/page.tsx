@@ -113,8 +113,8 @@ export default async function VentasPage({
   const byBarber: Record<string, { name: string; count: number; total: number; commission: number }> = {}
   // Use paginated sales for byBarber (approximate, but good enough for UX)
   for (const sale of sales ?? []) {
-    const name    = (sale as { barbers?: { name: string; commission_pct: number } }).barbers?.name ?? 'Sin asignar'
-    const commPct = (sale as { barbers?: { name: string; commission_pct: number } }).barbers?.commission_pct ?? 0
+    const name    = (sale as { barbers?: Array<{ name: string; commission_pct: number }> }).barbers?.[0]?.name ?? 'Sin asignar'
+    const commPct = (sale as { barbers?: Array<{ name: string; commission_pct: number }> }).barbers?.[0]?.commission_pct ?? 0
     if (!byBarber[name]) byBarber[name] = { name, count: 0, total: 0, commission: 0 }
     byBarber[name].count++
     byBarber[name].total      += sale.amount ?? 0
@@ -224,15 +224,15 @@ export default async function VentasPage({
                     <span>Notas</span>
                     <span></span>
                   </div>
-                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: { name: string; commission_pct: number }; service_types?: { name: string } }>).map(sale => {
-                    const commission = sale.barbers
-                      ? Math.round(sale.amount * sale.barbers.commission_pct / 100)
+                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }>; service_types?: Array<{ name: string }> }>).map(sale => {
+                    const commission = sale.barbers?.[0]
+                      ? Math.round(sale.amount * sale.barbers[0].commission_pct / 100)
                       : null
                     return (
                       <div key={sale.id} className={styles.tableRowService}>
                         <span className={styles.muted}>{sale.date}</span>
-                        <span>{sale.barbers?.name ?? '—'}</span>
-                        <span>{sale.service_types?.name ?? '—'}</span>
+                        <span>{sale.barbers?.[0]?.name ?? '—'}</span>
+                        <span>{sale.service_types?.[0]?.name ?? '—'}</span>
                         <span className={styles.amount}>{formatARS(sale.amount)}</span>
                         <span className={styles.muted}>{commission !== null ? formatARS(commission) : '—'}</span>
                         <span className={styles.muted}>{sale.notes ?? '—'}</span>
@@ -266,10 +266,10 @@ export default async function VentasPage({
                     <span>Cantidad</span>
                     <span>Monto</span>
                   </div>
-                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: { name: string } }>).map(ps => (
+                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> }>).map(ps => (
                     <div key={ps.id} className={styles.tableRowProduct}>
                       <span className={styles.muted}>{ps.date}</span>
-                      <span>{ps.products?.name ?? '—'}</span>
+                      <span>{ps.products?.[0]?.name ?? '—'}</span>
                       <span className={styles.muted}>{ps.quantity} u.</span>
                       <span className={styles.amount}>{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
                     </div>
