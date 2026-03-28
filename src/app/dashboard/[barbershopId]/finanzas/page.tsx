@@ -4,7 +4,6 @@ import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
-import GraficoProductos from '../productos/GraficoProductos'
 import styles from './finanzas.module.css'
 
 export const metadata: Metadata = { title: 'Finanzas — FiloDesk' }
@@ -206,10 +205,10 @@ export default async function FinanzasPage({
     pieMap[name].cantidad += s.quantity ?? 1
     pieMap[name].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
   }
-  const pieData = Object.entries(pieMap)
+  const prodRanking = Object.entries(pieMap)
     .map(([name, v]) => ({ name, ...v }))
     .sort((a, b) => b.ingresos - a.ingresos)
-    .slice(0, 8)
+    .slice(0, 6)
 
   const catMap: Record<string, number> = {}
   for (const e of expensesMonth ?? []) {
@@ -325,7 +324,27 @@ export default async function FinanzasPage({
             </div>
           </div>
         )}
-        {pieData.length > 0 && <GraficoProductos data={pieData} />}
+        {prodRanking.length > 0 && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
+            <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
+              Top productos
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {prodRanking.map((prod, i) => (
+                <div key={prod.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid var(--hover)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{prod.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
+                    <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>×{prod.cantidad} unidades</span>
+                    <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, minWidth: 70, textAlign: 'right' }}>{formatARS(prod.ingresos)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

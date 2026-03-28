@@ -29,6 +29,7 @@ export default async function DashboardPage({
   const todayDate = today()
 
   const [
+    { data: barbershop },
     { data: barbers },
     { data: rawServiceTypes },
     { data: salesToday },
@@ -37,6 +38,7 @@ export default async function DashboardPage({
     { data: productSalesToday },
     { data: expensesToday },
   ] = await Promise.all([
+    supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
@@ -84,13 +86,38 @@ export default async function DashboardPage({
     { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
   ]
 
+  const planName = barbershop?.plan_name ?? 'Plan Pro'
+  const subscriptionMessage = (() => {
+    if (barbershop?.subscription_renews_at) {
+      const isAutomatic = barbershop.subscription_payment_method === 'automatic'
+      const date = new Date(barbershop.subscription_renews_at)
+      const formattedDate = date.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
+      const renewalText = isAutomatic
+        ? `Próximo renovación: ${formattedDate}`
+        : `El plan vence: ${formattedDate}`
+      return { planName, renewalText }
+    }
+    return { planName, renewalText: null }
+  })()
+
   return (
     <div>
       <div className={styles.header}>
         <h1 className={styles.title}>Inicio</h1>
-        <p className={styles.date}>
-          {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
-        </p>
+        <div>
+          <p className={styles.date}>
+            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
+          </p>
+          <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{subscriptionMessage.planName}</span>
+            {subscriptionMessage.renewalText && (
+              <>
+                <span style={{ color: 'var(--muted)' }}>|</span>
+                <span style={{ color: 'var(--muted)' }}>{subscriptionMessage.renewalText}</span>
+              </>
+            )}
+          </p>
+        </div>
       </div>
 
       <CollapsibleCard
