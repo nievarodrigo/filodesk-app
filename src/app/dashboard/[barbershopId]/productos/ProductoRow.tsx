@@ -29,7 +29,7 @@ export default function ProductoRow({ barbershopId, product }: Props) {
   return (
     <>
       <div className={styles.tableRow}>
-        <span style={{ fontWeight: 600 }}>{product.name}</span>
+        <span className={styles.cellName}>{product.name}</span>
         <span>{formatARS(product.cost_price)}</span>
         <span style={{ color: 'var(--green)' }}>{formatARS(product.sale_price)}</span>
         <span style={{ color: margin !== null ? (margin >= 30 ? 'var(--green)' : 'var(--gold)') : 'var(--muted)' }}>
@@ -40,16 +40,16 @@ export default function ProductoRow({ barbershopId, product }: Props) {
             {product.stock} u.
           </span>
         </span>
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+        <div className={styles.cellActions}>
           <button className={styles.btnReponer} onClick={() => setReponer(r => !r)} disabled={pending}>
-            {reponer ? 'Cancelar' : '+ Stock'}
+            {reponer ? 'Cancelar' : 'Stock +'}
           </button>
           <button
             className={product.active ? styles.btnToggleOff : styles.btnToggleOn}
             disabled={pending}
             onClick={() => start(() => toggleProducto(barbershopId, product.id, !product.active))}
           >
-            {product.active ? 'Desactivar' : 'Activar'}
+            {product.active ? 'Desact.' : 'Activ.'}
           </button>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function ProductoRow({ barbershopId, product }: Props) {
           <span className={styles.reponerLabel}>Reponer stock:</span>
           <div className={styles.reponerFields}>
             <div className={styles.miniField}>
-              <label className={styles.miniLabel}>Cantidad</label>
+              <label className={styles.miniLabel}>Cant.</label>
               <input type="number" min="1" step="1" className={styles.miniInput} value={qty} onChange={e => setQty(e.target.value)} />
             </div>
             <div className={styles.miniField}>

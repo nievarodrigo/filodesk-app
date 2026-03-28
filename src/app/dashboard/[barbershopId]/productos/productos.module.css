@@ -39,10 +39,12 @@
 
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.tableHead { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr 160px; gap: 8px; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
-.tableRow  { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr 0.7fr 160px; padding: 14px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
+.tableHead { display: grid; grid-template-columns: minmax(150px, 1.4fr) minmax(80px, .95fr) minmax(80px, .95fr) minmax(66px, .7fr) minmax(62px, .6fr) 170px; gap: 8px; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
+.tableRow  { display: grid; grid-template-columns: minmax(150px, 1.4fr) minmax(80px, .95fr) minmax(80px, .95fr) minmax(66px, .7fr) minmax(62px, .6fr) 170px; padding: 14px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
+.cellName { font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cellActions { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
 
 .stockOk  { color: var(--green); font-weight: 600; }
 .stockLow { color: var(--red);   font-weight: 600; }
@@ -69,8 +71,8 @@
 /* ── Mobile tables ── */
 @media (max-width: 768px) {
   .table, .histTable { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead, .tableRow { min-width: 580px; padding: 10px 14px; font-size: .82rem; }
-  .histRow { min-width: 400px; padding: 10px 14px; font-size: .82rem; }
+  .tableHead, .tableRow { min-width: 640px; padding: 10px 14px; font-size: .82rem; }
+  .histRow { min-width: 460px; padding: 10px 14px; font-size: .82rem; grid-template-columns: 86px minmax(130px, 1.4fr) 58px minmax(88px, 1fr); }
   .kpis { grid-template-columns: 1fr; max-width: none; }
   .reponerFields { gap: 8px; }
 }
@@ -89,4 +91,6 @@
   .histTitle { margin-bottom: 8px; }
   .reponerRow { padding: 8px 10px; gap: 8px; }
   .miniInput { width: 74px; padding: 6px 8px; }
+  .cellActions { gap: 4px; }
+  .btnReponer, .btnToggleOff, .btnToggleOn { padding: 4px 8px; font-size: .74rem; }
 }
