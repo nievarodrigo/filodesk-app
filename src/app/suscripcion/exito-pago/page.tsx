@@ -7,9 +7,7 @@ export default async function PagoExitoPage({
 }: {
   searchParams: Promise<{ barbershopId?: string; status?: string; payment_id?: string; external_reference?: string }>
 }) {
-  console.log('[exito-pago] ===== PAGE LOADED =====')
   const { barbershopId: rawBarbershopId, status: paymentStatus, payment_id: paymentId, external_reference: externalRef } = await searchParams
-  console.log('[exito-pago] params:', { barbershopId: rawBarbershopId, paymentStatus, paymentId, externalRef })
   const barbershopId = rawBarbershopId?.split('?')[0]
 
   let approved = false
