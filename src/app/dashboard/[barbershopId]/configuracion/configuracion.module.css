@@ -14,7 +14,14 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
+}
+
+.blockHeader > div:first-child {
+  flex-shrink: 0;
+}
+
+.blockHeader > * {
+  white-space: nowrap;
 }
 
 .blockTitle { font-size: 1rem; font-weight: 700; color: var(--cream); }
