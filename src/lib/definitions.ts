@@ -117,6 +117,29 @@ export interface Barbershop {
   trial_ends_at: string | null
 }
 
+// Tipos para Finanzas
+export interface SaleWithCommission {
+  amount: number
+  barbers: { commission_pct?: number } | Array<{ commission_pct?: number }>
+}
+
+export interface SaleWithBarber {
+  amount: number
+  barber_id: string
+  barbers: { name?: string; commission_pct?: number } | Array<{ name?: string; commission_pct?: number }>
+}
+
+export interface SaleWithServiceType {
+  amount: number
+  service_types: { name?: string } | Array<{ name?: string }>
+}
+
+export interface ProductSaleWithProduct {
+  quantity: number
+  sale_price: number
+  products: { name?: string } | Array<{ name?: string }>
+}
+
 // Tipos para Recharts
 export interface PayloadEntry {
   name: string
