@@ -49,7 +49,7 @@ export default function MobileNav({ user }: Props) {
 
             <div className={styles.mobileDivider} />
 
-            <ThemeToggle />
+            <ThemeToggle onToggle={() => setOpen(false)} />
 
             <div className={styles.mobileDivider} />
 

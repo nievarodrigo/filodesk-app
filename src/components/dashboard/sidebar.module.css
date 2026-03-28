@@ -148,6 +148,8 @@
     border: none;
     cursor: pointer;
     padding: 6px;
+    position: relative;
+    z-index: 130;
   }
 
   .hamburgerLine {
