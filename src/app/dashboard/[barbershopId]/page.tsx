@@ -108,11 +108,8 @@ export default async function DashboardPage({
 
       <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
 
-      <CollapsibleCard
-        storageKey={`${barbershopId}:inicio:registro`}
-        title="Registro rapido"
-        collapseOnMobile
-      >
+      <div style={{ marginTop: 16 }}>
+        <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>Registro rápido</h2>
         {/* Forms: servicio + producto lado a lado */}
         {activeBarbers.length === 0 ? (
           <div className={styles.noBarbers}>
@@ -132,7 +129,7 @@ export default async function DashboardPage({
             />
           </div>
         )}
-      </CollapsibleCard>
+      </div>
 
       <CollapsibleCard
         storageKey={`${barbershopId}:inicio:ventas-hoy`}

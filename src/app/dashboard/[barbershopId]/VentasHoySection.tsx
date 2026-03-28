@@ -86,7 +86,7 @@ interface Props {
 
 export default function VentasHoySection({ serviceSales, productSales }: Props) {
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
-  const [expandedBarberId, setExpandedBarberId] = useState<string | null>(null)
+  const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
 
   const grouped = groupServicesByBarber(serviceSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
@@ -152,11 +152,19 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                 <div key={g.barber_id}>
                   <div
                     className={`${styles.tableRow} ${styles.tableRowService}`}
-                    onClick={() => setExpandedBarberId(expandedBarberId === g.barber_id ? null : g.barber_id)}
+                    onClick={() => {
+                      const newSet = new Set(expandedBarberIds)
+                      if (newSet.has(g.barber_id)) {
+                        newSet.delete(g.barber_id)
+                      } else {
+                        newSet.add(g.barber_id)
+                      }
+                      setExpandedBarberIds(newSet)
+                    }}
                     style={{ cursor: 'pointer' }}
                   >
                     <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
-                      {expandedBarberId === g.barber_id ? '▼' : '▶'}
+                      {expandedBarberIds.has(g.barber_id) ? '▼' : '▶'}
                     </span>
                     <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{g.barber}</span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
@@ -164,13 +172,19 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                   </div>
 
                   {/* ── Detalle expandible de servicios ── */}
-                  {expandedBarberId === g.barber_id && (
+                  {expandedBarberIds.has(g.barber_id) && (
                     <div style={{ background: 'var(--hover)', paddingLeft: 16 }}>
+                      <div className={styles.tableHead} style={{ paddingLeft: 32, fontSize: '.85rem' }}>
+                        <span>Hora</span>
+                        <span>Servicio</span>
+                        <span>Cant.</span>
+                        <span>Monto</span>
+                      </div>
                       {g.services.map(svc => (
                         <div key={svc.id} className={styles.tableRow} style={{ fontSize: '.9rem', paddingLeft: 32 }}>
                           <span style={{ color: 'var(--muted)', fontSize: '.75rem' }}>{extractTime(svc.created_at)}</span>
                           <span style={{ color: 'var(--muted)' }}>{svc.service}</span>
-                          <span></span>
+                          <span style={{ textAlign: 'center' }}>1</span>
                           <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatARS(svc.amount)}</span>
                         </div>
                       ))}
