@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
+import SocialProof from '@/components/landing/SocialProof'
 import MockupCarousel from '@/components/landing/MockupCarousel'
 import Features from '@/components/landing/Features'
 import Pricing from '@/components/landing/Pricing'
@@ -24,6 +25,9 @@ export default async function LandingPage({
       <Navbar />
       <AuthErrorBanner searchParams={params} />
       <Hero />
+      <hr className={styles.divider} />
+      <SocialProof />
+      <hr className={styles.divider} />
       <MockupCarousel />
       <hr className={styles.divider} />
       <Features />

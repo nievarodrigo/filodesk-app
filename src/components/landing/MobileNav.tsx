@@ -13,7 +13,6 @@ type Props = {
 export default function MobileNav({ user }: Props) {
   const [open, setOpen] = useState(false)
 
-  // Cerrar con Escape y bloquear scroll del body
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
@@ -42,10 +41,10 @@ export default function MobileNav({ user }: Props) {
         <div className={styles.mobileOverlay} onClick={() => setOpen(false)}>
           <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
             <nav className={styles.mobileLinks}>
-              <Link href="/#features" onClick={() => setOpen(false)}>Features</Link>
+              <Link href="/#features" onClick={() => setOpen(false)}>Funciones</Link>
               <Link href="/#precio" onClick={() => setOpen(false)}>Precio</Link>
               <Link href="/nosotros" onClick={() => setOpen(false)}>Nosotros</Link>
-              <Link href="/faq" onClick={() => setOpen(false)}>FAQ</Link>
+              <Link href="/faq" onClick={() => setOpen(false)}>Preguntas frecuentes</Link>
             </nav>
 
             <div className={styles.mobileDivider} />

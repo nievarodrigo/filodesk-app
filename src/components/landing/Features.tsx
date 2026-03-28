@@ -12,7 +12,6 @@ const features = [
     ),
     title: 'Registrá ventas en segundos',
     desc: 'Anotás el barbero, los servicios y la cantidad. FiloDesk suma el total y registra todo al instante, sin papeles ni planillas.',
-    highlight: false,
   },
   {
     icon: (
@@ -24,8 +23,7 @@ const features = [
       </svg>
     ),
     title: 'Comisiones automáticas',
-    desc: 'Configurás el porcentaje de cada barbero una sola vez. Cada venta calcula su comisión automáticamente — sin fórmulas, sin errores.',
-    highlight: false,
+    desc: 'Configurás el porcentaje de cada barbero una sola vez. Cada venta calcula su comisión automáticamente, sin fórmulas ni errores.',
   },
   {
     icon: (
@@ -35,8 +33,7 @@ const features = [
       </svg>
     ),
     title: 'Tu ganancia real del mes',
-    desc: 'Ingresos menos comisiones menos gastos — el número que importa. Calculado solo, sin que toques una calculadora.',
-    highlight: false,
+    desc: 'Ingresos menos comisiones menos gastos: el número que importa, calculado en automático.',
   },
   {
     icon: (
@@ -48,8 +45,7 @@ const features = [
       </svg>
     ),
     title: 'Gastos del local',
-    desc: 'Alquiler, insumos, publicidad, servicios — todo registrado y descontado de tu ganancia. Sabés exactamente cuánto te cuesta abrir las puertas.',
-    highlight: false,
+    desc: 'Alquiler, insumos, publicidad y servicios, todo registrado y descontado de tu ganancia.',
   },
   {
     icon: (
@@ -61,8 +57,7 @@ const features = [
       </svg>
     ),
     title: 'Armá tu equipo',
-    desc: 'Agregás cada barbero con su porcentaje de comisión y los servicios de tu barbería. FiloDesk usa eso para calcular todo sin que toques nada.',
-    highlight: false,
+    desc: 'Agregás cada barbero con su porcentaje y tus servicios. FiloDesk calcula todo sin fricción.',
   },
   {
     icon: (
@@ -71,26 +66,21 @@ const features = [
         <line x1="12" y1="18" x2="12.01" y2="18"/>
       </svg>
     ),
-    title: 'Desde el celular, sin apps',
-    desc: 'Abrís FiloDesk desde el navegador del celu y funciona igual que en la PC. Revisá la ganancia del día desde donde estés.',
-    highlight: true,
+    title: 'Desde el celular, sin instalar apps',
+    desc: 'Abrís FiloDesk desde el navegador del celu y funciona igual que en la compu.',
   },
 ]
 
 export default function Features() {
   return (
     <section id="features" className={styles.section}>
-      <div className={styles.sectionLabel}>Features</div>
+      <div className={styles.sectionLabel}>Funciones</div>
       <div className={styles.sectionTitle}>Todo lo que necesitás para gestionar</div>
-      <div className={styles.sectionSub}>Sin complicaciones, sin planillas, sin perder el tiempo.</div>
+      <div className={styles.sectionSub}>Sin complicaciones, sin planillas y sin perder tiempo.</div>
 
       <div className={styles.featuresGrid}>
         {features.map((f) => (
-          <div
-            key={f.title}
-            className={styles.featureCard}
-            style={{}}
-          >
+          <div key={f.title} className={styles.featureCard}>
             <div className={styles.featureIcon}>{f.icon}</div>
             <h3>{f.title}</h3>
             <p>{f.desc}</p>

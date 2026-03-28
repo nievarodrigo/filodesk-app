@@ -15,21 +15,19 @@ export default async function Navbar() {
     <nav className={styles.nav}>
       <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 34, height: 34, position: 'relative', flexShrink: 0 }}>
-          <Image src="/logo-dark.png"  alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-dark"  sizes="34px" />
+          <Image src="/logo-dark.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-dark" sizes="34px" />
           <Image src="/logo-light.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-light" sizes="34px" />
         </div>
         Filo<span>Desk</span>
       </div>
 
-      {/* Desktop links */}
       <ul className={styles.navLinks}>
-        <li><a href="#features">Features</a></li>
+        <li><a href="#features">Funciones</a></li>
         <li><a href="#precio">Precio</a></li>
         <li><Link href="/nosotros">Nosotros</Link></li>
-        <li><Link href="/faq">FAQ</Link></li>
+        <li><Link href="/faq">Preguntas frecuentes</Link></li>
       </ul>
 
-      {/* Desktop auth */}
       <div className={styles.navAuth}>
         <ThemeToggle />
         {user ? (
@@ -46,7 +44,6 @@ export default async function Navbar() {
         )}
       </div>
 
-      {/* Mobile hamburger */}
       <MobileNav user={user ? { email: user.email! } : null} />
     </nav>
   )

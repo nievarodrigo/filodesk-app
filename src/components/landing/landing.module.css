@@ -912,3 +912,35 @@
   .modalBox { padding: 24px 20px; }
   .sectionSubtitle { padding: 0 8px; }
 }
+
+/* ── TRUST / SOCIAL PROOF ── */
+.trustGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.trustCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.trustCard h3 {
+  font-size: 1rem;
+  color: var(--cream);
+  margin-bottom: 10px;
+}
+
+.trustCard p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .trustGrid {
+    grid-template-columns: 1fr;
+  }
+}
