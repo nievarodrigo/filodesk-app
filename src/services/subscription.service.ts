@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import * as barbershopRepo from '@/repositories/barbershop.repository'
 import * as checkoutIntentRepo from '@/repositories/checkout-intent.repository'
+import { getSiteUrl } from '@/lib/vercel-url'
 
 export async function createMPSubscription(
   supabase: SupabaseClient,
@@ -10,15 +11,7 @@ export async function createMPSubscription(
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
-  // Determinar URL según el ambiente
-  // En producción: VERCEL_PROJECT_PRODUCTION_URL (custom domain filodesk.app)
-  // En preview: VERCEL_URL (deployment preview *.vercel.app)
-  // En local: http://localhost:3001
-  const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3001'
+  const siteUrl = getSiteUrl()
 
   // Usamos /preapproval_plan en vez de /preapproval
   // Con plan, el usuario ingresa su propio email de MP en el checkout
@@ -66,15 +59,7 @@ export async function createMPCheckout(
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
-  // Determinar URL según el ambiente
-  // En producción: VERCEL_PROJECT_PRODUCTION_URL (custom domain filodesk.app)
-  // En preview: VERCEL_URL (deployment preview *.vercel.app)
-  // En local: http://localhost:3001
-  const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3001'
+  const siteUrl = getSiteUrl()
   const discount = DISCOUNTS[months] ?? 0
   const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
   const totalPrice = pricePerMonth * months
