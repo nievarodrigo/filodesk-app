@@ -230,19 +230,19 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
 
                   {/* ── Detalle expandible de servicios ── */}
                   {expandedBarberIds.has(g.barber_id) && (
-                    <div style={{ background: 'var(--hover)', paddingLeft: 16 }}>
-                      <div className={styles.tableHead} style={{ paddingLeft: 32, fontSize: '.85rem' }}>
+                    <div className={styles.detailBlock}>
+                      <div className={styles.detailHead}>
                         <span>Hora</span>
                         <span>Servicio</span>
                         <span>Cant.</span>
                         <span>Monto</span>
                       </div>
                       {paginatedServices.map(svc => (
-                        <div key={svc.id} className={styles.tableRow} style={{ fontSize: '.9rem', paddingLeft: 32 }}>
-                          <span style={{ color: 'var(--muted)', fontSize: '.75rem' }}>{extractTime(svc.created_at)}</span>
-                          <span style={{ color: 'var(--muted)' }}>{svc.service}</span>
-                          <span style={{ textAlign: 'center' }}>1</span>
-                          <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatARS(svc.amount)}</span>
+                        <div key={svc.id} className={styles.detailRow}>
+                          <span className={styles.detailTime}>{extractTime(svc.created_at)}</span>
+                          <span className={styles.detailService}>{svc.service}</span>
+                          <span className={styles.detailQty}>1</span>
+                          <span className={styles.detailAmount}>{formatARS(svc.amount)}</span>
                         </div>
                       ))}
                       {totalServicePages > 1 && (
