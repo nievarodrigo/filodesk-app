@@ -114,8 +114,8 @@ export default async function FinanzasPage({
   const ingresosMes  = ingServicios + ingProductos
   const gastosMes    = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const comisionesMes = (salesMonthWithComm ?? []).reduce((s, r: unknown) => {
-    const row = r as { amount?: number; barbers?: { commission_pct?: number } }
-    const pct = row.barbers?.commission_pct ?? 0
+    const row = r as { amount?: number; barbers?: Array<{ commission_pct?: number }> }
+    const pct = row.barbers?.[0]?.commission_pct ?? 0
     return s + Math.round((row.amount ?? 0) * pct / 100)
   }, 0)
   const netoMes = ingresosMes - gastosMes - comisionesMes
