@@ -10,6 +10,7 @@ interface ServiceSale {
   barber: string
   service: string
   amount: number
+  created_at: string
   notes: string | null
 }
 interface ProductSale {
@@ -22,6 +23,12 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
+function extractTime(isoString: string): string {
+  if (!isoString) return '—'
+  const date = new Date(isoString)
+  return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
+}
+
 interface GroupedBarber {
   barber_id: string
   barber: string
@@ -31,6 +38,7 @@ interface GroupedBarber {
     id: string
     service: string
     amount: number
+    created_at: string
     notes: string | null
   }>
 }
@@ -47,6 +55,7 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
         id: s.id,
         service: s.service,
         amount: s.amount,
+        created_at: s.created_at,
         notes: s.notes,
       })
     } else {
@@ -59,6 +68,7 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
           id: s.id,
           service: s.service,
           amount: s.amount,
+          created_at: s.created_at,
           notes: s.notes,
         }],
       })
@@ -158,7 +168,7 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
                     <div style={{ background: 'var(--hover)', paddingLeft: 16 }}>
                       {g.services.map(svc => (
                         <div key={svc.id} className={styles.tableRow} style={{ fontSize: '.9rem', paddingLeft: 32 }}>
-                          <span></span>
+                          <span style={{ color: 'var(--muted)', fontSize: '.75rem' }}>{extractTime(svc.created_at)}</span>
                           <span style={{ color: 'var(--muted)' }}>{svc.service}</span>
                           <span></span>
                           <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatARS(svc.amount)}</span>

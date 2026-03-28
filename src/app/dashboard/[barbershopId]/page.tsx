@@ -40,7 +40,7 @@ export default async function DashboardPage({
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
     supabase.from('sales')
-      .select('id, barber_id, amount, date, notes, barbers(name, commission_pct), service_types(name)')
+      .select('id, barber_id, amount, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
       .eq('barbershop_id', barbershopId)
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
@@ -145,6 +145,7 @@ export default async function DashboardPage({
             barber: s.barbers?.[0]?.name ?? '—',
             service: s.service_types?.[0]?.name ?? '—',
             amount: s.amount ?? 0,
+            created_at: s.created_at ?? '',
             notes: s.notes ?? null,
           }))}
           productSales={(productSalesToday ?? []).map((s: ProductSale) => ({

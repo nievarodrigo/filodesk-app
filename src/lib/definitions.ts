@@ -50,6 +50,7 @@ export interface Sale {
   barber_id?: string
   amount: number
   date: string
+  created_at?: string
   notes: string | null
   barbers?: Array<{
     name: string
