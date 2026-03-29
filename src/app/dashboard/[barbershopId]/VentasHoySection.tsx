@@ -17,6 +17,44 @@ interface ProductSale {
   id: string; type: 'producto'
   product: string; quantity: number
   amount: number
+  transaction_id: string
+  created_at: string
+}
+
+interface GroupedTransaction {
+  transaction_id: string
+  created_at: string
+  itemCount: number
+  total: number
+  items: Array<{
+    id: string
+    product: string
+    quantity: number
+    amount: number
+  }>
+}
+
+function groupProductsByTransaction(sales: ProductSale[]): GroupedTransaction[] {
+  const map = new Map<string, GroupedTransaction>()
+
+  for (const s of sales) {
+    const existing = map.get(s.transaction_id)
+    if (existing) {
+      existing.itemCount++
+      existing.total += s.amount
+      existing.items.push({ id: s.id, product: s.product, quantity: s.quantity, amount: s.amount })
+    } else {
+      map.set(s.transaction_id, {
+        transaction_id: s.transaction_id,
+        created_at: s.created_at,
+        itemCount: 1,
+        total: s.amount,
+        items: [{ id: s.id, product: s.product, quantity: s.quantity, amount: s.amount }],
+      })
+    }
+  }
+
+  return [...map.values()].sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
 function formatARS(n: number) {
@@ -122,11 +160,13 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
   const [barberPage, setBarberPage] = useState(1)
   const [servicePagesPerBarber, setServicePagesPerBarber] = useState<Record<string, number>>({})
-  const [productPage, setProductPage] = useState(1)
+  const [expandedTransactionIds, setExpandedTransactionIds] = useState<Set<string>>(new Set())
+  const [transactionPage, setTransactionPage] = useState(1)
 
   const ITEMS_PER_PAGE = 10
 
   const grouped = groupServicesByBarber(serviceSales)
+  const groupedTransactions = groupProductsByTransaction(productSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
   const totalProductos = productSales.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
@@ -148,11 +188,11 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
   const barberEnd = barberStart + ITEMS_PER_PAGE
   const paginatedBarbers = grouped.slice(barberStart, barberEnd)
 
-  // Paginación de productos
-  const totalProductsPages = Math.ceil(productSales.length / ITEMS_PER_PAGE)
-  const productStart = (productPage - 1) * ITEMS_PER_PAGE
-  const productEnd = productStart + ITEMS_PER_PAGE
-  const paginatedProducts = productSales.slice(productStart, productEnd)
+  // Paginación de transacciones de productos
+  const totalTransactionPages = Math.ceil(groupedTransactions.length / ITEMS_PER_PAGE)
+  const txStart = (transactionPage - 1) * ITEMS_PER_PAGE
+  const txEnd = txStart + ITEMS_PER_PAGE
+  const paginatedTransactions = groupedTransactions.slice(txStart, txEnd)
 
   return (
     <div className={styles.section}>
@@ -270,33 +310,73 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
           )}
 
           {/* ── Separador si hay ambos ── */}
-          {showServices && showProducts && grouped.length > 0 && productSales.length > 0 && (
+          {showServices && showProducts && grouped.length > 0 && groupedTransactions.length > 0 && (
             <div className={styles.divider} />
           )}
 
-          {/* ── Productos ── */}
-          {showProducts && productSales.length > 0 && (
+          {/* ── Productos agrupados por transacción ── */}
+          {showProducts && groupedTransactions.length > 0 && (
             <>
               <div className={styles.tableHead}>
                 <span></span>
-                <span>Producto</span>
-                <span>Cant.</span>
+                <span>Venta</span>
+                <span>Productos</span>
                 <span>Total</span>
               </div>
-              {paginatedProducts.map(p => (
-                <div key={p.id} className={`${styles.tableRow} ${styles.tableRowProduct}`}>
-                  <span></span>
-                  <span style={{ fontWeight: 500 }}>{p.product}</span>
-                  <span className={styles.countBadge}>×{p.quantity}</span>
-                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(p.amount)}</span>
+              {paginatedTransactions.map(tx => (
+                <div key={tx.transaction_id}>
+                  <div
+                    className={`${styles.tableRow} ${styles.tableRowProduct}`}
+                    onClick={() => {
+                      const newSet = new Set(expandedTransactionIds)
+                      if (newSet.has(tx.transaction_id)) {
+                        newSet.delete(tx.transaction_id)
+                      } else {
+                        newSet.add(tx.transaction_id)
+                      }
+                      setExpandedTransactionIds(newSet)
+                    }}
+                    style={{ cursor: tx.itemCount > 1 ? 'pointer' : 'default' }}
+                  >
+                    <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                      {tx.itemCount > 1
+                        ? (expandedTransactionIds.has(tx.transaction_id) ? '▼' : '▶')
+                        : ''}
+                    </span>
+                    <span style={{ fontWeight: 500, color: 'var(--cream)' }}>
+                      {tx.itemCount === 1 ? tx.items[0].product : `Venta ${extractTime(tx.created_at)}`}
+                    </span>
+                    <span className={styles.countBadge}>×{tx.itemCount}</span>
+                    <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(tx.total)}</span>
+                  </div>
+
+                  {/* ── Detalle expandible de ítems ── */}
+                  {tx.itemCount > 1 && expandedTransactionIds.has(tx.transaction_id) && (
+                    <div className={styles.detailBlock}>
+                      <div className={styles.detailHead}>
+                        <span></span>
+                        <span>Producto</span>
+                        <span>Cant.</span>
+                        <span>Monto</span>
+                      </div>
+                      {tx.items.map(item => (
+                        <div key={item.id} className={styles.detailRow}>
+                          <span></span>
+                          <span className={styles.detailService}>{item.product}</span>
+                          <span className={styles.detailQty}>×{item.quantity}</span>
+                          <span className={styles.detailAmount}>{formatARS(item.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
-              {totalProductsPages > 1 && (
+              {totalTransactionPages > 1 && (
                 <PaginationControls
-                  currentPage={productPage}
-                  totalPages={totalProductsPages}
-                  onPrevious={() => setProductPage(Math.max(1, productPage - 1))}
-                  onNext={() => setProductPage(Math.min(totalProductsPages, productPage + 1))}
+                  currentPage={transactionPage}
+                  totalPages={totalTransactionPages}
+                  onPrevious={() => setTransactionPage(Math.max(1, transactionPage - 1))}
+                  onNext={() => setTransactionPage(Math.min(totalTransactionPages, transactionPage + 1))}
                 />
               )}
             </>
@@ -306,7 +386,7 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
           {showServices && !showProducts && grouped.length === 0 && (
             <p className={styles.empty}>No hay servicios hoy.</p>
           )}
-          {showProducts && !showServices && productSales.length === 0 && (
+          {showProducts && !showServices && groupedTransactions.length === 0 && (
             <p className={styles.empty}>No hay productos hoy.</p>
           )}
 

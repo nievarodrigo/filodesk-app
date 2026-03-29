@@ -1,4 +1,4 @@
-const API_BASE = 'https://api.galiopay.com/v1'
+const API_BASE = process.env.GALIOPAY_API_BASE || 'https://api.galiopay.com/v1'
 
 interface CreatePaymentLinkInput {
   referenceId: string

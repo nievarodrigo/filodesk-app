@@ -70,6 +70,8 @@ export interface ProductSale {
   id: string
   sale_price: number
   quantity: number
+  transaction_id?: string
+  created_at?: string
   products?: {
     name: string
   } | Array<{

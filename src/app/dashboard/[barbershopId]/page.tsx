@@ -54,7 +54,7 @@ export default async function DashboardPage({
       .gt('stock', 0)
       .order('name'),
     supabase.from('product_sales')
-      .select('id, sale_price, quantity, products(name)')
+      .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
       .eq('barbershop_id', barbershopId)
       .eq('date', todayDate)
       .order('created_at', { ascending: false }),
@@ -196,6 +196,8 @@ export default async function DashboardPage({
               product: productName ?? '—',
               quantity: s.quantity ?? 1,
               amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+              transaction_id: s.transaction_id ?? s.id,
+              created_at: s.created_at ?? '',
             }
           })}
         />

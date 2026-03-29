@@ -71,6 +71,8 @@ export async function sellProducts(
     if (dbP.stock < item.quantity) return { error: `Stock insuficiente para ${dbP.name} (${dbP.stock} disponibles).` }
   }
 
+  const transaction_id = crypto.randomUUID()
+
   const [insertRes] = await Promise.all([
     productSaleRepo.insertMany(supabase, items.map(i => ({
       barbershop_id: barbershopId,
@@ -78,6 +80,7 @@ export async function sellProducts(
       quantity: i.quantity,
       sale_price: i.sale_price,
       date,
+      transaction_id,
     }))),
     ...items.map(i => {
       const dbP = dbProducts.find(p => p.id === i.product_id)!
