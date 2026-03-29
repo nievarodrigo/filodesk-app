@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import * as barbershopRepo from '@/repositories/barbershop.repository'
 import * as checkoutIntentRepo from '@/repositories/checkout-intent.repository'
 import { getSiteUrl } from '@/lib/vercel-url'
+import * as galiopayService from '@/services/galiopay.service'
 
 export const ALLOWED_MONTHS = [1, 3, 6, 12] as const
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
@@ -216,7 +217,20 @@ export async function createBankTransfer(
 
   if (error) return { error: 'db_error' as const }
 
-  return { redirectUrl: 'https://admin-pay.galio.app/' }
+  // 2. Generamos el link de GalioPay real mediante su API
+  const galioResult = await galiopayService.createPaymentLink({
+    referenceId: barbershopId,
+    amount: totalPrice,
+    description: `Suscripción FiloDesk — Plan ${plan.name} (${months} ${months === 1 ? 'mes' : 'meses'})`,
+  })
+
+  if ('error' in galioResult) {
+    console.error('[GalioPay] Error creating link:', galioResult.error)
+    // Fallback al link genérico si la API falla
+    return { redirectUrl: `https://admin-pay.galio.app/?amount=${totalPrice}&ref=${barbershopId}` }
+  }
+
+  return { redirectUrl: galioResult.paymentLink.url }
 }
 
 export async function processWebhook(
