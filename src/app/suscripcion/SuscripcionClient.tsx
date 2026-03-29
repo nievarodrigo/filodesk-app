@@ -4,20 +4,49 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
 
-const BASE_PRICE = 11999
+const PLANS = [
+  {
+    id: 'base',
+    name: 'Base',
+    price: 11999,
+    features: [
+      'Hasta 5 barberos',
+      'Comisiones automáticas',
+      'Ganancia neta en tiempo real',
+      'Control de stock y gastos',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 19999,
+    badge: 'Recomendado',
+    features: [
+      'Barberos ilimitados',
+      'Roles: Dueño, Encargado y Barbero',
+      'Reportes avanzados (Excel/PDF)',
+      'Historial completo sin límites',
+    ],
+  },
+  {
+    id: 'expert',
+    name: 'Premium IA',
+    price: 29999,
+    badge: 'Nuevo',
+    features: [
+      'IA Predicción de demanda',
+      'Alertas automáticas de ingresos',
+      'Sugerencias de inversión',
+      'Asistente IA personalizado',
+    ],
+  },
+]
 
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
   { months: 3,  label: '3 meses', discount: 0.08 },
   { months: 6,  label: '6 meses', discount: 0.13 },
   { months: 12, label: '1 año',   discount: 0.20 },
-]
-
-const FEATURES = [
-  'Hasta 5 barberos',
-  'Comisiones automáticas',
-  'Ganancia neta en tiempo real',
-  'Control de stock y gastos',
 ]
 
 type Method = 'checkout' | 'subscription' | 'transfer'
@@ -34,15 +63,18 @@ function fmt(n: number) {
 }
 
 export default function SuscripcionClient({ barbershopId, barbershopName, subscriptionStatus, trialEnd }: Props) {
+  const [planId, setPlanId] = useState('base')
   const [months,  setMonths]  = useState(1)
   const [method,  setMethod]  = useState<Method>('checkout')
   const [pending, start]      = useTransition()
 
-  const opt          = MONTH_OPTIONS.find(o => o.months === months)!
-  const pricePerMonth = Math.round(BASE_PRICE * (1 - opt.discount))
-  const total         = pricePerMonth * months
-  const savings       = BASE_PRICE * months - total
-  const subDisabled   = months > 1
+  const plan = PLANS.find(p => p.id === planId)!
+  const opt = MONTH_OPTIONS.find(o => o.months === months)!
+  
+  const pricePerMonth = Math.round(plan.price * (1 - opt.discount))
+  const total = pricePerMonth * months
+  const savings = (plan.price * months) - total
+  const subDisabled = months > 1
 
   function pickMonths(m: number) {
     setMonths(m)
@@ -51,6 +83,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
   function handlePay() {
     start(async () => {
+      // Nota: El backend actualmente espera barbershopId y months. 
+      // El planId se usará en futuras actualizaciones del backend.
       if (method === 'subscription') {
         await createMPSubscription(barbershopId)
       } else if (method === 'checkout') {
@@ -68,6 +102,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         .suscripcion-month-btn:hover { opacity: 0.85; }
         .suscripcion-method-btn:hover:not(:disabled) { border-color: var(--gold) !important; }
         .suscripcion-pay-btn:hover:not(:disabled) { filter: brightness(1.1); }
+        .plan-card:hover { border-color: var(--gold) !important; }
       `}</style>
 
       <div style={{
@@ -96,6 +131,53 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 Elegí un plan para seguir con{' '}
                 <strong style={{ color: 'var(--text)' }}>{barbershopName}</strong>.
               </p>
+            </div>
+          </div>
+
+          {/* ── Selector de Planes ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p style={labelStyle}>Elegí tu plan</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {PLANS.map(p => (
+                <button
+                  key={p.id}
+                  className="plan-card"
+                  onClick={() => setPlanId(p.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    background: planId === p.id ? 'rgba(212,168,42,0.07)' : 'var(--surface)',
+                    border: `1.5px solid ${planId === p.id ? 'var(--gold)' : 'var(--border)'}`,
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '.9rem', fontWeight: 700, color: planId === p.id ? 'var(--gold)' : 'var(--cream)' }}>
+                        Plan {p.name}
+                      </span>
+                      {p.badge && (
+                        <span style={{ fontSize: '.55rem', fontWeight: 800, padding: '2px 6px', background: 'var(--gold)', color: '#0e0e0e', borderRadius: 4, textTransform: 'uppercase' }}>
+                          {p.badge}
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '.75rem', color: 'var(--muted)' }}>{fmt(p.price)}/mes</span>
+                  </div>
+                  <div style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    border: `2px solid ${planId === p.id ? 'var(--gold)' : 'var(--border)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {planId === p.id && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -150,7 +232,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             </div>
           </div>
 
-          {/* ── Precio ── */}
+          {/* ── Detalle del Plan ── */}
           <div style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
@@ -163,7 +245,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div>
                 <p style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>
-                  Plan Base
+                  Plan {plan.name}
                 </p>
                 <p style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--cream)', lineHeight: 1 }}>
                   {fmt(total)}
@@ -192,7 +274,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             <div style={{ height: 1, background: 'var(--border)' }} />
 
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {FEATURES.map(f => (
+              {plan.features.map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--muted)' }}>
                   <span style={{ color: 'var(--gold)', fontSize: '.72rem', flexShrink: 0 }}>✓</span>
                   {f}
@@ -205,7 +287,6 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <p style={labelStyle}>Método de pago</p>
 
-            {/* Checkout Pro */}
             <MethodCard
               active={method === 'checkout'}
               disabled={false}
@@ -215,7 +296,6 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               subtitle="MP · Uala · NaranjaX · Tarjetas · y más"
             />
 
-            {/* Suscripción automática */}
             <MethodCard
               active={method === 'subscription'}
               disabled={subDisabled}
@@ -226,7 +306,6 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               badge="MENSUAL"
             />
 
-            {/* Transferencia Bancaria */}
             <MethodCard
               active={method === 'transfer'}
               disabled={false}
@@ -339,7 +418,6 @@ function MethodCard({
         opacity: disabled ? 0.45 : 1,
       }}
     >
-      {/* Ícono */}
       <div style={{
         width: 40, height: 40, borderRadius: 10, flexShrink: 0,
         background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)',
@@ -348,8 +426,6 @@ function MethodCard({
       }}>
         {icon}
       </div>
-
-      {/* Texto */}
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
           <p style={{ fontSize: '.86rem', fontWeight: 600, color: 'var(--cream)' }}>{title}</p>
@@ -366,8 +442,6 @@ function MethodCard({
         </div>
         <p style={{ fontSize: '.74rem', color: 'var(--muted)' }}>{subtitle}</p>
       </div>
-
-      {/* Radio */}
       <div style={{
         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
