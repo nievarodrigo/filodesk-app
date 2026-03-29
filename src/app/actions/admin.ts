@@ -38,7 +38,7 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
   // 3. Activar suscripción y barbería
   const now = new Date().toISOString()
 
-  // Paso A: Actualizar suscripción primero (Marcamos como procesada)
+  // Paso A: Actualizar suscripción primero
   const { error: subErr } = await supabase
     .from('subscriptions')
     .update({
@@ -48,7 +48,7 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
       validated_by: user.id
     })
     .eq('id', subscriptionId)
-    .eq('status', 'pending_validation') // Doble check atómico
+    .eq('status', 'pending_validation')
 
   if (subErr) {
     console.error('[Admin] Error updating subscription:', subErr)
@@ -69,13 +69,19 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
     .eq('id', sub.barbershop_id)
 
   if (barbErr) {
-    console.error('[Admin] CRITICAL: Subscription activated but barbershop update failed:', {
-      subscriptionId,
-      barbershopId: sub.barbershop_id,
-      error: barbErr
-    })
-    // En un sistema ideal, aquí haríamos rollback de la suscripción.
-    // Por ahora, el log permite intervención manual inmediata.
+    console.error('[Admin] CRITICAL: Barbershop update failed. Rolling back subscription status:', barbErr)
+    
+    // COMPENSACIÓN: Revertir suscripción a pending_validation para que el admin pueda reintentar
+    await supabase
+      .from('subscriptions')
+      .update({ 
+        status: 'pending_validation',
+        validated_at: null,
+        validated_by: null 
+      })
+      .eq('id', subscriptionId)
+    
+    return
   }
 
   revalidatePath('/admin/pagos')

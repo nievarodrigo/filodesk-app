@@ -28,11 +28,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
 
+  const { type, data } = body as { type?: string; data?: Record<string, unknown> }
+
+  // SECURITY: Solo procesar eventos de suscripción
+  if (type !== 'subscription_preapproval') {
+    return NextResponse.json({ ok: true })
+  }
+
   // Extraer el ID de la query string (el que fue validado por firma)
   const searchParams = req.nextUrl.searchParams
   const queryId = searchParams.get('id')
-
-  const { type, data } = body as { type?: string; data?: Record<string, unknown> }
 
   // SECURITY: Validar igualdad estricta entre query id y body data.id
   const subscriptionId = data?.id as string

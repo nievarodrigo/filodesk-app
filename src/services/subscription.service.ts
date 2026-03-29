@@ -3,35 +3,22 @@ import * as barbershopRepo from '@/repositories/barbershop.repository'
 import * as checkoutIntentRepo from '@/repositories/checkout-intent.repository'
 import { getSiteUrl } from '@/lib/vercel-url'
 
-// Single source of truth for allowed months
 export const ALLOWED_MONTHS = [1, 3, 6, 12] as const
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
 
-/**
- * Valida que los meses solicitados estén en la whitelist.
- */
-function validateMonths(months: number) {
-  if (!ALLOWED_MONTHS.includes(months as any)) {
-    throw new Error('Cantidad de meses inválida')
-  }
+function isMonthAllowed(months: number): months is typeof ALLOWED_MONTHS[number] {
+  return ALLOWED_MONTHS.includes(months as any)
 }
 
-/**
- * Obtiene el precio de un plan desde la base de datos.
- * Evita el uso de constantes hardcodeadas (BASE_PRICE).
- */
-async function getPlanPrice(supabase: SupabaseClient, planId: string) {
+async function getPlanData(supabase: SupabaseClient, planId: string) {
   const { data, error } = await supabase
     .from('plans')
     .select('price, name')
     .eq('id', planId)
+    .eq('active', true)
     .single()
   
-  if (error || !data) {
-    console.error(`[Plans] Error fetching plan ${planId}:`, error)
-    // Fallback de seguridad por si la tabla plans no está poblada correctamente
-    return { price: 11999, name: 'Base' }
-  }
+  if (error || !data) return null
   return data
 }
 
@@ -44,9 +31,10 @@ export async function createMPSubscription(
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
-  const plan = await getPlanPrice(supabase, planId)
-  const siteUrl = getSiteUrl()
+  const plan = await getPlanData(supabase, planId)
+  if (!plan) return { error: 'invalid_plan' as const }
 
+  const siteUrl = getSiteUrl()
   const body = {
     reason: `FiloDesk — ${barbershop.name} (Plan ${plan.name})`,
     auto_recurring: {
@@ -55,7 +43,6 @@ export async function createMPSubscription(
       transaction_amount: plan.price,
       currency_id: 'ARS',
     },
-    // IMPORTANTE: Ya no activamos en el back_url por seguridad (Issue High)
     back_url: `${siteUrl}/dashboard/${barbershopId}`,
     external_reference: barbershopId,
   }
@@ -70,10 +57,7 @@ export async function createMPSubscription(
   })
 
   const data = await res.json()
-  if (!res.ok || !data.init_point) {
-    console.error('[MP subscription]', data)
-    return { error: 'mp_error' as const }
-  }
+  if (!res.ok || !data.init_point) return { error: 'mp_error' as const }
 
   return { redirectUrl: data.init_point as string }
 }
@@ -85,11 +69,14 @@ export async function createMPCheckout(
   months = 1,
   planId: string = 'base'
 ) {
-  validateMonths(months)
+  if (!isMonthAllowed(months)) return { error: 'invalid_months' as const }
+  
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
-  const plan = await getPlanPrice(supabase, planId)
+  const plan = await getPlanData(supabase, planId)
+  if (!plan) return { error: 'invalid_plan' as const }
+
   const siteUrl = getSiteUrl()
   const discount = DISCOUNTS[months] ?? 0
   const pricePerMonth = Math.round(plan.price * (1 - discount))
@@ -103,14 +90,9 @@ export async function createMPCheckout(
     currency_id: 'ARS',
   })
 
-  if (intentResult.error) {
-    console.error('[MP checkout] failed to create intent:', intentResult.error)
-    return { error: 'intent_creation_failed' as const }
-  }
+  if (intentResult.error) return { error: 'intent_creation_failed' as const }
 
   const intentId = intentResult.data.id
-  const externalRef = `${barbershopId}:${intentId}`
-  
   const body = {
     items: [{
       title: `FiloDesk — ${barbershop.name} (${label})`,
@@ -124,7 +106,7 @@ export async function createMPCheckout(
       pending: `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
     },
     auto_return: 'approved',
-    external_reference: externalRef,
+    external_reference: `${barbershopId}:${intentId}`,
   }
 
   const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
@@ -138,7 +120,6 @@ export async function createMPCheckout(
 
   const data = await res.json()
   if (!res.ok || !data.init_point) {
-    console.error('[MP checkout]', data)
     await checkoutIntentRepo.markFailed(supabase, intentId)
     return { error: 'mp_error' as const }
   }
@@ -169,7 +150,6 @@ export async function verifyCheckoutPayment(
 
     if (payment.status !== 'approved') return { error: 'payment_not_approved' as const }
     
-    // Idempotencia y correlación
     const expectedRef = `${barbershopId}:${intentId}`
     if (payment.external_reference !== expectedRef) return { error: 'external_ref_mismatch' as const }
     if (payment.transaction_amount !== intentResult.expected_amount) return { error: 'amount_mismatch' as const }
@@ -185,20 +165,18 @@ export async function verifyCheckoutPayment(
   }
 }
 
-/**
- * Activa un pago. 
- * Reemplaza el uso de constantes globales por valores persistidos o de DB.
- */
 export async function activatePayment(
   supabase: SupabaseClient,
   barbershopId: string,
   months = 1,
 ) {
-  validateMonths(months)
+  if (!isMonthAllowed(months)) return { error: 'invalid_months' as const }
+  
+  const plan = await getPlanData(supabase, 'base')
+  if (!plan) return { error: 'invalid_plan' as const }
+
   const now = new Date()
   const renewsAt = new Date(now.getFullYear(), now.getMonth() + months, now.getDate()).toISOString()
-  
-  const plan = await getPlanPrice(supabase, 'base')
   const amount = Math.round(plan.price * (1 - (DISCOUNTS[months] ?? 0)))
 
   await barbershopRepo.updateSubscription(
@@ -215,11 +193,14 @@ export async function createBankTransfer(
   months = 1,
   planId: string = 'base'
 ) {
-  validateMonths(months)
+  if (!isMonthAllowed(months)) return { error: 'invalid_months' as const }
+  
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
-  const plan = await getPlanPrice(supabase, planId)
+  const plan = await getPlanData(supabase, planId)
+  if (!plan) return { error: 'invalid_plan' as const }
+
   const discount = DISCOUNTS[months] ?? 0
   const pricePerMonth = Math.round(plan.price * (1 - discount))
   const totalPrice = pricePerMonth * months
@@ -233,10 +214,7 @@ export async function createBankTransfer(
     ends_at: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString()
   })
 
-  if (error) {
-    console.error('[Bank transfer] error creating sub:', error)
-    return { error: 'db_error' as const }
-  }
+  if (error) return { error: 'db_error' as const }
 
   return { redirectUrl: 'https://admin-pay.galio.app/' }
 }

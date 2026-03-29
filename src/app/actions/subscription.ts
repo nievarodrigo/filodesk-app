@@ -14,7 +14,7 @@ export async function createMPSubscription(barbershopId: string, planId: string 
   )
 
   if (result.error === 'not_found') redirect('/dashboard')
-  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
 
   redirect(result.redirectUrl!)
 }
@@ -29,7 +29,7 @@ export async function createMPCheckoutWithMonths(barbershopId: string, months: n
   )
 
   if (result.error === 'not_found') redirect('/dashboard')
-  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
 
   redirect(result.redirectUrl!)
 }
@@ -44,7 +44,7 @@ export async function createBankTransfer(barbershopId: string, months: number, p
   )
 
   if (result.error === 'not_found') redirect('/dashboard')
-  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
 
   redirect(result.redirectUrl!)
 }
