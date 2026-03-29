@@ -48,7 +48,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         <div style={{ textAlign: 'center', padding: 20 }}>
           <h2 style={{ color: 'var(--cream)' }}>Servicio temporalmente no disponible</h2>
           <p style={{ color: 'var(--muted)', marginTop: 10 }}>No pudimos cargar los planes. Por favor contactá a soporte.</p>
-          <a href="https://wa.me/your-number" style={{ color: 'var(--gold)', display: 'block', marginTop: 20 }}>Hablar con soporte →</a>
+          <a href="https://wa.me/5491138901234" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', display: 'block', marginTop: 20 }}>Hablar con soporte →</a>
         </div>
       </div>
     )
@@ -255,7 +255,18 @@ const labelStyle: React.CSSProperties = {
   fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--muted)',
 }
 
-function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge, badgeColor }: { active: boolean, disabled?: boolean, onClick: () => void, icon: string, title: string, subtitle: string, badge?: string, badgeColor?: string }) {
+interface MethodCardProps {
+  active:      boolean
+  disabled?:   boolean
+  onClick:     () => void
+  icon:        string
+  title:       string
+  subtitle:    string
+  badge?:      string
+  badgeColor?: string
+}
+
+function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge, badgeColor }: MethodCardProps) {
   return (
     <button className="suscripcion-method-btn" onClick={onClick} disabled={disabled} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', background: active ? 'rgba(212,168,42,0.07)' : 'var(--surface)', border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`, borderRadius: 12, cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'border-color 0.15s ease', width: '100%', opacity: disabled ? 0.45 : 1 }}>
       <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>{icon}</div>

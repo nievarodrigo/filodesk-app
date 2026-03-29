@@ -16,16 +16,28 @@ function formatDate(s: string | null) {
   return new Date(s).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+interface PendingSubscription {
+  id:             string
+  amount:         number
+  created_at:     string
+  ends_at:        string
+  payment_method: string
+  barbershops: {
+    name: string
+  }
+}
+
 export default async function AdminPagosPage() {
   const supabase = createServiceClient()
 
   // 1. Obtener pagos pendientes de validación
-  // Unimos con barbershops para tener el nombre
-  const { data: pending, error } = await supabase
+  const { data, error } = await supabase
     .from('subscriptions')
-    .select('*, barbershops(name)')
+    .select('id, amount, created_at, ends_at, payment_method, barbershops(name)')
     .eq('status', 'pending_validation')
     .order('created_at', { ascending: false })
+
+  const pending = data as unknown as PendingSubscription[] | null
 
   if (error) return <div>Error cargando pagos: {error.message}</div>
 
@@ -55,7 +67,7 @@ export default async function AdminPagosPage() {
               <span>Método</span>
               <span>Acción</span>
             </div>
-            {pending.map((p: any) => (
+            {pending.map((p) => (
               <div key={p.id} className={styles.tableRow}>
                 <span className={styles.name}>{p.barbershops.name}</span>
                 <span style={{ fontWeight: 700, color: 'var(--cream)' }}>{formatARS(p.amount)}</span>

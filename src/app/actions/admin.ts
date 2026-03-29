@@ -69,10 +69,10 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
     .eq('id', sub.barbershop_id)
 
   if (barbErr) {
-    console.error('[Admin] CRITICAL: Barbershop update failed. Rolling back subscription status:', barbErr)
+    console.error('[Admin] CRITICAL: Barbershop update failed. Attempting rollback of subscription status:', barbErr)
     
     // COMPENSACIÓN: Revertir suscripción a pending_validation para que el admin pueda reintentar
-    await supabase
+    const { error: rollbackErr } = await supabase
       .from('subscriptions')
       .update({ 
         status: 'pending_validation',
@@ -80,6 +80,13 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
         validated_by: null 
       })
       .eq('id', subscriptionId)
+    
+    if (rollbackErr) {
+      console.error('[Admin] FATAL: Rollback failed. System is now in INCONSISTENT state:', {
+        subscriptionId,
+        error: rollbackErr
+      })
+    }
     
     return
   }

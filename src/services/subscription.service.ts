@@ -7,7 +7,7 @@ export const ALLOWED_MONTHS = [1, 3, 6, 12] as const
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
 
 function isMonthAllowed(months: number): months is typeof ALLOWED_MONTHS[number] {
-  return ALLOWED_MONTHS.includes(months as any)
+  return (ALLOWED_MONTHS as readonly number[]).includes(months)
 }
 
 async function getPlanData(supabase: SupabaseClient, planId: string) {
