@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
 export async function createMPSubscription(barbershopId: string, planId: string = 'base'): Promise<void> {
@@ -39,8 +39,10 @@ export async function createBankTransfer(barbershopId: string, months: number, p
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  // Usar service role para crear la suscripcion (bypassea RLS que falta)
+  const serviceClient = createServiceClient()
   const result = await subscriptionService.createBankTransfer(
-    supabase, barbershopId, user.id, months, planId
+    serviceClient, barbershopId, user.id, months, planId
   )
 
   if (result.error === 'not_found') redirect('/dashboard')
