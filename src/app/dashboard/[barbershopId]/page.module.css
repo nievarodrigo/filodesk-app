@@ -17,6 +17,7 @@
   color: var(--gold);
   font-size: .72rem;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .collapsibleCard {

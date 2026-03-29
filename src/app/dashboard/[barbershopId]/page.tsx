@@ -195,7 +195,7 @@ export default async function DashboardPage({
             <span style={{ fontWeight: 600, color: 'var(--gold)' }}>Plan {subscriptionMessage.planName}</span>
             {context.role === 'owner' && context.plan === 'Base' && (
               <Link href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>
-                Upgrade
+                Mejorar plan
               </Link>
             )}
             {subscriptionMessage.renewalText && (
