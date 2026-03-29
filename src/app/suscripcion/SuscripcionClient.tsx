@@ -4,45 +4,6 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
 
-const PLANS = [
-  {
-    id: 'base',
-    name: 'Base',
-    price: 11999,
-    badge: 'BASE',
-    badgeColor: 'gold',
-    accent: 'var(--gold)',
-    sub: '14 días gratis · Cancelás cuando querés',
-    note: 'Sin compromiso, cancelás cuando querés',
-    features: ['Hasta 5 barberos', 'Comisiones automáticas', 'Ganancia neta en tiempo real', 'Control de stock y gastos'],
-    available: true,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 19999,
-    badge: 'PRÓXIMAMENTE',
-    badgeColor: 'blue',
-    accent: 'var(--blue)',
-    sub: 'En desarrollo — disponible pronto',
-    note: 'En desarrollo — disponible pronto',
-    features: ['Barberos ilimitados', 'Todo lo del plan Base', 'Roles: Dueño, Encargado, Barbero', 'Historial completo'],
-    available: false,
-  },
-  {
-    id: 'premium',
-    name: 'Premium IA',
-    price: 29999,
-    badge: 'PRÓXIMAMENTE',
-    badgeColor: 'green',
-    accent: 'linear-gradient(to right, var(--gold), var(--green))',
-    sub: 'En desarrollo — disponible pronto',
-    note: 'En desarrollo — disponible pronto',
-    features: ['Todo lo del plan Pro', 'Predicción de demanda', 'Alertas de ingresos', 'Asistente IA'],
-    available: false,
-  },
-]
-
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
   { months: 3,  label: '3 meses', discount: 0.08 },
@@ -53,33 +14,53 @@ const MONTH_OPTIONS = [
 type Method = 'checkout' | 'subscription' | 'transfer'
 type Screen = 'plans' | 'payment'
 
+interface Plan {
+  id: string
+  name: string
+  price: number
+  features: string[]
+  active: boolean
+}
+
 interface Props {
   barbershopId:       string
   barbershopName:     string
   subscriptionStatus: string
   trialEnd:           string | null
+  plans:              Plan[]
 }
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
 }
 
-export default function SuscripcionClient({ barbershopId, barbershopName, subscriptionStatus, trialEnd }: Props) {
+export default function SuscripcionClient({ barbershopId, barbershopName, subscriptionStatus, trialEnd, plans }: Props) {
   const [screen, setScreen] = useState<Screen>('plans')
-  const [selectedPlan, setSelectedPlan] = useState<string>('base')
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('base')
   const [months, setMonths] = useState(1)
   const [method, setMethod] = useState<Method>('checkout')
   const [pending, start] = useTransition()
 
-  const plan = PLANS.find(p => p.id === selectedPlan)!
+  // Mapear planes de DB a la UI agregando badges y estados visuales
+  const uiPlans = plans.map(p => ({
+    ...p,
+    badge: p.id === 'base' ? 'BASE' : 'PRÓXIMAMENTE',
+    badgeColor: p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
+    accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
+    available: p.id === 'base', // Por ahora solo el base está disponible para checkout
+    sub: p.id === 'base' ? '14 días gratis · Cancelás cuando querés' : 'En desarrollo — disponible pronto',
+    note: p.id === 'base' ? 'Sin compromiso, cancelás cuando querés' : 'En desarrollo — disponible pronto',
+  }))
+
+  const plan = uiPlans.find(p => p.id === selectedPlanId) || uiPlans[0]
   const opt = MONTH_OPTIONS.find(o => o.months === months)!
   const pricePerMonth = Math.round(plan.price * (1 - opt.discount))
   const total = pricePerMonth * months
   const savings = plan.price * months - total
   const subDisabled = months > 1
 
-  function selectPlan(planId: string) {
-    setSelectedPlan(planId)
+  function selectPlan(id: string) {
+    setSelectedPlanId(id)
     setMonths(1)
     setMethod('checkout')
     setScreen('payment')
@@ -96,13 +77,12 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
   function handlePay() {
     start(async () => {
-      // Usamos selectedPlan para enviar el planId correcto (aunque el backend por ahora use Base por seguridad)
       if (method === 'subscription') {
-        await createMPSubscription(barbershopId, selectedPlan)
+        await createMPSubscription(barbershopId, selectedPlanId)
       } else if (method === 'transfer') {
-        await createBankTransfer(barbershopId, months, selectedPlan)
+        await createBankTransfer(barbershopId, months, selectedPlanId)
       } else {
-        await createMPCheckoutWithMonths(barbershopId, months, selectedPlan)
+        await createMPCheckoutWithMonths(barbershopId, months, selectedPlanId)
       }
     })
   }
@@ -129,7 +109,6 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         padding: '40px 20px',
         position: 'relative',
       }}>
-        {/* ── Header con fechas ── */}
         <div style={{
           position: 'absolute',
           top: 20,
@@ -148,12 +127,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
           {screen === 'plans' ? (
             <>
-              {/* ── Header ── */}
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-                <div>
-                  <Image src="/logo-dark.png"  alt="FiloDesk" width={68} height={68} className="logo-dark"  style={{ borderRadius: 14 }} />
-                  <Image src="/logo-light.png" alt="FiloDesk" width={68} height={68} className="logo-light" style={{ borderRadius: 14 }} />
-                </div>
+                <Image src="/logo-dark.png"  alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
                 <div>
                   <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
                     {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
@@ -166,14 +141,13 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 </div>
               </div>
 
-              {/* ── Planes ── */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                 gap: 16,
                 width: '100%',
               }}>
-                {PLANS.map(p => (
+                {uiPlans.map(p => (
                   <div
                     key={p.id}
                     style={{
@@ -189,60 +163,26 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       transition: 'all 0.15s ease',
                       opacity: p.available ? 1 : 0.75,
                     }}
-                    onMouseEnter={(e) => {
-                      if (p.available) (e.currentTarget as HTMLDivElement).style.background = 'rgba(212,168,42,0.05)'
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'
-                    }}
                     onClick={() => p.available && selectPlan(p.id)}
                   >
-                    {/* Top accent bar */}
                     <div style={{
-                      position: 'absolute',
-                      top: -1,
-                      left: -1,
-                      right: -1,
-                      height: 3,
-                      background: p.accent,
-                      borderRadius: '14px 14px 0 0',
+                      position: 'absolute', top: -1, left: -1, right: -1, height: 3,
+                      background: p.accent, borderRadius: '14px 14px 0 0',
                     }} />
 
-                    {/* Badge */}
                     <div style={{
-                      position: 'absolute',
-                      top: 12,
-                      right: 12,
-                      padding: '4px 12px',
-                      borderRadius: 20,
-                      fontSize: '.65rem',
-                      fontWeight: 700,
-                      letterSpacing: '.4px',
-                      textTransform: 'uppercase',
-                      ...(p.badgeColor === 'gold' && {
-                        background: 'rgba(212,168,42,0.2)',
-                        color: 'var(--gold)',
-                        border: '1px solid rgba(212,168,42,0.3)',
-                      }),
-                      ...(p.badgeColor === 'blue' && {
-                        background: 'rgba(196,30,58,0.15)',
-                        color: '#ff6b6b',
-                        border: '1px solid rgba(196,30,58,0.3)',
-                      }),
-                      ...(p.badgeColor === 'green' && {
-                        background: 'linear-gradient(135deg, rgba(212,168,42,0.15), rgba(94,207,135,0.15))',
-                        color: 'var(--green)',
-                        border: '1px solid rgba(94,207,135,0.3)',
-                      }),
+                      position: 'absolute', top: 12, right: 12, padding: '4px 12px', borderRadius: 20,
+                      fontSize: '.65rem', fontWeight: 700, letterSpacing: '.4px', textTransform: 'uppercase',
+                      ...(p.badgeColor === 'gold' && { background: 'rgba(212,168,42,0.2)', color: 'var(--gold)', border: '1px solid rgba(212,168,42,0.3)' }),
+                      ...(p.badgeColor === 'blue' && { background: 'rgba(196,30,58,0.15)', color: '#ff6b6b', border: '1px solid rgba(196,30,58,0.3)' }),
+                      ...(p.badgeColor === 'green' && { background: 'linear-gradient(135deg, rgba(212,168,42,0.15), rgba(94,207,135,0.15))', color: 'var(--green)', border: '1px solid rgba(94,207,135,0.3)' }),
                     }}>
                       {p.badge}
                     </div>
 
-                    {/* Price section */}
                     <div style={{ marginTop: 8 }}>
                       <p style={{
-                        fontSize: '1.8rem',
-                        fontWeight: 800,
+                        fontSize: '1.8rem', fontWeight: 800,
                         color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--cream)',
                         lineHeight: 1
                       }}>
@@ -251,26 +191,20 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>{p.sub}</p>
                     </div>
 
-                    {/* Features */}
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                      {p.features.map(f => (
+                      {(p.features || []).map(f => (
                         <li key={f} style={{ fontSize: '.82rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                          <span style={{
-                            color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--gold)',
-                            flexShrink: 0
-                          }}>✓</span>
+                          <span style={{ color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--gold)', flexShrink: 0 }}>✓</span>
                           {f}
                         </li>
                       ))}
                     </ul>
 
-                    {/* Button */}
                     {p.available ? (
                       <button style={{
                         width: '100%', background: 'var(--gold)', color: 'var(--bg)',
                         border: 'none', borderRadius: 8, padding: '11px 20px',
-                        fontSize: '.9rem', fontWeight: 700, cursor: 'pointer',
-                        marginTop: 'auto',
+                        fontSize: '.9rem', fontWeight: 700, cursor: 'pointer', marginTop: 'auto',
                       }}>
                         Elegir plan →
                       </button>
@@ -278,14 +212,12 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       <button disabled style={{
                         width: '100%', background: 'var(--border)', color: 'var(--muted)',
                         border: 'none', borderRadius: 8, padding: '11px 20px',
-                        fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed',
-                        marginTop: 'auto',
+                        fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed', marginTop: 'auto',
                       }}>
                         Próximamente
                       </button>
                     )}
 
-                    {/* Note */}
                     <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>
                       {p.note}
                     </p>
@@ -295,37 +227,22 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             </>
           ) : (
             <div style={{ width: '100%', maxWidth: 460, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
-              {/* ── Back + Plan seleccionado ── */}
               <button
                 onClick={goBack}
                 style={{
-                  alignSelf: 'flex-start',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--gold)',
-                  cursor: 'pointer',
-                  fontSize: '.9rem',
-                  fontWeight: 600,
-                  padding: '4px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
+                  alignSelf: 'flex-start', background: 'transparent', border: 'none', color: 'var(--gold)',
+                  cursor: 'pointer', fontSize: '.9rem', fontWeight: 600, padding: '4px 0',
+                  display: 'flex', alignItems: 'center', gap: 4,
                 }}
               >
                 ← Volver a planes
               </button>
 
-              {/* ── Selector de meses ── */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={labelStyle}>¿Por cuánto tiempo?</p>
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: 6,
-                  background: 'var(--surface)',
-                  padding: 5,
-                  borderRadius: 12,
-                  border: '1px solid var(--border)',
+                  display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6,
+                  background: 'var(--surface)', padding: 5, borderRadius: 12, border: '1px solid var(--border)',
                 }}>
                   {MONTH_OPTIONS.map(o => {
                     const active = months === o.months
@@ -335,28 +252,16 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                         className="suscripcion-month-btn"
                         onClick={() => pickMonths(o.months)}
                         style={{
-                          padding: '10px 4px',
-                          borderRadius: 8,
-                          border: 'none',
-                          cursor: 'pointer',
+                          padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
                           background: active ? 'var(--gold)' : 'transparent',
                           color: active ? '#0e0e0e' : 'var(--muted)',
-                          fontWeight: active ? 700 : 500,
-                          fontSize: '.8rem',
-                          transition: 'all 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 3,
+                          fontWeight: active ? 700 : 500, fontSize: '.8rem', transition: 'all 0.15s ease',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
                         }}
                       >
                         {o.label}
                         {o.discount > 0 && (
-                          <span style={{
-                            fontSize: '.58rem',
-                            fontWeight: 700,
-                            color: active ? '#0e0e0e' : 'var(--green)',
-                          }}>
+                          <span style={{ fontSize: '.58rem', fontWeight: 700, color: active ? '#0e0e0e' : 'var(--green)' }}>
                             -{Math.round(o.discount * 100)}%
                           </span>
                         )}
@@ -366,15 +271,9 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 </div>
               </div>
 
-              {/* ── Precio ── */}
               <div style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 14,
-                padding: '20px 22px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
+                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+                padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14,
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                   <div>
@@ -392,12 +291,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                   </div>
                   {savings > 0 && (
                     <div style={{
-                      background: 'rgba(94,207,135,0.1)',
-                      border: '1px solid rgba(94,207,135,0.25)',
-                      borderRadius: 10,
-                      padding: '8px 14px',
-                      textAlign: 'center',
-                      flexShrink: 0,
+                      background: 'rgba(94,207,135,0.1)', border: '1px solid rgba(94,207,135,0.25)',
+                      borderRadius: 10, padding: '8px 14px', textAlign: 'center', flexShrink: 0,
                     }}>
                       <p style={{ fontSize: '.62rem', color: 'var(--green)', fontWeight: 600, marginBottom: 2 }}>Ahorrás</p>
                       <p style={{ fontSize: '.95rem', color: 'var(--green)', fontWeight: 800 }}>{fmt(savings)}</p>
@@ -408,7 +303,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 <div style={{ height: 1, background: 'var(--border)' }} />
 
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {plan.features.map(f => (
+                  {(plan.features || []).map(f => (
                     <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--muted)' }}>
                       <span style={{ color: 'var(--gold)', fontSize: '.72rem', flexShrink: 0 }}>✓</span>
                       {f}
@@ -417,85 +312,52 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 </ul>
               </div>
 
-              {/* ── Método de pago ── */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={labelStyle}>Método de pago</p>
-
                 <MethodCard
                   active={method === 'checkout'}
-                  disabled={false}
                   onClick={() => setMethod('checkout')}
                   icon="💳"
                   title={`Pagar ${months === 1 ? 'este mes' : `${months} meses`}`}
-                  subtitle="MP · Uala · NaranjaX · Tarjetas · y más"
+                  subtitle="MP · Uala · NaranjaX · Tarjetas"
                 />
-
                 <MethodCard
                   active={method === 'subscription'}
                   disabled={subDisabled}
                   onClick={() => setMethod('subscription')}
                   icon="🔄"
                   title="Débito automático"
-                  subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva automáticamente cada mes'}
+                  subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva mensualmente'}
                   badge="MENSUAL"
                 />
-
                 <MethodCard
                   active={method === 'transfer'}
-                  disabled={false}
                   onClick={() => setMethod('transfer')}
                   icon="🏦"
                   title="Transferencia bancaria"
-                  subtitle="Desde cualquier banco · Rápido y seguro"
+                  subtitle="Desde cualquier banco · Rápido"
                   badge="NUEVO"
                   badgeColor="gold"
                 />
               </div>
 
-              {/* ── CTA ── */}
               <button
                 className="suscripcion-pay-btn"
                 onClick={handlePay}
                 disabled={pending}
                 style={{
-                  width: '100%',
-                  padding: '15px 24px',
-                  background: pending ? 'var(--border)' : 'var(--gold)',
-                  color: pending ? 'var(--muted)' : '#0e0e0e',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontSize: '.95rem',
-                  fontWeight: 700,
-                  cursor: pending ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
+                  width: '100%', padding: '15px 24px', background: pending ? 'var(--border)' : 'var(--gold)',
+                  color: pending ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 12,
+                  fontSize: '.95rem', fontWeight: 700, cursor: pending ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                {pending ? (
-                  <>
-                    <span style={{
-                      width: 15, height: 15,
-                      border: '2px solid var(--muted)',
-                      borderTopColor: 'transparent',
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                      animation: 'spin 0.7s linear infinite',
-                    }} />
-                    Redirigiendo...
-                  </>
-                ) : (
-                  method === 'checkout'
-                    ? `Pagar ${fmt(total)} →`
-                    : method === 'transfer'
-                    ? `Pagar con Transferencia →`
-                    : 'Activar débito automático →'
+                {pending ? 'Redirigiendo...' : (
+                  method === 'checkout' ? `Pagar ${fmt(total)} →` : 
+                  method === 'transfer' ? `Pagar con Transferencia →` : 'Activar débito automático →'
                 )}
               </button>
 
-              {/* ── Footer ── */}
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
                   🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}
@@ -508,64 +370,35 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               </div>
             </div>
           )}
-
         </div>
       </div>
     </>
   )
 }
 
-/* ── Subcomponentes ── */
-
 const labelStyle: React.CSSProperties = {
-  fontSize: '.72rem',
-  fontWeight: 700,
-  letterSpacing: '1px',
-  textTransform: 'uppercase',
-  color: 'var(--muted)',
+  fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--muted)',
 }
 
-function MethodCard({
-  active, disabled, onClick, icon, title, subtitle, badge, badgeColor,
-}: {
-  active: boolean
-  disabled: boolean
-  onClick: () => void
-  icon: string
-  title: string
-  subtitle: string
-  badge?: string
-  badgeColor?: 'green' | 'gold'
-}) {
+function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge, badgeColor }: any) {
   return (
     <button
       className="suscripcion-method-btn"
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '13px 16px',
+        display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px',
         background: active ? 'rgba(212,168,42,0.07)' : 'var(--surface)',
         border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-        borderRadius: 12,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        textAlign: 'left',
-        transition: 'border-color 0.15s ease, background 0.15s ease',
-        width: '100%',
-        opacity: disabled ? 0.45 : 1,
+        borderRadius: 12, cursor: disabled ? 'not-allowed' : 'pointer',
+        textAlign: 'left', transition: 'border-color 0.15s ease', width: '100%', opacity: disabled ? 0.45 : 1,
       }}
     >
       <div style={{
         width: 40, height: 40, borderRadius: 10, flexShrink: 0,
         background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.1rem',
-      }}>
-        {icon}
-      </div>
-
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
+      }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
           <p style={{ fontSize: '.86rem', fontWeight: 600, color: 'var(--cream)' }}>{title}</p>
@@ -576,24 +409,17 @@ function MethodCard({
               color: badgeColor === 'gold' ? 'var(--gold)' : 'var(--green)',
               border: badgeColor === 'gold' ? '1px solid rgba(212,168,42,0.3)' : '1px solid rgba(94,207,135,0.22)',
               borderRadius: 20,
-              letterSpacing: '.4px',
-            }}>
-              {badge}
-            </span>
+            }}>{badge}</span>
           )}
         </div>
         <p style={{ fontSize: '.74rem', color: 'var(--muted)' }}>{subtitle}</p>
       </div>
-
       <div style={{
         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'border-color 0.15s ease',
       }}>
-        {active && (
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-        )}
+        {active && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
       </div>
     </button>
   )

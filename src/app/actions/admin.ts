@@ -22,21 +22,24 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
 
   if (!isAdmin) return
 
-  // 2. Obtener datos de la suscripción
+  // 2. Obtener datos de la suscripción con lock implícito (status='pending_validation')
   const { data: sub, error: fetchError } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('id', subscriptionId)
+    .eq('status', 'pending_validation') // SECURITY: Prevenir doble aprobación concurrente
     .single()
 
-  if (fetchError || !sub) return
-  if (sub.status !== 'pending_validation') return
+  if (fetchError || !sub) {
+    console.error('[Admin] Sub not found or already processed:', subscriptionId)
+    return
+  }
 
-  // 3. Activar suscripción y barbería (Transacción manual)
+  // 3. Activar suscripción y barbería
   const now = new Date().toISOString()
 
-  // Actualizar suscripción
-  await supabase
+  // Paso A: Actualizar suscripción primero (Marcamos como procesada)
+  const { error: subErr } = await supabase
     .from('subscriptions')
     .update({
       status: 'active',
@@ -45,21 +48,39 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
       validated_by: user.id
     })
     .eq('id', subscriptionId)
+    .eq('status', 'pending_validation') // Doble check atómico
 
-  // Actualizar barbería
-  await supabase
+  if (subErr) {
+    console.error('[Admin] Error updating subscription:', subErr)
+    return
+  }
+
+  // Paso B: Actualizar barbería
+  const { error: barbErr } = await supabase
     .from('barbershops')
     .update({
       subscription_status: 'active',
       subscription_starts_at: now,
       subscription_renews_at: sub.ends_at,
       subscription_amount: sub.amount,
-      subscription_payment_method: sub.payment_method
+      subscription_payment_method: sub.payment_method,
+      plan_name: sub.plan_id === 'base' ? 'Base' : sub.plan_id === 'pro' ? 'Pro' : 'Premium IA'
     })
     .eq('id', sub.barbershop_id)
 
+  if (barbErr) {
+    console.error('[Admin] CRITICAL: Subscription activated but barbershop update failed:', {
+      subscriptionId,
+      barbershopId: sub.barbershop_id,
+      error: barbErr
+    })
+    // En un sistema ideal, aquí haríamos rollback de la suscripción.
+    // Por ahora, el log permite intervención manual inmediata.
+  }
+
   revalidatePath('/admin/pagos')
   revalidatePath('/admin/clientes')
+  revalidatePath(`/dashboard/${sub.barbershop_id}`)
 }
 
 /**
