@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
+import { getServerAuthContext } from '@/services/auth.service'
+import { redirect } from 'next/navigation'
 import NuevaNominaForm from './NuevaNominaForm'
 import NominaActions from './NominaActions'
 import styles from './nominas.module.css'
@@ -17,6 +20,13 @@ export default async function NominasPage({
 }) {
   const { barbershopId } = await params
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context || !canAccess(context.role, 'manage_payroll')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
 
   const [{ data: barbers }, { data: payrolls }] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct').eq('barbershop_id', barbershopId).eq('active', true).order('name'),

@@ -34,6 +34,10 @@
 
 .totals { font-size: .88rem; color: var(--green); font-weight: 600; }
 .totalBreak { font-size: .78rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.contextHint {
+  font-size: .78rem;
+  color: var(--muted);
+}
 
 /* Tabs */
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }

@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
 import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
+import { getServerAuthContext } from '@/services/auth.service'
+import { redirect } from 'next/navigation'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
 import styles from './finanzas.module.css'
@@ -56,6 +59,14 @@ export default async function FinanzasPage({
   const { barbershopId } = await params
   const { mes } = await searchParams
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context || !canAccess(context.role, 'view_finance')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
+
   const now = new Date()
 
   const ym = mes ?? currentYM()

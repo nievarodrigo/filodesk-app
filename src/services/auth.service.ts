@@ -1,4 +1,9 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { BarbershopRole } from '@/lib/definitions'
+import { PERMISSIONS_BY_ROLE } from '@/lib/permissions'
+import * as barbershopRepo from '@/repositories/barbershop.repository'
+import * as memberRepo from '@/repositories/member.repository'
+import { isFeatureEnabled } from '@/services/plan.service'
 
 export async function loginUser(
   supabase: SupabaseClient,
@@ -41,4 +46,35 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
   })
   const data = await res.json()
   return data.success === true
+}
+
+export async function getServerAuthContext(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string
+): Promise<{ role: BarbershopRole; plan: string; permissions: string[] } | null> {
+  const barbershop = await barbershopRepo.findById(supabase, barbershopId)
+  if (!barbershop) return null
+
+  const planName = barbershop.plan_name ?? 'Base'
+
+  let role: BarbershopRole | null = null
+
+  if (userId === barbershop.owner_id) {
+    role = 'owner'
+  } else {
+    role = await memberRepo.getMemberRole(supabase, barbershopId, userId)
+  }
+
+  if (!role) return null
+
+  if ((role === 'manager' || role === 'barber') && !isFeatureEnabled(planName, 'multi_user')) {
+    return null
+  }
+
+  return {
+    role,
+    plan: planName,
+    permissions: PERMISSIONS_BY_ROLE[role],
+  }
 }

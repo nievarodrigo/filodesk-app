@@ -10,10 +10,20 @@ export async function insert(
 export async function findByIdAndOwner(supabase: SupabaseClient, id: string, ownerId: string) {
   const { data } = await supabase
     .from('barbershops')
-    .select('id, name, subscription_status, trial_ends_at, mp_subscription_id')
+    .select('id, name, plan_name, subscription_status, trial_ends_at, mp_subscription_id')
     .eq('id', id)
     .eq('owner_id', ownerId)
     .single()
+  return data
+}
+
+export async function findById(supabase: SupabaseClient, id: string) {
+  const { data } = await supabase
+    .from('barbershops')
+    .select('id, owner_id, name, plan_name')
+    .eq('id', id)
+    .single()
+
   return data
 }
 

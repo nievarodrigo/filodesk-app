@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/dashboard/Sidebar'
+import { getServerAuthContext } from '@/services/auth.service'
 import styles from './layout.module.css'
 
 export default async function DashboardLayout({
@@ -16,11 +17,13 @@ export default async function DashboardLayout({
 
   if (!session) redirect('/auth/login')
 
+  const authContext = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!authContext) redirect('/dashboard')
+
   const { data: barbershop } = await supabase
     .from('barbershops')
     .select('id, name, subscription_status, trial_ends_at, subscription_renews_at, subscription_payment_method')
     .eq('id', barbershopId)
-    .eq('owner_id', session.user.id)
     .single()
 
   if (!barbershop) redirect('/dashboard')
@@ -48,7 +51,7 @@ export default async function DashboardLayout({
 
   return (
     <div className={styles.shell}>
-      <Sidebar barbershopId={barbershopId} barbershopName={barbershop.name} />
+      <Sidebar barbershopId={barbershopId} barbershopName={barbershop.name} role={authContext.role} />
       <main className={styles.main}>
         {children}
       </main>

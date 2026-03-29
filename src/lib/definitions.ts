@@ -119,6 +119,16 @@ export interface Barbershop {
   trial_ends_at: string | null
 }
 
+export type BarbershopRole = 'owner' | 'manager' | 'barber'
+
+export interface BarbershopMember {
+  id: string
+  barbershop_id: string
+  user_id: string
+  role: BarbershopRole
+  created_at: string
+}
+
 // Tipos para Finanzas
 export interface SaleWithCommission {
   amount: number

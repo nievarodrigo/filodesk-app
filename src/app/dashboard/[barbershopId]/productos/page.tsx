@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
+import { getServerAuthContext } from '@/services/auth.service'
+import { redirect } from 'next/navigation'
 import NuevoProductoForm from './NuevoProductoForm'
 import ProductoRow from './ProductoRow'
 import GraficoProductos from './GraficoProductos'
@@ -17,6 +20,13 @@ export default async function ProductosPage({
 }: { params: Promise<{ barbershopId: string }> }) {
   const { barbershopId } = await params
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context || !canAccess(context.role, 'manage_inventory')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
 
   const now = new Date()
   const last90 = new Date(now.getTime() - 90 * 86400000).toISOString().slice(0, 10)

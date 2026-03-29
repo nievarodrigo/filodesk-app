@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
 import { currentYM } from '@/lib/date'
+import { getServerAuthContext } from '@/services/auth.service'
+import { redirect } from 'next/navigation'
 import NuevoGastoForm from './NuevoGastoForm'
 import DeleteGastoButton from './DeleteGastoButton'
 import GraficoGastos from './GraficoGastos'
@@ -44,6 +47,14 @@ export default async function GastosPage({
   const to = `${y}-${String(m).padStart(2,'0')}-${new Date(y, m, 0).getDate()}`
 
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context || !canAccess(context.role, 'manage_expenses')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
+
   const [{ data: expenses, count: expenseCount }, { data: allExpenses }] = await Promise.all([
     supabase
       .from('expenses')

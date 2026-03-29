@@ -5,10 +5,32 @@ import { getSiteUrl } from '@/lib/vercel-url'
 import * as galiopayService from '@/services/galiopay.service'
 
 export const ALLOWED_MONTHS = [1, 3, 6, 12] as const
-const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
+export const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
 
 function isMonthAllowed(months: number): months is typeof ALLOWED_MONTHS[number] {
   return (ALLOWED_MONTHS as readonly number[]).includes(months)
+}
+
+export function calculateDiscountedMonthlyPrice(basePrice: number, months: number): number {
+  return Math.round(basePrice * (1 - (DISCOUNTS[months] ?? 0)))
+}
+
+export function calculateSubscriptionTotal(basePrice: number, months: number): number {
+  return calculateDiscountedMonthlyPrice(basePrice, months) * months
+}
+
+export function calculateRenewsAt(startDate: Date, months: number): string {
+  return new Date(
+    Date.UTC(
+      startDate.getUTCFullYear(),
+      startDate.getUTCMonth() + months,
+      startDate.getUTCDate(),
+      startDate.getUTCHours(),
+      startDate.getUTCMinutes(),
+      startDate.getUTCSeconds(),
+      startDate.getUTCMilliseconds()
+    )
+  ).toISOString()
 }
 
 async function getPlanData(supabase: SupabaseClient, planId: string) {
@@ -79,9 +101,7 @@ export async function createMPCheckout(
   if (!plan) return { error: 'invalid_plan' as const }
 
   const siteUrl = getSiteUrl()
-  const discount = DISCOUNTS[months] ?? 0
-  const pricePerMonth = Math.round(plan.price * (1 - discount))
-  const totalPrice = pricePerMonth * months
+  const totalPrice = calculateSubscriptionTotal(plan.price, months)
   const label = months === 1 ? '1 mes' : `${months} meses`
 
   const intentResult = await checkoutIntentRepo.create(supabase, {
@@ -177,8 +197,8 @@ export async function activatePayment(
   if (!plan) return { error: 'invalid_plan' as const }
 
   const now = new Date()
-  const renewsAt = new Date(now.getFullYear(), now.getMonth() + months, now.getDate()).toISOString()
-  const amount = Math.round(plan.price * (1 - (DISCOUNTS[months] ?? 0)))
+  const renewsAt = calculateRenewsAt(now, months)
+  const amount = calculateDiscountedMonthlyPrice(plan.price, months)
 
   await barbershopRepo.updateSubscription(
     supabase, barbershopId, 'active', null,
@@ -202,9 +222,7 @@ export async function createBankTransfer(
   const plan = await getPlanData(supabase, planId)
   if (!plan) return { error: 'invalid_plan' as const }
 
-  const discount = DISCOUNTS[months] ?? 0
-  const pricePerMonth = Math.round(plan.price * (1 - discount))
-  const totalPrice = pricePerMonth * months
+  const totalPrice = calculateSubscriptionTotal(plan.price, months)
 
   const { error } = await supabase.from('subscriptions').insert({
     barbershop_id: barbershopId,

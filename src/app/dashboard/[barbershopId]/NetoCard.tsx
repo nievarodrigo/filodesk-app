@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { BarbershopRole } from '@/lib/definitions'
 import styles from './page.module.css'
 
 interface Props {
+  role?: BarbershopRole
   neto: number
   ingresos: number
   comisiones: number
@@ -14,14 +16,14 @@ function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
-export default function NetoCard({ neto, ingresos, comisiones, gastos }: Props) {
-  const [visible, setVisible] = useState(true)
-
-  useEffect(() => {
+export default function NetoCard({ role = 'owner', neto, ingresos, comisiones, gastos }: Props) {
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return true
     const saved = localStorage.getItem('neto_visible')
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisible(saved !== null ? saved === 'true' : true)
-  }, [])
+    return saved !== null ? saved === 'true' : true
+  })
+
+  if (role === 'barber') return null
 
   function toggle() {
     setVisible(v => {

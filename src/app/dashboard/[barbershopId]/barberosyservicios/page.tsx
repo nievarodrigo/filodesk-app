@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
+import { getServerAuthContext } from '@/services/auth.service'
+import { redirect } from 'next/navigation'
 import NuevoBarberoForm from './NuevoBarberoForm'
 import BarberosTable from './BarberosTable'
 import NuevoServicioForm from './NuevoServicioForm'
@@ -15,6 +18,13 @@ export default async function ConfiguracionPage({
 }) {
   const { barbershopId } = await params
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context || !canAccess(context.role, 'manage_barbers')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
 
   const [{ data: barbers }, { data: allServices }] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct, active, created_at').eq('barbershop_id', barbershopId).order('created_at'),

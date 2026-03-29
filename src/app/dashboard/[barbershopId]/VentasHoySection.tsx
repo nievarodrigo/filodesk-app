@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { BarbershopRole } from '@/lib/definitions'
 import styles from './ventashoy.module.css'
 
 interface ServiceSale {
@@ -151,11 +152,12 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
 }
 
 interface Props {
+  role: BarbershopRole
   serviceSales: ServiceSale[]
   productSales: ProductSale[]
 }
 
-export default function VentasHoySection({ serviceSales, productSales }: Props) {
+export default function VentasHoySection({ role, serviceSales, productSales }: Props) {
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
   const [barberPage, setBarberPage] = useState(1)
@@ -166,21 +168,27 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
   const ITEMS_PER_PAGE = 10
 
   const grouped = groupServicesByBarber(serviceSales)
-  const groupedTransactions = groupProductsByTransaction(productSales)
+  const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSales)
   const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
-  const totalProductos = productSales.reduce((s, r) => s + r.amount, 0)
+  const totalProductos = role === 'barber' ? 0 : productSales.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
 
-  const TABS = [
-    { key: 'todos',    label: `Todos` },
-    { key: 'servicio', label: `Servicios (${serviceSales.length})` },
-    { key: 'producto', label: `Productos (${productSales.length})` },
-  ] as const
+  const TABS = role === 'barber'
+    ? [
+        { key: 'servicio', label: `Tus servicios (${serviceSales.length})` },
+      ] as const
+    : [
+        { key: 'todos', label: 'Todos' },
+        { key: 'servicio', label: `Servicios (${serviceSales.length})` },
+        { key: 'producto', label: `Productos (${productSales.length})` },
+      ] as const
 
-  const showServices = filter === 'todos' || filter === 'servicio'
-  const showProducts = filter === 'todos' || filter === 'producto'
+  const effectiveFilter = role === 'barber' ? 'servicio' : filter
 
-  const totalCount = serviceSales.length + productSales.length
+  const showServices = effectiveFilter === 'todos' || effectiveFilter === 'servicio'
+  const showProducts = role !== 'barber' && (effectiveFilter === 'todos' || effectiveFilter === 'producto')
+
+  const totalCount = serviceSales.length + (role === 'barber' ? 0 : productSales.length)
 
   // Paginación de barberos
   const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
@@ -199,24 +207,28 @@ export default function VentasHoySection({ serviceSales, productSales }: Props) 
       <div className={styles.sectionHeader}>
         <div className={styles.sectionLeft}>
           <h2 className={styles.sectionTitle}>
-            Ventas de hoy
+            {role === 'barber' ? 'Tu actividad de hoy' : 'Ventas de hoy'}
             {totalCount > 0 && <span className={styles.badge}>{totalCount}</span>}
           </h2>
           {total > 0 && (
             <div className={styles.totals}>
               <span style={{ color: 'var(--green)' }}>{formatARS(total)}</span>
-              {filter === 'todos' && totalProductos > 0 && (
+              {effectiveFilter === 'todos' && totalProductos > 0 && (
                 <span className={styles.totalBreak}>
                   ({formatARS(totalServicios)} servicios + {formatARS(totalProductos)} productos)
                 </span>
               )}
             </div>
           )}
+          {role === 'barber' && (
+            <p className={styles.contextHint}>Vista privada: solo se muestran tus servicios registrados hoy.</p>
+          )}
         </div>
         <div className={styles.tabs}>
           {TABS.map(t => (
             <button key={t.key}
-              className={filter === t.key ? styles.tabActive : styles.tab}
+              className={effectiveFilter === t.key ? styles.tabActive : styles.tab}
+              disabled={role === 'barber'}
               onClick={() => setFilter(t.key)}>
               {t.label}
             </button>

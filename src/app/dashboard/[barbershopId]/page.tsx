@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { today } from '@/lib/date'
-import { type ServiceType, type Sale, type ProductSale } from '@/lib/definitions'
+import { type ServiceType, type Sale, type ProductSale, type BarbershopRole } from '@/lib/definitions'
+import { getServerAuthContext } from '@/services/auth.service'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
@@ -18,6 +20,37 @@ function formatARS(n: number) {
   }).format(n)
 }
 
+function normalizeIdentity(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function resolveCurrentBarber(
+  user: { email?: string; user_metadata?: { first_name?: string; last_name?: string } },
+  barbers: Array<{ id: string; name: string; commission_pct: number; active: boolean }>
+) {
+  const candidates = new Set<string>()
+  const firstName = user.user_metadata?.first_name?.trim() ?? ''
+  const lastName = user.user_metadata?.last_name?.trim() ?? ''
+  const fullName = `${firstName} ${lastName}`.trim()
+
+  if (fullName) candidates.add(normalizeIdentity(fullName))
+  if (firstName) candidates.add(normalizeIdentity(firstName))
+
+  const emailLocalPart = user.email?.split('@')[0]?.replace(/[._-]+/g, ' ').trim()
+  if (emailLocalPart) candidates.add(normalizeIdentity(emailLocalPart))
+
+  const matches = barbers.filter((barber) => candidates.has(normalizeIdentity(barber.name)))
+  if (matches.length === 1) return matches[0]
+
+  return null
+}
+
 export default async function DashboardPage({
   params,
 }: {
@@ -25,6 +58,11 @@ export default async function DashboardPage({
 }) {
   const { barbershopId } = await params
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context) redirect('/dashboard')
 
   const todayDate = today()
 
@@ -32,33 +70,65 @@ export default async function DashboardPage({
     { data: barbershop },
     { data: barbers },
     { data: rawServiceTypes },
-    { data: salesToday },
-    { data: recentSales },
     { data: products },
-    { data: productSalesToday },
-    { data: expensesToday },
   ] = await Promise.all([
     supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
     supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
-    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
-    supabase.from('sales')
-      .select('id, barber_id, amount, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
-      .eq('barbershop_id', barbershopId)
-      .eq('date', todayDate)
-      .order('created_at', { ascending: false }),
     supabase.from('products')
       .select('id, name, sale_price, stock')
       .eq('barbershop_id', barbershopId)
       .eq('active', true)
       .gt('stock', 0)
       .order('name'),
-    supabase.from('product_sales')
-      .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
-      .eq('barbershop_id', barbershopId)
-      .eq('date', todayDate)
-      .order('created_at', { ascending: false }),
-    supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
+  ])
+
+  const currentBarber = context.role === 'barber'
+    ? resolveCurrentBarber(session.user, (barbers ?? []).filter((barber) => barber.active))
+    : null
+
+  const salesBaseQuery = supabase
+    .from('sales')
+    .select('id, barber_id, amount, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
+    .eq('barbershop_id', barbershopId)
+    .eq('date', todayDate)
+
+  const salesTotalsQuery = supabase
+    .from('sales')
+    .select('amount, barber_id, barbers(name, commission_pct)')
+    .eq('barbershop_id', barbershopId)
+    .eq('date', todayDate)
+
+  const scopedSalesQuery = context.role === 'barber'
+    ? (currentBarber
+        ? salesBaseQuery.eq('barber_id', currentBarber.id)
+        : salesBaseQuery.eq('barber_id', '__no_barber_match__'))
+    : salesBaseQuery
+
+  const scopedSalesTotalsQuery = context.role === 'barber'
+    ? (currentBarber
+        ? salesTotalsQuery.eq('barber_id', currentBarber.id)
+        : salesTotalsQuery.eq('barber_id', '__no_barber_match__'))
+    : salesTotalsQuery
+
+  const [
+    { data: recentSales },
+    { data: salesToday },
+    { data: productSalesToday },
+    { data: expensesToday },
+  ] = await Promise.all([
+    scopedSalesQuery.order('created_at', { ascending: false }),
+    scopedSalesTotalsQuery,
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as ProductSale[] })
+      : supabase.from('product_sales')
+          .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
+          .eq('barbershop_id', barbershopId)
+          .eq('date', todayDate)
+          .order('created_at', { ascending: false }),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as Array<{ amount: number }> })
+      : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
   ])
 
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
@@ -78,13 +148,22 @@ export default async function DashboardPage({
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
 
   const activeBarbers = (barbers ?? []).filter(b => b.active)
+  const visibleBarbers = context.role === 'barber' && currentBarber ? [currentBarber] : activeBarbers
 
-  const kpis = [
-    { label: 'Servicios hoy',     value: countHoy.toString(),    color: 'var(--cream)' },
-    { label: 'Ingresos hoy',      value: formatARS(totalHoy),    color: 'var(--green)' },
-    { label: 'Comisiones hoy',    value: formatARS(comisionesHoy), color: 'var(--gold)' },
-    { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
-  ]
+  const barberAverageTicket = countHoy > 0 ? Math.round(totalServiciosHoy / countHoy) : 0
+  const kpis = context.role === 'barber'
+    ? [
+        { label: 'Tus servicios de hoy', value: countHoy.toString(), color: 'var(--cream)' },
+        { label: 'Tu facturación del día', value: formatARS(totalServiciosHoy), color: 'var(--green)' },
+        { label: 'Tu comisión del día', value: formatARS(comisionesHoy), color: 'var(--gold)' },
+        { label: 'Tu ticket promedio', value: countHoy > 0 ? formatARS(barberAverageTicket) : '—', color: 'var(--cream)' },
+      ]
+    : [
+        { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
+        { label: 'Ingresos hoy', value: formatARS(totalHoy), color: 'var(--green)' },
+        { label: 'Comisiones hoy', value: formatARS(comisionesHoy), color: 'var(--gold)' },
+        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
+      ]
 
   const planName = barbershop?.plan_name ?? 'Plan Pro'
   const subscriptionMessage = (() => {
@@ -113,6 +192,9 @@ export default async function DashboardPage({
           </p>
           <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{subscriptionMessage.planName}</span>
+            {context.role === 'owner' && context.plan === 'Base' && (
+              <span className={styles.planBadge}>Plan inicial</span>
+            )}
             {subscriptionMessage.renewalText && (
               <>
                 <span style={{ color: 'var(--muted)' }}>|</span>
@@ -137,12 +219,20 @@ export default async function DashboardPage({
         </div>
       </CollapsibleCard>
 
-      <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
+      {context.role !== 'barber' && (
+        <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
+      )}
 
       <div style={{ marginTop: 16 }}>
-        <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>Registro rápido</h2>
+        <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
+          {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
+        </h2>
         {/* Forms: servicio + producto lado a lado */}
-        {activeBarbers.length === 0 ? (
+        {context.role === 'barber' && !currentBarber ? (
+          <div className={styles.noBarbers}>
+            Tu usuario todavía no está vinculado a un barbero activo. Pedile al dueño que revise tu perfil en Equipo o Barberos y Servicios.
+          </div>
+        ) : activeBarbers.length === 0 ? (
           <div className={styles.noBarbers}>
             Agregá un barbero en <a href={`/dashboard/${barbershopId}/barberosyservicios`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
           </div>
@@ -150,7 +240,7 @@ export default async function DashboardPage({
           <div className={styles.formRow}>
             <NuevaVentaForm
               barbershopId={barbershopId}
-              barbers={activeBarbers}
+              barbers={visibleBarbers}
               serviceTypes={serviceTypes ?? []}
               compact
             />
@@ -164,10 +254,11 @@ export default async function DashboardPage({
 
       <CollapsibleCard
         storageKey={`${barbershopId}:inicio:ventas-hoy`}
-        title="Ventas de hoy"
+        title={context.role === 'barber' ? 'Tu actividad de hoy' : 'Ventas de hoy'}
         collapseOnMobile
       >
         <VentasHoySection
+          role={context.role as BarbershopRole}
           serviceSales={(recentSales ?? []).map((s: Sale) => {
             const barberName = (s.barbers && typeof s.barbers === 'object')
               ? (Array.isArray(s.barbers) ? s.barbers[0]?.name : s.barbers.name)

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import * as Sentry from '@sentry/nextjs'
 
 /**
  * GESTIÓN DE PAGOS Y SUSCRIPCIONES
@@ -22,79 +23,27 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
 
   if (!isAdmin) return
 
-  // 2. Obtener datos de la suscripción con lock implícito (status='pending_validation')
-  const { data: sub, error: fetchError } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('id', subscriptionId)
-    .eq('status', 'pending_validation') // SECURITY: Prevenir doble aprobación concurrente
-    .single()
-
-  if (fetchError || !sub) {
-    console.error('[Admin] Sub not found or already processed:', subscriptionId)
+  let error: unknown = null
+  try {
+    const result = await supabase.rpc('approve_subscription_v1', {
+      p_subscription_id: subscriptionId,
+      p_admin_id: user.id,
+    })
+    error = result.error
+  } catch (caughtError) {
+    Sentry.captureException(caughtError)
+    console.error('[Admin] Unexpected error approving subscription via RPC:', caughtError)
     return
   }
 
-  // 3. Activar suscripción y barbería
-  const now = new Date().toISOString()
-
-  // Paso A: Actualizar suscripción primero
-  const { error: subErr } = await supabase
-    .from('subscriptions')
-    .update({
-      status: 'active',
-      starts_at: now,
-      validated_at: now,
-      validated_by: user.id
-    })
-    .eq('id', subscriptionId)
-    .eq('status', 'pending_validation')
-
-  if (subErr) {
-    console.error('[Admin] Error updating subscription:', subErr)
-    return
-  }
-
-  // Paso B: Actualizar barbería
-  const { error: barbErr } = await supabase
-    .from('barbershops')
-    .update({
-      subscription_status: 'active',
-      subscription_starts_at: now,
-      subscription_renews_at: sub.ends_at,
-      subscription_amount: sub.amount,
-      subscription_payment_method: sub.payment_method,
-      plan_name: sub.plan_id === 'base' ? 'Base' : sub.plan_id === 'pro' ? 'Pro' : 'Premium IA'
-    })
-    .eq('id', sub.barbershop_id)
-
-  if (barbErr) {
-    console.error('[Admin] CRITICAL: Barbershop update failed. Attempting rollback of subscription status:', barbErr)
-    
-    // COMPENSACIÓN: Revertir suscripción a pending_validation para que el admin pueda reintentar
-    const { error: rollbackErr } = await supabase
-      .from('subscriptions')
-      .update({ 
-        status: 'pending_validation',
-        starts_at: null,
-        validated_at: null,
-        validated_by: null 
-      })
-      .eq('id', subscriptionId)
-    
-    if (rollbackErr) {
-      console.error('[Admin] FATAL: Rollback failed. System is now in INCONSISTENT state:', {
-        subscriptionId,
-        error: rollbackErr
-      })
-    }
-    
+  if (error) {
+    Sentry.captureException(error)
+    console.error('[Admin] Error approving subscription via RPC:', error)
     return
   }
 
   revalidatePath('/admin/pagos')
   revalidatePath('/admin/clientes')
-  revalidatePath(`/dashboard/${sub.barbershop_id}`)
 }
 
 /**
@@ -110,14 +59,25 @@ export async function addExpense(formData: FormData): Promise<void> {
 
   if (!description || isNaN(amount) || !date || !category) return
 
-  const { error } = await supabase.from('admin_expenses').insert({
-    description,
-    amount,
-    date,
-    category,
-  })
+  let error: unknown = null
+  try {
+    const result = await supabase.from('admin_expenses').insert({
+      description,
+      amount,
+      date,
+      category,
+    })
+    error = result.error
+  } catch (caughtError) {
+    Sentry.captureException(caughtError)
+    console.error('[Admin] Unexpected error adding expense:', caughtError)
+    return
+  }
 
-  if (error) console.error('[Admin] Error adding expense:', error)
+  if (error) {
+    Sentry.captureException(error)
+    console.error('[Admin] Error adding expense:', error)
+  }
 
   revalidatePath('/admin/gastos')
 }
@@ -125,12 +85,23 @@ export async function addExpense(formData: FormData): Promise<void> {
 export async function deleteExpense(id: string): Promise<void> {
   const supabase = await createClient()
 
-  const { error } = await supabase
-    .from('admin_expenses')
-    .delete()
-    .eq('id', id)
+  let error: unknown = null
+  try {
+    const result = await supabase
+      .from('admin_expenses')
+      .delete()
+      .eq('id', id)
+    error = result.error
+  } catch (caughtError) {
+    Sentry.captureException(caughtError)
+    console.error('[Admin] Unexpected error deleting expense:', caughtError)
+    return
+  }
 
-  if (error) console.error('[Admin] Error deleting expense:', error)
+  if (error) {
+    Sentry.captureException(error)
+    console.error('[Admin] Error deleting expense:', error)
+  }
 
   revalidatePath('/admin/gastos')
 }

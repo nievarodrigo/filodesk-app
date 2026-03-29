@@ -1,7 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import * as Sentry from '@sentry/nextjs'
+import { createClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
 export async function createMPSubscription(barbershopId: string, planId: string = 'base'): Promise<void> {
@@ -9,9 +10,16 @@ export async function createMPSubscription(barbershopId: string, planId: string 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const result = await subscriptionService.createMPSubscription(
-    supabase, barbershopId, user.id, planId
-  )
+  let result: Awaited<ReturnType<typeof subscriptionService.createMPSubscription>>
+  try {
+    result = await subscriptionService.createMPSubscription(
+      supabase, barbershopId, user.id, planId
+    )
+  } catch (error) {
+    Sentry.captureException(error)
+    console.error('[Subscription Action] createMPSubscription failed:', error)
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=unexpected_error`)
+  }
 
   if (result.error === 'not_found') redirect('/dashboard')
   if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
@@ -24,9 +32,16 @@ export async function createMPCheckoutWithMonths(barbershopId: string, months: n
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const result = await subscriptionService.createMPCheckout(
-    supabase, barbershopId, user.id, months, planId
-  )
+  let result: Awaited<ReturnType<typeof subscriptionService.createMPCheckout>>
+  try {
+    result = await subscriptionService.createMPCheckout(
+      supabase, barbershopId, user.id, months, planId
+    )
+  } catch (error) {
+    Sentry.captureException(error)
+    console.error('[Subscription Action] createMPCheckoutWithMonths failed:', error)
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=unexpected_error`)
+  }
 
   if (result.error === 'not_found') redirect('/dashboard')
   if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
@@ -39,11 +54,16 @@ export async function createBankTransfer(barbershopId: string, months: number, p
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Usar service role para crear la suscripcion (bypassea RLS que falta)
-  const serviceClient = createServiceClient()
-  const result = await subscriptionService.createBankTransfer(
-    serviceClient, barbershopId, user.id, months, planId
-  )
+  let result: Awaited<ReturnType<typeof subscriptionService.createBankTransfer>>
+  try {
+    result = await subscriptionService.createBankTransfer(
+      supabase, barbershopId, user.id, months, planId
+    )
+  } catch (error) {
+    Sentry.captureException(error)
+    console.error('[Subscription Action] createBankTransfer failed:', error)
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=unexpected_error`)
+  }
 
   if (result.error === 'not_found') redirect('/dashboard')
   if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=${result.error}`)
