@@ -47,29 +47,79 @@ export async function createMPSubscription(
   return { redirectUrl: data.init_point as string }
 }
 
-const BASE_PRICE = 11999 // En pesos ARS
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
+
+export async function createMPSubscription(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string,
+  planId: string = 'base'
+) {
+  const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
+  if (!barbershop) return { error: 'not_found' as const }
+
+  // Obtener el precio del plan desde la DB
+  const { data: plan } = await supabase.from('plans').select('price, name').eq('id', planId).single()
+  const planPrice = plan?.price || 11999
+
+  const siteUrl = getSiteUrl()
+
+  const body = {
+    reason: `FiloDesk — ${barbershop.name} (Plan ${plan?.name || 'Base'})`,
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: 'months',
+      transaction_amount: planPrice,
+      currency_id: 'ARS',
+    },
+    back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    external_reference: barbershopId,
+  }
+
+  const res = await fetch('https://api.mercadopago.com/preapproval_plan', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok || !data.init_point) {
+    console.error('[MP subscription]', data)
+    return { error: 'mp_error' as const }
+  }
+
+  return { redirectUrl: data.init_point as string }
+}
 
 export async function createMPCheckout(
   supabase: SupabaseClient,
   barbershopId: string,
   userId: string,
   months = 1,
+  planId: string = 'base'
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
+  // Obtener el precio del plan
+  const { data: plan } = await supabase.from('plans').select('price, name').eq('id', planId).single()
+  const basePrice = plan?.price || 11999
+
   const siteUrl = getSiteUrl()
   const discount = DISCOUNTS[months] ?? 0
-  const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
+  const pricePerMonth = Math.round(basePrice * (1 - discount))
   const totalPrice = pricePerMonth * months
   const label = months === 1 ? '1 mes' : `${months} meses`
 
-  // 1. Crear intención de checkout con intent.id como correlator primario
+  // 1. Crear intención de checkout
   const intentResult = await checkoutIntentRepo.create(supabase, {
     barbershop_id: barbershopId,
     months,
-    expected_amount: totalPrice, // En pesos ARS
+    expected_amount: totalPrice,
     currency_id: 'ARS',
   })
 
@@ -247,23 +297,26 @@ export async function createBankTransfer(
   barbershopId: string,
   userId: string,
   months = 1,
+  planId: string = 'base'
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
 
+  // Obtener el precio del plan
+  const { data: plan } = await supabase.from('plans').select('price').eq('id', planId).single()
+  const basePrice = plan?.price || 11999
+
   const discount = DISCOUNTS[months] ?? 0
-  const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
+  const pricePerMonth = Math.round(basePrice * (1 - discount))
   const totalPrice = pricePerMonth * months
 
   // 1. Crear registro en la tabla de orquestación (suscripciones)
-  // Estado inicial: pending_validation (requiere aprobación humana)
   const { data, error } = await supabase.from('subscriptions').insert({
     barbershop_id: barbershopId,
-    plan_id: 'base', // Por ahora todos son base en este flujo
+    plan_id: planId,
     payment_method: 'bank_transfer',
     status: 'pending_validation',
     amount: totalPrice,
-    // Calculamos una fecha tentativa de fin
     ends_at: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString()
   }).select().single()
 

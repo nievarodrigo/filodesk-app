@@ -12,7 +12,7 @@ const PLANS = [
     features: [
       'Hasta 5 barberos',
       'Comisiones automáticas',
-      'Ganancia neta en tiempo real',
+      'Dashboard en tiempo real',
       'Control de stock y gastos',
     ],
   },
@@ -21,6 +21,7 @@ const PLANS = [
     name: 'Pro',
     price: 19999,
     badge: 'Recomendado',
+    highlight: true,
     features: [
       'Barberos ilimitados',
       'Roles: Dueño, Encargado y Barbero',
@@ -33,6 +34,7 @@ const PLANS = [
     name: 'Premium IA',
     price: 29999,
     badge: 'Nuevo',
+    accent: 'green',
     features: [
       'IA Predicción de demanda',
       'Alertas automáticas de ingresos',
@@ -83,14 +85,12 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
   function handlePay() {
     start(async () => {
-      // Nota: El backend actualmente espera barbershopId y months. 
-      // El planId se usará en futuras actualizaciones del backend.
       if (method === 'subscription') {
-        await createMPSubscription(barbershopId)
+        await createMPSubscription(barbershopId, planId)
       } else if (method === 'checkout') {
-        await createMPCheckoutWithMonths(barbershopId, months)
+        await createMPCheckoutWithMonths(barbershopId, months, planId)
       } else if (method === 'transfer') {
-        await createBankTransfer(barbershopId, months)
+        await createBankTransfer(barbershopId, months, planId)
       }
     })
   }
@@ -102,273 +102,229 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         .suscripcion-month-btn:hover { opacity: 0.85; }
         .suscripcion-method-btn:hover:not(:disabled) { border-color: var(--gold) !important; }
         .suscripcion-pay-btn:hover:not(:disabled) { filter: brightness(1.1); }
-        .plan-card:hover { border-color: var(--gold) !important; }
+        .plan-card-btn:hover { border-color: var(--gold) !important; transform: translateY(-2px); }
       `}</style>
 
       <div style={{
         minHeight: '100vh',
+        background: 'var(--bg)',
+        padding: '60px 20px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg)',
-        padding: '40px 20px',
       }}>
-        <div style={{ width: '100%', maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ width: '100%', maxWidth: 1000, display: 'flex', flexDirection: 'column', gap: 40 }}>
 
           {/* ── Header ── */}
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <Image src="/logo-dark.png" alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
             <div>
-              <Image src="/logo-dark.png"  alt="FiloDesk" width={68} height={68} className="logo-dark"  style={{ borderRadius: 14 }} />
-              <Image src="/logo-light.png" alt="FiloDesk" width={68} height={68} className="logo-light" style={{ borderRadius: 14 }} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
-                {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
+              <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 8 }}>
+                Elegí tu plan para {barbershopName}
               </h1>
-              <p style={{ fontSize: '.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                {trialEnd ? `Tu prueba venció el ${trialEnd}.` : 'Tu suscripción está vencida.'}{' '}
-                Elegí un plan para seguir con{' '}
-                <strong style={{ color: 'var(--text)' }}>{barbershopName}</strong>.
+              <p style={{ fontSize: '1rem', color: 'var(--muted)', maxWidth: 500, margin: '0 auto' }}>
+                {subscriptionStatus === 'trial' 
+                  ? `Tu prueba terminó el ${trialEnd}. ¡Elegí un plan para seguir creciendo!` 
+                  : 'Tu suscripción está vencida. Seleccioná una opción para reactivar tu cuenta.'}
               </p>
             </div>
           </div>
 
-          {/* ── Selector de Planes ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={labelStyle}>Elegí tu plan</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {PLANS.map(p => (
+          {/* ── Grid de Planes ── */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: 20 
+          }}>
+            {PLANS.map(p => {
+              const active = planId === p.id
+              const isGreen = p.accent === 'green'
+              return (
                 <button
                   key={p.id}
-                  className="plan-card"
+                  className="plan-card-btn"
                   onClick={() => setPlanId(p.id)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    background: planId === p.id ? 'rgba(212,168,42,0.07)' : 'var(--surface)',
-                    border: `1.5px solid ${planId === p.id ? 'var(--gold)' : 'var(--border)'}`,
-                    borderRadius: 12,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    background: active ? 'rgba(212,168,42,0.05)' : 'var(--surface)',
+                    border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
+                    borderRadius: 20,
+                    padding: '30px 24px',
                     textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 20,
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: '.9rem', fontWeight: 700, color: planId === p.id ? 'var(--gold)' : 'var(--cream)' }}>
-                        Plan {p.name}
-                      </span>
-                      {p.badge && (
-                        <span style={{ fontSize: '.55rem', fontWeight: 800, padding: '2px 6px', background: 'var(--gold)', color: '#0e0e0e', borderRadius: 4, textTransform: 'uppercase' }}>
-                          {p.badge}
-                        </span>
-                      )}
+                  {p.badge && (
+                    <span style={{ 
+                      position: 'absolute', top: -12, right: 20,
+                      background: isGreen ? 'var(--green)' : 'var(--gold)',
+                      color: '#0e0e0e', fontSize: '.65rem', fontWeight: 800,
+                      padding: '4px 10px', borderRadius: 20, textTransform: 'uppercase'
+                    }}>
+                      {p.badge}
+                    </span>
+                  )}
+
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: active ? 'var(--gold)' : 'var(--cream)', marginBottom: 4 }}>
+                      Plan {p.name}
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--cream)' }}>{fmt(p.price)}</span>
+                      <span style={{ fontSize: '.85rem', color: 'var(--muted)' }}>/mes</span>
                     </div>
-                    <span style={{ fontSize: '.75rem', color: 'var(--muted)' }}>{fmt(p.price)}/mes</span>
                   </div>
-                  <div style={{
-                    width: 18, height: 18, borderRadius: '50%',
-                    border: `2px solid ${planId === p.id ? 'var(--gold)' : 'var(--border)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {p.features.map(f => (
+                      <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '.82rem', color: 'var(--muted)', lineHeight: 1.4 }}>
+                        <span style={{ color: active ? 'var(--gold)' : 'var(--border)', fontSize: '.75rem', marginTop: 2 }}>✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div style={{ 
+                    marginTop: 'auto',
+                    width: '100%', padding: '10px', borderRadius: 10,
+                    background: active ? 'var(--gold)' : 'var(--border)',
+                    color: active ? '#0e0e0e' : 'var(--muted)',
+                    textAlign: 'center', fontWeight: 700, fontSize: '.85rem'
                   }}>
-                    {planId === p.id && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
+                    {active ? 'Plan Seleccionado' : 'Seleccionar'}
                   </div>
                 </button>
-              ))}
-            </div>
+              )
+            })}
           </div>
 
-          {/* ── Selector de meses ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={labelStyle}>¿Por cuánto tiempo?</p>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 6,
-              background: 'var(--surface)',
-              padding: 5,
-              borderRadius: 12,
-              border: '1px solid var(--border)',
-            }}>
-              {MONTH_OPTIONS.map(o => {
-                const active = months === o.months
-                return (
-                  <button
-                    key={o.months}
-                    className="suscripcion-month-btn"
-                    onClick={() => pickMonths(o.months)}
-                    style={{
-                      padding: '10px 4px',
-                      borderRadius: 8,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: active ? 'var(--gold)' : 'transparent',
-                      color: active ? '#0e0e0e' : 'var(--muted)',
-                      fontWeight: active ? 700 : 500,
-                      fontSize: '.8rem',
-                      transition: 'all 0.15s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 3,
-                    }}
-                  >
-                    {o.label}
-                    {o.discount > 0 && (
-                      <span style={{
-                        fontSize: '.58rem',
-                        fontWeight: 700,
-                        color: active ? '#0e0e0e' : 'var(--green)',
-                      }}>
-                        -{Math.round(o.discount * 100)}%
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* ── Detalle del Plan ── */}
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 14,
-            padding: '20px 22px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
+          {/* ── Checkout Section ── */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+            gap: 40,
+            alignItems: 'start'
           }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-              <div>
-                <p style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>
-                  Plan {plan.name}
-                </p>
-                <p style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--cream)', lineHeight: 1 }}>
-                  {fmt(total)}
-                </p>
-                {months > 1 && (
-                  <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>
-                    {fmt(pricePerMonth)}/mes × {months}
-                  </p>
-                )}
-              </div>
-              {savings > 0 && (
+            
+            {/* Izquierda: Configuración */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 30 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <p style={labelStyle}>1. ¿Por cuánto tiempo?</p>
                 <div style={{
-                  background: 'rgba(94,207,135,0.1)',
-                  border: '1px solid rgba(94,207,135,0.25)',
-                  borderRadius: 10,
-                  padding: '8px 14px',
-                  textAlign: 'center',
-                  flexShrink: 0,
+                  display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+                  background: 'var(--surface)', padding: 6, borderRadius: 12, border: '1px solid var(--border)',
                 }}>
-                  <p style={{ fontSize: '.62rem', color: 'var(--green)', fontWeight: 600, marginBottom: 2 }}>Ahorrás</p>
-                  <p style={{ fontSize: '.95rem', color: 'var(--green)', fontWeight: 800 }}>{fmt(savings)}</p>
+                  {MONTH_OPTIONS.map(o => {
+                    const active = months === o.months
+                    return (
+                      <button
+                        key={o.months}
+                        className="suscripcion-month-btn"
+                        onClick={() => pickMonths(o.months)}
+                        style={{
+                          padding: '12px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                          background: active ? 'var(--gold)' : 'transparent',
+                          color: active ? '#0e0e0e' : 'var(--muted)',
+                          fontWeight: active ? 700 : 500, fontSize: '.85rem', transition: 'all 0.15s ease',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                        }}
+                      >
+                        {o.label}
+                        {o.discount > 0 && (
+                          <span style={{ fontSize: '.6rem', fontWeight: 800, color: active ? '#0e0e0e' : 'var(--green)' }}>
+                            -{Math.round(o.discount * 100)}%
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
-              )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <p style={labelStyle}>2. Método de pago</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <MethodCard
+                    active={method === 'checkout'}
+                    disabled={false}
+                    onClick={() => setMethod('checkout')}
+                    icon="💳"
+                    title={`Pagar ${months === 1 ? 'este mes' : `${months} meses`}`}
+                    subtitle="MP · Uala · Tarjetas · Otros"
+                  />
+                  <MethodCard
+                    active={method === 'subscription'}
+                    disabled={subDisabled}
+                    onClick={() => setMethod('subscription')}
+                    icon="🔄"
+                    title="Débito automático"
+                    subtitle={subDisabled ? 'Solo para 1 mes' : 'Se renueva cada mes'}
+                    badge="MENSUAL"
+                  />
+                  <MethodCard
+                    active={method === 'transfer'}
+                    disabled={false}
+                    onClick={() => setMethod('transfer')}
+                    icon="🏦"
+                    title="Transferencia Bancaria"
+                    subtitle="Vía GalioPay · CBU/Alias"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div style={{ height: 1, background: 'var(--border)' }} />
+            {/* Derecha: Resumen y Pago */}
+            <div style={{ 
+              background: 'var(--surface)', border: '1px solid var(--border)', 
+              borderRadius: 24, padding: '32px', display: 'flex', flexDirection: 'column', gap: 24,
+              position: 'sticky', top: 20
+            }}>
+              <div>
+                <p style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Resumen de compra
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--cream)' }}>{fmt(total)}</h2>
+                  {savings > 0 && <span style={{ color: 'var(--green)', fontSize: '.9rem', fontWeight: 700 }}>Ahorrás {fmt(savings)}</span>}
+                </div>
+                <p style={{ color: 'var(--muted)', fontSize: '.9rem', marginTop: 4 }}>
+                  Plan {plan.name} {months > 1 ? `× ${months} meses` : 'mensual'}
+                </p>
+              </div>
 
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {plan.features.map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--muted)' }}>
-                  <span style={{ color: 'var(--gold)', fontSize: '.72rem', flexShrink: 0 }}>✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
+              <div style={{ height: 1, background: 'var(--border)' }} />
 
-          {/* ── Método de pago ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={labelStyle}>Método de pago</p>
+              <button
+                className="suscripcion-pay-btn"
+                onClick={handlePay}
+                disabled={pending}
+                style={{
+                  width: '100%', padding: '18px', background: pending ? 'var(--border)' : 'var(--gold)',
+                  color: pending ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 14,
+                  fontSize: '1rem', fontWeight: 800, cursor: pending ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                }}
+              >
+                {pending ? 'Procesando...' : (
+                  method === 'checkout' ? `Pagar ${fmt(total)} →` : 
+                  method === 'subscription' ? 'Activar Débito Automático →' : 'Pagar con Transferencia →'
+                )}
+              </button>
 
-            <MethodCard
-              active={method === 'checkout'}
-              disabled={false}
-              onClick={() => setMethod('checkout')}
-              icon="💳"
-              title={`Pagar ${months === 1 ? 'este mes' : `${months} meses`}`}
-              subtitle="MP · Uala · NaranjaX · Tarjetas · y más"
-            />
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '.75rem', color: 'var(--muted)', marginBottom: 4 }}>
+                  🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}
+                </p>
+                <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
+                  {method === 'transfer' ? 'Activación manual en 24hs' : 'Activación inmediata'}
+                </p>
+              </div>
+            </div>
 
-            <MethodCard
-              active={method === 'subscription'}
-              disabled={subDisabled}
-              onClick={() => setMethod('subscription')}
-              icon="🔄"
-              title="Débito automático"
-              subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva automáticamente cada mes'}
-              badge="MENSUAL"
-            />
-
-            <MethodCard
-              active={method === 'transfer'}
-              disabled={false}
-              onClick={() => setMethod('transfer')}
-              icon="🏦"
-              title="Transferencia Bancaria"
-              subtitle="Vía GalioPay · CBU/Alias"
-            />
-          </div>
-
-          {/* ── CTA ── */}
-          <button
-            className="suscripcion-pay-btn"
-            onClick={handlePay}
-            disabled={pending}
-            style={{
-              width: '100%',
-              padding: '15px 24px',
-              background: pending ? 'var(--border)' : 'var(--gold)',
-              color: pending ? 'var(--muted)' : '#0e0e0e',
-              border: 'none',
-              borderRadius: 12,
-              fontSize: '.95rem',
-              fontWeight: 700,
-              cursor: pending ? 'not-allowed' : 'pointer',
-              transition: 'all 0.15s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            {pending ? (
-              <>
-                <span style={{
-                  width: 15, height: 15,
-                  border: '2px solid var(--muted)',
-                  borderTopColor: 'transparent',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  animation: 'spin 0.7s linear infinite',
-                }} />
-                Redirigiendo...
-              </>
-            ) : (
-              method === 'checkout'
-                ? `Pagar ${fmt(total)} →`
-                : method === 'subscription'
-                  ? 'Activar débito automático →'
-                  : 'Pagar con Transferencia →'
-            )}
-          </button>
-
-          {/* ── Footer ── */}
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
-              🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}
-            </p>
-            {method !== 'subscription' && (
-              <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
-                {method === 'transfer' ? 'Transferencia directa sin comisiones' : 'No necesitás tener cuenta en MercadoPago'}
-              </p>
-            )}
           </div>
 
         </div>
@@ -380,78 +336,28 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 /* ── Subcomponentes ── */
 
 const labelStyle: React.CSSProperties = {
-  fontSize: '.72rem',
-  fontWeight: 700,
-  letterSpacing: '1px',
-  textTransform: 'uppercase',
-  color: 'var(--muted)',
+  fontSize: '.75rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--muted)',
 }
 
-function MethodCard({
-  active, disabled, onClick, icon, title, subtitle, badge,
-}: {
-  active: boolean
-  disabled: boolean
-  onClick: () => void
-  icon: string
-  title: string
-  subtitle: string
-  badge?: string
-}) {
+function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge }: any) {
   return (
     <button
-      className="suscripcion-method-btn"
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '13px 16px',
-        background: active ? 'rgba(212,168,42,0.07)' : 'var(--surface)',
+        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+        background: active ? 'rgba(212,168,42,0.08)' : 'var(--card)',
         border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-        borderRadius: 12,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        textAlign: 'left',
-        transition: 'border-color 0.15s ease, background 0.15s ease',
-        width: '100%',
-        opacity: disabled ? 0.45 : 1,
+        borderRadius: 14, cursor: disabled ? 'not-allowed' : 'pointer',
+        textAlign: 'left', width: '100%', opacity: disabled ? 0.4 : 1, transition: 'all 0.2s',
       }}
     >
-      <div style={{
-        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-        background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.1rem',
-      }}>
-        {icon}
-      </div>
+      <div style={{ fontSize: '1.2rem' }}>{icon}</div>
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-          <p style={{ fontSize: '.86rem', fontWeight: 600, color: 'var(--cream)' }}>{title}</p>
-          {badge && (
-            <span style={{
-              fontSize: '.58rem', fontWeight: 700, padding: '1px 7px',
-              background: 'rgba(94,207,135,0.1)', color: 'var(--green)',
-              border: '1px solid rgba(94,207,135,0.22)', borderRadius: 20,
-              letterSpacing: '.4px',
-            }}>
-              {badge}
-            </span>
-          )}
-        </div>
-        <p style={{ fontSize: '.74rem', color: 'var(--muted)' }}>{subtitle}</p>
+        <p style={{ fontSize: '.85rem', fontWeight: 700, color: 'var(--cream)' }}>{title}</p>
+        <p style={{ fontSize: '.72rem', color: 'var(--muted)' }}>{subtitle}</p>
       </div>
-      <div style={{
-        width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-        border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'border-color 0.15s ease',
-      }}>
-        {active && (
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-        )}
-      </div>
+      {badge && <span style={{ fontSize: '.6rem', fontWeight: 800, background: 'rgba(94,207,135,0.1)', color: 'var(--green)', padding: '2px 6px', borderRadius: 6 }}>{badge}</span>}
     </button>
   )
 }
