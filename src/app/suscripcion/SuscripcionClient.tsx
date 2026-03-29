@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
-import { createMPCheckoutWithMonths, createMPSubscription } from '@/app/actions/subscription'
+import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
 
 const BASE_PRICE = 11999
 
@@ -20,7 +20,7 @@ const FEATURES = [
   'Control de stock y gastos',
 ]
 
-type Method = 'checkout' | 'subscription'
+type Method = 'checkout' | 'subscription' | 'transfer'
 
 interface Props {
   barbershopId:       string
@@ -46,15 +46,17 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
   function pickMonths(m: number) {
     setMonths(m)
-    if (m > 1) setMethod('checkout')
+    if (m > 1 && method === 'subscription') setMethod('checkout')
   }
 
   function handlePay() {
     start(async () => {
       if (method === 'subscription') {
         await createMPSubscription(barbershopId)
-      } else {
+      } else if (method === 'checkout') {
         await createMPCheckoutWithMonths(barbershopId, months)
+      } else if (method === 'transfer') {
+        await createBankTransfer(barbershopId, months)
       }
     })
   }
@@ -223,6 +225,16 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
               subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva automáticamente cada mes'}
               badge="MENSUAL"
             />
+
+            {/* Transferencia Bancaria */}
+            <MethodCard
+              active={method === 'transfer'}
+              disabled={false}
+              onClick={() => setMethod('transfer')}
+              icon="🏦"
+              title="Transferencia Bancaria"
+              subtitle="Vía GalioPay · CBU/Alias"
+            />
           </div>
 
           {/* ── CTA ── */}
@@ -262,18 +274,20 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
             ) : (
               method === 'checkout'
                 ? `Pagar ${fmt(total)} →`
-                : 'Activar débito automático →'
+                : method === 'subscription'
+                  ? 'Activar débito automático →'
+                  : 'Pagar con Transferencia →'
             )}
           </button>
 
           {/* ── Footer ── */}
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
             <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
-              🔒 Pagos procesados de forma segura por MercadoPago
+              🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}
             </p>
-            {method === 'checkout' && (
+            {method !== 'subscription' && (
               <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
-                No necesitás tener cuenta en MercadoPago
+                {method === 'transfer' ? 'Transferencia directa sin comisiones' : 'No necesitás tener cuenta en MercadoPago'}
               </p>
             )}
           </div>

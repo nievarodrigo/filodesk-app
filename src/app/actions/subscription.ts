@@ -48,3 +48,18 @@ export async function createMPCheckoutWithMonths(barbershopId: string, months: n
 
   redirect(result.redirectUrl!)
 }
+
+export async function createBankTransfer(barbershopId: string, months: number): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const result = await subscriptionService.createBankTransfer(
+    supabase, barbershopId, user.id, months
+  )
+
+  if (result.error === 'not_found') redirect('/dashboard')
+  if (result.error) redirect(`/suscripcion?barbershopId=${barbershopId}&error=1`)
+
+  redirect(result.redirectUrl!)
+}

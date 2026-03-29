@@ -242,6 +242,40 @@ export async function activatePayment(
   return {}
 }
 
+export async function createBankTransfer(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string,
+  months = 1,
+) {
+  const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
+  if (!barbershop) return { error: 'not_found' as const }
+
+  const discount = DISCOUNTS[months] ?? 0
+  const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
+  const totalPrice = pricePerMonth * months
+
+  // 1. Crear registro en la tabla de orquestación (suscripciones)
+  // Estado inicial: pending_validation (requiere aprobación humana)
+  const { data, error } = await supabase.from('subscriptions').insert({
+    barbershop_id: barbershopId,
+    plan_id: 'base', // Por ahora todos son base en este flujo
+    payment_method: 'bank_transfer',
+    status: 'pending_validation',
+    amount: totalPrice,
+    // Calculamos una fecha tentativa de fin
+    ends_at: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString()
+  }).select().single()
+
+  if (error) {
+    console.error('[Bank transfer] error creating sub:', error)
+    return { error: 'db_error' as const }
+  }
+
+  // 2. Devolvemos la URL de GalioPay
+  return { redirectUrl: 'https://admin-pay.galio.app/' }
+}
+
 // Deprecated: use activatePayment instead
 export async function activateOneMonthPayment(
   supabase: SupabaseClient,

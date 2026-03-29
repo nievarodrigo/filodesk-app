@@ -89,12 +89,15 @@ export default async function DashboardPage({
   const planName = barbershop?.plan_name ?? 'Plan Pro'
   const subscriptionMessage = (() => {
     if (barbershop?.subscription_renews_at) {
-      const isAutomatic = barbershop.subscription_payment_method === 'automatic'
+      // 'checkout_pro' = pago manual único (MP checkout)
+      // cualquier otro valor = suscripción automática de MP (débito recurrente)
+      const isAutomatic = barbershop.subscription_payment_method !== null &&
+                          barbershop.subscription_payment_method !== 'checkout_pro'
       const date = new Date(barbershop.subscription_renews_at)
       const formattedDate = date.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
       const renewalText = isAutomatic
-        ? `Próximo renovación: ${formattedDate}`
-        : `El plan vence: ${formattedDate}`
+        ? `Se renueva el ${formattedDate}`
+        : `Vence el ${formattedDate}`
       return { planName, renewalText }
     }
     return { planName, renewalText: null }
