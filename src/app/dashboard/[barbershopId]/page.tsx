@@ -191,9 +191,11 @@ export default async function DashboardPage({
             {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
           </p>
           <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{subscriptionMessage.planName}</span>
+            <span style={{ fontWeight: 600, color: 'var(--gold)' }}>Plan {subscriptionMessage.planName}</span>
             {context.role === 'owner' && context.plan === 'Base' && (
-              <span className={styles.planBadge}>Upgrade</span>
+              <Link href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>
+                Upgrade
+              </Link>
             )}
             {subscriptionMessage.renewalText && (
               <>
