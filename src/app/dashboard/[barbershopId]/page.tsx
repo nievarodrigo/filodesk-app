@@ -165,7 +165,7 @@ export default async function DashboardPage({
         { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
       ]
 
-  const planName = barbershop?.plan_name ?? 'Plan Pro'
+  const planName = context.plan
   const subscriptionMessage = (() => {
     if (barbershop?.subscription_renews_at) {
       // 'checkout_pro' = pago manual único (MP checkout)
@@ -193,7 +193,7 @@ export default async function DashboardPage({
           <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{subscriptionMessage.planName}</span>
             {context.role === 'owner' && context.plan === 'Base' && (
-              <span className={styles.planBadge}>Plan inicial</span>
+              <span className={styles.planBadge}>Upgrade</span>
             )}
             {subscriptionMessage.renewalText && (
               <>
