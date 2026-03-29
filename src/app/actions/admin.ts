@@ -76,6 +76,7 @@ export async function approveSubscription(subscriptionId: string): Promise<void>
       .from('subscriptions')
       .update({ 
         status: 'pending_validation',
+        starts_at: null,
         validated_at: null,
         validated_by: null 
       })
