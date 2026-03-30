@@ -47,8 +47,9 @@ export async function updateServicioPrice(barbershopId: string, serviceId: strin
 export async function deleteServicio(barbershopId: string, serviceId: string) {
   const supabase = await createClient()
   const result = await serviceTypeService.deleteServiceType(supabase, barbershopId, serviceId)
-  if (result.error) return { error: result.error }
+  if (result && 'error' in result) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
+  return { success: true, mode: result?.mode }
 }
 
 export async function toggleServicio(barbershopId: string, serviceId: string, active: boolean) {

@@ -34,6 +34,14 @@ export async function updateActive(supabase: SupabaseClient, id: string, active:
   return supabase.from('service_types').update({ active }).eq('id', id)
 }
 
-export async function deleteById(supabase: SupabaseClient, id: string) {
+export async function softDeleteById(supabase: SupabaseClient, id: string) {
+  return supabase.from('service_types').update({ active: false }).eq('id', id)
+}
+
+export async function hardDeleteById(supabase: SupabaseClient, id: string) {
   return supabase.from('service_types').delete().eq('id', id)
+}
+
+export async function deleteById(supabase: SupabaseClient, id: string) {
+  return softDeleteById(supabase, id)
 }

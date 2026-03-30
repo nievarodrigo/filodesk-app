@@ -17,6 +17,14 @@ export async function countByBarberId(supabase: SupabaseClient, barberId: string
   return count ?? 0
 }
 
+export async function countByServiceId(supabase: SupabaseClient, serviceId: string) {
+  const { count } = await supabase
+    .from('sales')
+    .select('id', { count: 'exact', head: true })
+    .eq('service_type_id', serviceId)
+  return count ?? 0
+}
+
 export async function sumByBarberAndRange(
   supabase: SupabaseClient,
   barbershopId: string,
