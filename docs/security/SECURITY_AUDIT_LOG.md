@@ -64,23 +64,21 @@ curl -I https://filodesk.com | grep -E '(Strict-Transport|X-Frame|Content-Securi
 ### SEC-002: Rate Limiting ✅
 
 **Fecha:** 2026-03-30  
-**Archivo:** `src/proxy.ts`  
-**Commit:** `6c94207`
+**Archivos:** `src/middleware.ts`, `docs/security/CLOUDFLARE_WAF_RATE_LIMITING.md`  
+**Commit:** `6c94207` (original), `f7e1975` (fix QA)
 
-**Limits implementados:**
+**Nota importante:** El rate limiting se DELEGA a Cloudflare WAF.
+- El middleware solo maneja auth/session (proxy functionality)
+- Rate limiting en memoria no funciona en Vercel (stateless)
+- Configurar en: Cloudflare → Security → WAF → Rate Limiting Rules
 
-| Endpoint | Max requests | Window |
-|----------|--------------|--------|
-| `/auth/login` | 20 | 1 min |
-| `/auth/register` | 20 | 1 min |
-| `/api/*` | 100 | 1 min |
-| `/auth/*` (other) | 100 | 1 min |
+**Guía de configuración:** `docs/security/CLOUDFLARE_WAF_RATE_LIMITING.md`
 
-**Validación post-deploy:**
+**Validación post-configuración Cloudflare:**
 ```bash
-# 21 requests a /auth/login deberían retornar 429
-curl -X POST https://filodesk.com/auth/login -d "email=test@test.com&password=test" -w "\n%{http_code}\n"
-# Repetir 20+ veces
+# Test de rate limiting
+for i in {1..25}; do curl -s -o /dev/null -w "%{http_code}\n" https://filodesk.com/auth/login; done
+# Esperado: 1-20: 200, 21+: 429/403
 ```
 
 ---

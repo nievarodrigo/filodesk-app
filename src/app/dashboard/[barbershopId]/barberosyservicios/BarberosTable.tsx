@@ -22,7 +22,7 @@ interface Props {
 }
 
 export default function BarberosTable({ barbershopId, barbershopName, barbers }: Props) {
-  const [isEditing, setIsEditing] = useState(false)
+  const [editingBarberId, setEditingBarberId] = useState<string | null>(null)
   const [commissions, setCommissions] = useState<Record<string, string>>(
     Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')]))
   )
@@ -32,22 +32,32 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
     setCommissions(prev => ({ ...prev, [id]: value }))
   }
 
-  function handleSaveChanges() {
-    startTransition(async () => {
-      for (const barber of barbers) {
-        const newCommission = commissions[barber.id]
-        const oldCommission = String(barber.commission_pct ?? '')
-        if (newCommission !== oldCommission) {
-          await updateBarberCommission(barbershopId, barber.id, Number(newCommission))
-        }
-      }
-      setIsEditing(false)
-    })
+  function handleStartEdit(barber: Barber) {
+    setCommissions(prev => ({ ...prev, [barber.id]: String(barber.commission_pct ?? '') }))
+    setEditingBarberId(barber.id)
   }
 
-  function handleCancel() {
-    setCommissions(Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')])))
-    setIsEditing(false)
+  function handleCancelEdit(barber: Barber) {
+    setCommissions(prev => ({ ...prev, [barber.id]: String(barber.commission_pct ?? '') }))
+    setEditingBarberId(null)
+  }
+
+  function handleSaveBarber(barber: Barber) {
+    const rawCommission = commissions[barber.id]
+    const parsedCommission = Number(rawCommission)
+    if (!Number.isFinite(parsedCommission) || parsedCommission < 0 || parsedCommission > 100) {
+      alert('La comisión debe ser un número entre 0 y 100.')
+      return
+    }
+
+    startTransition(async () => {
+      const result = await updateBarberCommission(barbershopId, barber.id, parsedCommission)
+      if (result?.error) {
+        alert(result.error)
+        return
+      }
+      setEditingBarberId(null)
+    })
   }
 
   function handleToggle(barberId: string, newActive: boolean) {
@@ -56,23 +66,6 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
 
   return (
     <>
-      <div className={styles.tableControls}>
-        {isEditing ? (
-          <div className={styles.headerButtons}>
-            <button type="button" className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
-              {pending ? 'Guardando…' : 'Guardar comisiones'}
-            </button>
-            <button type="button" className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
-              Cancelar
-            </button>
-          </div>
-        ) : (
-          <button type="button" className={`${styles.btnPrimary} ${styles.btnEditMode}`} onClick={() => setIsEditing(true)}>
-            Editar comisiones
-          </button>
-        )}
-      </div>
-
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Ficha</span>
@@ -85,70 +78,89 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
           <div className={styles.empty}>Todavía no hay barberos. Agregá el primero arriba.</div>
         ) : (
           <>
-            {barbers.map(barber => (
-              <div key={barber.id} className={`${styles.tableRow} ${styles.desktopRow}`}>
-                <div className={styles.cellIdentity} data-label="Ficha">
-                  <span className={styles.cellName}>{`${barber.name} ${barber.last_name ?? ''}`.trim()}</span>
-                  <span className={styles.cellMeta}>{barber.email}</span>
-                  <span className={styles.cellMeta}>{barber.phone}</span>
-                </div>
+            {barbers.map(barber => {
+              const isEditingBarber = editingBarberId === barber.id
+              const fullName = `${barber.name} ${barber.last_name ?? ''}`.trim()
+              return (
+                <div key={barber.id} className={`${styles.tableRow} ${styles.desktopRow}`}>
+                  <div className={styles.cellIdentity} data-label="Ficha">
+                    <span className={styles.cellName}>{fullName}</span>
+                    <span className={styles.cellMeta}>{barber.email}</span>
+                    <span className={styles.cellMeta}>{barber.phone}</span>
+                  </div>
 
-                <span className={styles.cellCommission} data-label="Comisión">
-                  {isEditing ? (
-                    <div className={styles.commissionEdit}>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        max="100"
-                        step="1"
-                        className={styles.commissionInput}
-                        value={commissions[barber.id]}
-                        onChange={e => handleCommissionChange(barber.id, e.target.value)}
-                        disabled={pending}
-                      />
-                      <span className={styles.commissionSuffix}>%</span>
-                    </div>
-                  ) : (
-                    <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
-                  )}
-                </span>
-
-                <span className={styles.cellStatus} data-label="Estado">
-                  <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
-                    {barber.active ? 'Activo' : 'Inactivo'}
+                  <span className={styles.cellCommission} data-label="Comisión">
+                    {isEditingBarber ? (
+                      <div className={styles.commissionEdit}>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          max="100"
+                          step="1"
+                          className={styles.commissionInput}
+                          value={commissions[barber.id]}
+                          onChange={e => handleCommissionChange(barber.id, e.target.value)}
+                          disabled={pending}
+                        />
+                        <span className={styles.commissionSuffix}>%</span>
+                      </div>
+                    ) : (
+                      <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
+                    )}
                   </span>
-                </span>
 
-                <div className={styles.cellActions} data-label="Acciones">
-                  {!isEditing && barber.phone && (
-                    <a
-                      href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.btnInvite}
-                      aria-label={`Invitar a ${barber.name} por WhatsApp`}
-                    >
-                      WhatsApp
-                    </a>
-                  )}
-                  {!isEditing && (
-                    <button
-                      type="button"
-                      className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
-                      disabled={pending}
-                      onClick={() => handleToggle(barber.id, !barber.active)}
-                    >
-                      {barber.active ? 'Desactivar' : 'Activar'}
-                    </button>
-                  )}
+                  <span className={styles.cellStatus} data-label="Estado">
+                    <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
+                      {barber.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </span>
+
+                  <div className={styles.cellActions} data-label="Acciones">
+                    {isEditingBarber ? (
+                      <>
+                        <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveBarber(barber)}>
+                          {pending ? 'Guardando…' : 'Guardar'}
+                        </button>
+                        <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(barber)}>
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(barber)}>
+                          Editar
+                        </button>
+                        {barber.phone && (
+                          <a
+                            href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={styles.btnInvite}
+                            aria-label={`Invitar a ${barber.name} por WhatsApp`}
+                          >
+                            WhatsApp
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
+                          disabled={pending}
+                          onClick={() => handleToggle(barber.id, !barber.active)}
+                        >
+                          {barber.active ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             <div className={styles.mobileAccordionList}>
               {barbers.map(barber => {
                 const fullName = `${barber.name} ${barber.last_name ?? ''}`.trim()
+                const isEditingBarber = editingBarberId === barber.id
                 return (
                   <details key={`mobile-${barber.id}`} className={styles.mobileAccordionItem}>
                     <summary className={styles.mobileAccordionSummary}>
@@ -171,7 +183,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                         <span className={styles.mobileInfoLabel}>Teléfono</span>
                         <div className={styles.mobilePhoneRow}>
                           <span className={styles.mobileInfoValue}>{barber.phone || '—'}</span>
-                          {!isEditing && barber.phone && (
+                          {!isEditingBarber && barber.phone && (
                             <a
                               href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
                               target="_blank"
@@ -188,7 +200,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                       <div className={styles.mobileInfoRow}>
                         <span className={styles.mobileInfoLabel}>Comisión</span>
                         <div className={styles.mobileCommissionBox}>
-                          {isEditing ? (
+                          {isEditingBarber ? (
                             <div className={styles.commissionEdit}>
                               <input
                                 type="number"
@@ -209,15 +221,29 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                         </div>
                       </div>
 
-                      {!isEditing && (
-                        <button
-                          type="button"
-                          className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
-                          disabled={pending}
-                          onClick={() => handleToggle(barber.id, !barber.active)}
-                        >
-                          {barber.active ? 'Desactivar' : 'Activar'}
-                        </button>
+                      {isEditingBarber ? (
+                        <div className={styles.mobileEditActions}>
+                          <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveBarber(barber)}>
+                            {pending ? 'Guardando…' : 'Guardar'}
+                          </button>
+                          <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(barber)}>
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(barber)}>
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
+                            disabled={pending}
+                            onClick={() => handleToggle(barber.id, !barber.active)}
+                          >
+                            {barber.active ? 'Desactivar' : 'Activar'}
+                          </button>
+                        </>
                       )}
                     </div>
                   </details>
