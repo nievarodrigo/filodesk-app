@@ -149,7 +149,7 @@ function BarberRow({ barbershopId, barber }: { barbershopId: string; barber: Bar
           transition: 'opacity .15s',
         }}
       >
-        {pending ? '…' : barber.active ? 'Desactivar' : 'Activar'}
+        {pending ? '…' : barber.active ? 'Dar de baja' : 'Reactivar'}
       </button>
     </div>
   )

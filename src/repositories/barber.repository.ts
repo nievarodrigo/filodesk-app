@@ -81,5 +81,9 @@ export async function updateActive(supabase: SupabaseClient, id: string, active:
 }
 
 export async function deleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
-  return supabase.from('barbers').delete().eq('id', id).eq('barbershop_id', barbershopId)
+  return supabase
+    .from('barbers')
+    .update({ active: false })
+    .eq('id', id)
+    .eq('barbershop_id', barbershopId)
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Check, Pencil, X } from 'lucide-react'
 import { toggleBarberActive, updateBarberCommission } from '@/app/actions/barber'
 import { generateInviteWhatsAppLink } from '@/lib/whatsapp'
 import styles from './barberos.module.css'
@@ -119,17 +120,38 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                   <div className={styles.cellActions} data-label="Acciones">
                     {isEditingBarber ? (
                       <>
-                        <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveBarber(barber)}>
-                          {pending ? 'Guardando…' : 'Guardar'}
+                        <button
+                          type="button"
+                          className={styles.btnPrimary}
+                          disabled={pending}
+                          onClick={() => handleSaveBarber(barber)}
+                          aria-label={`Guardar comisión de ${fullName}`}
+                          title="Guardar comisión"
+                        >
+                          {pending ? '…' : <Check size={16} />}
                         </button>
-                        <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(barber)}>
-                          Cancelar
+                        <button
+                          type="button"
+                          className={styles.btnSecondary}
+                          disabled={pending}
+                          onClick={() => handleCancelEdit(barber)}
+                          aria-label={`Cancelar edición de comisión de ${fullName}`}
+                          title="Cancelar edición"
+                        >
+                          <X size={16} />
                         </button>
                       </>
                     ) : (
                       <>
-                        <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(barber)}>
-                          Editar
+                        <button
+                          type="button"
+                          className={styles.btnEditInline}
+                          disabled={pending}
+                          onClick={() => handleStartEdit(barber)}
+                          aria-label={`Editar comisión de ${fullName}`}
+                          title="Editar comisión"
+                        >
+                          <Pencil size={16} />
                         </button>
                         {barber.phone && (
                           <a
@@ -148,7 +170,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                           disabled={pending}
                           onClick={() => handleToggle(barber.id, !barber.active)}
                         >
-                          {barber.active ? 'Desactivar' : 'Activar'}
+                          {barber.active ? 'Dar de baja' : 'Reactivar'}
                         </button>
                       </>
                     )}
@@ -223,17 +245,38 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
 
                       {isEditingBarber ? (
                         <div className={styles.mobileEditActions}>
-                          <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveBarber(barber)}>
-                            {pending ? 'Guardando…' : 'Guardar'}
+                          <button
+                            type="button"
+                            className={styles.btnPrimary}
+                            disabled={pending}
+                            onClick={() => handleSaveBarber(barber)}
+                            aria-label={`Guardar comisión de ${fullName}`}
+                            title="Guardar comisión"
+                          >
+                            {pending ? '…' : <Check size={16} />}
                           </button>
-                          <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(barber)}>
-                            Cancelar
+                          <button
+                            type="button"
+                            className={styles.btnSecondary}
+                            disabled={pending}
+                            onClick={() => handleCancelEdit(barber)}
+                            aria-label={`Cancelar edición de comisión de ${fullName}`}
+                            title="Cancelar edición"
+                          >
+                            <X size={16} />
                           </button>
                         </div>
                       ) : (
                         <>
-                          <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(barber)}>
-                            Editar
+                          <button
+                            type="button"
+                            className={styles.btnEditInline}
+                            disabled={pending}
+                            onClick={() => handleStartEdit(barber)}
+                            aria-label={`Editar comisión de ${fullName}`}
+                            title="Editar comisión"
+                          >
+                            <Pencil size={16} />
                           </button>
                           <button
                             type="button"
@@ -241,7 +284,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                             disabled={pending}
                             onClick={() => handleToggle(barber.id, !barber.active)}
                           >
-                            {barber.active ? 'Desactivar' : 'Activar'}
+                            {barber.active ? 'Dar de baja' : 'Reactivar'}
                           </button>
                         </>
                       )}

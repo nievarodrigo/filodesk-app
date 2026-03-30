@@ -16,7 +16,7 @@ create table barbers (
   barbershop_id   uuid not null references barbershops(id) on delete cascade,
   name            text not null,
   commission_pct  numeric(5,2) not null default 50, -- porcentaje (ej: 50.00)
-  active          boolean default true,
+  active          boolean not null default true,
   created_at      timestamptz default now()
 );
 

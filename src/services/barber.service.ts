@@ -1,6 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import * as barberRepo from '@/repositories/barber.repository'
-import * as saleRepo from '@/repositories/sale.repository'
 import type { CreateBarberInput } from '@/types'
 
 export async function createBarber(
@@ -32,10 +31,6 @@ export async function deleteBarber(
   barbershopId: string,
   barberId: string
 ) {
-  const count = await saleRepo.countByBarberId(supabase, barberId)
-  if (count > 0) {
-    return { error: 'Este barbero tiene ventas registradas. Solo podés desactivarlo.' }
-  }
   await barberRepo.deleteById(supabase, barberId, barbershopId)
   return {}
 }

@@ -24,7 +24,7 @@
 .table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .tableHead {
   display: grid;
-  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 132px;
+  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 260px;
   padding: 12px 20px;
   font-size: .72rem;
   text-transform: uppercase;
@@ -39,7 +39,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 132px;
+  grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 260px;
   padding: 16px 20px;
   font-size: .92rem;
   color: var(--text);
@@ -151,6 +151,20 @@
   border: 1px solid rgba(37, 211, 102, 0.3);
   color: #25d366;
   text-decoration: none;
+}
+.btnEditInline {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btnActions { display: flex; gap: 8px; align-items: center; }
@@ -302,7 +316,17 @@
   }
 
   .mobileAccordionBody .btnToggleOff,
-  .mobileAccordionBody .btnToggleOn {
+  .mobileAccordionBody .btnToggleOn,
+  .mobileAccordionBody .btnEditInline {
+    width: 100%;
+  }
+  .mobileEditActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mobileEditActions .btnPrimary,
+  .mobileEditActions .btnSecondary {
     width: 100%;
   }
 

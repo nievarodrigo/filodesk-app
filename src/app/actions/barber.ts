@@ -10,6 +10,19 @@ import { getServerAuthContext } from '@/services/auth.service'
 import * as barberService from '@/services/barber.service'
 import { getPlanLimit } from '@/services/plan.service'
 
+async function requireManageBarbersAccess(barbershopId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado.' as const }
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || !canAccess(context.role, 'manage_barbers')) {
+    return { error: 'No tenés permisos para gestionar barberos.' as const }
+  }
+
+  return { supabase, user, context }
+}
+
 export async function createBarber(
   barbershopId: string,
   _state: CreateBarberState,
@@ -50,20 +63,35 @@ export async function createBarber(
 }
 
 export async function toggleBarberActive(barbershopId: string, barberId: string, active: boolean) {
-  const supabase = await createClient()
+  const auth = await requireManageBarbersAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
   await barberService.toggleActive(supabase, barberId, active)
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
+  return { success: true }
 }
 
 export async function deleteBarber(barbershopId: string, barberId: string) {
-  const supabase = await createClient()
+  const auth = await requireManageBarbersAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
   const result = await barberService.deleteBarber(supabase, barbershopId, barberId)
   if (result.error) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
+  return { success: true }
 }
 
 export async function updateBarberCommission(barbershopId: string, barberId: string, commission: number) {
-  const supabase = await createClient()
+  if (!Number.isFinite(commission) || commission < 0 || commission > 100) {
+    return { error: 'La comisión debe ser un número entre 0 y 100.' }
+  }
+
+  const auth = await requireManageBarbersAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
   const { error } = await supabase
     .from('barbers')
     .update({ commission_pct: commission })

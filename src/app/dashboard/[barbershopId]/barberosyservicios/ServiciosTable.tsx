@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Check, Pencil, X } from 'lucide-react'
 import { updateServicioPrice, toggleServicio, deleteServicio } from '@/app/actions/servicio'
 import styles from './servicios.module.css'
 
@@ -119,17 +120,38 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                   <div className={styles.cellActions} data-label="Acciones">
                     {isEditingService ? (
                       <>
-                        <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveService(s)}>
-                          {pending ? 'Guardando…' : 'Guardar'}
+                        <button
+                          type="button"
+                          className={styles.btnPrimary}
+                          disabled={pending}
+                          onClick={() => handleSaveService(s)}
+                          aria-label={`Guardar precio de ${s.name}`}
+                          title="Guardar precio"
+                        >
+                          {pending ? '…' : <Check size={16} />}
                         </button>
-                        <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(s)}>
-                          Cancelar
+                        <button
+                          type="button"
+                          className={styles.btnSecondary}
+                          disabled={pending}
+                          onClick={() => handleCancelEdit(s)}
+                          aria-label={`Cancelar edición de ${s.name}`}
+                          title="Cancelar edición"
+                        >
+                          <X size={16} />
                         </button>
                       </>
                     ) : (
                       <>
-                        <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(s)}>
-                          Editar
+                        <button
+                          type="button"
+                          className={styles.btnEditInline}
+                          disabled={pending}
+                          onClick={() => handleStartEdit(s)}
+                          aria-label={`Editar precio de ${s.name}`}
+                          title="Editar precio"
+                        >
+                          <Pencil size={16} />
                         </button>
                         <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
                           {s.active ? 'Desactivar' : 'Activar'}
@@ -190,17 +212,38 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
 
                       {editingServiceId === s.id ? (
                         <div className={styles.mobileEditActions}>
-                          <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveService(s)}>
-                            {pending ? 'Guardando…' : 'Guardar'}
+                          <button
+                            type="button"
+                            className={styles.btnPrimary}
+                            disabled={pending}
+                            onClick={() => handleSaveService(s)}
+                            aria-label={`Guardar precio de ${s.name}`}
+                            title="Guardar precio"
+                          >
+                            {pending ? '…' : <Check size={16} />}
                           </button>
-                          <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(s)}>
-                            Cancelar
+                          <button
+                            type="button"
+                            className={styles.btnSecondary}
+                            disabled={pending}
+                            onClick={() => handleCancelEdit(s)}
+                            aria-label={`Cancelar edición de ${s.name}`}
+                            title="Cancelar edición"
+                          >
+                            <X size={16} />
                           </button>
                         </div>
                       ) : (
                         <>
-                          <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(s)}>
-                            Editar
+                          <button
+                            type="button"
+                            className={styles.btnEditInline}
+                            disabled={pending}
+                            onClick={() => handleStartEdit(s)}
+                            aria-label={`Editar precio de ${s.name}`}
+                            title="Editar precio"
+                          >
+                            <Pencil size={16} />
                           </button>
                           <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
                             {s.active ? 'Desactivar' : 'Activar'}
