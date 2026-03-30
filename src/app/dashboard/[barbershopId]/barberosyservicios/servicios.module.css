@@ -47,7 +47,7 @@
 /* Table */
 .table { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .tableHead {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 120px;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 220px;
   padding: 12px 20px; font-size: .72rem; text-transform: uppercase;
   letter-spacing: .7px; color: var(--muted); font-weight: 600;
   border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
@@ -56,7 +56,7 @@
 .thRight { text-align: right; }
 
 .tableRow {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 120px;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 220px;
   padding: 16px 20px; font-size: .92rem; color: var(--text);
   border-bottom: 1px solid var(--border); align-items: center;
   transition: background .12s; min-height: 64px;
@@ -122,6 +122,17 @@
   padding: 8px 12px;
 }
 .btnDelete:hover { color: var(--red); background: rgba(224,112,112,0.1); }
+.btnEditInline {
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+}
 .btnDeleteFull {
   width: 100%;
   justify-content: center;
@@ -256,8 +267,19 @@
 
   .mobileAccordionBody .btnToggleOff,
   .mobileAccordionBody .btnToggleOn,
-  .mobileAccordionBody .btnDelete {
+  .mobileAccordionBody .btnDelete,
+  .mobileAccordionBody .btnEditInline {
     width: 100%;
+  }
+  .mobileEditActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mobileEditActions .btnPrimary,
+  .mobileEditActions .btnSecondary {
+    width: 100%;
+    white-space: normal;
   }
 
   .tableControls,

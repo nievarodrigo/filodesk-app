@@ -18,8 +18,7 @@ interface Props {
 }
 
 export default function ServiciosTable({ barbershopId, services }: Props) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [prices, setPrices] = useState<Record<string, string>>(
     Object.fromEntries(services.map(s => [s.id, String(s.default_price ?? '')]))
   )
@@ -29,24 +28,32 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
     setPrices(prev => ({ ...prev, [id]: value }))
   }
 
-  function handleSaveChanges() {
-    startTransition(async () => {
-      for (const service of services) {
-        const newPrice = prices[service.id]
-        const oldPrice = String(service.default_price ?? '')
-        if (newPrice !== oldPrice) {
-          await updateServicioPrice(barbershopId, service.id, Number(newPrice))
-        }
-      }
-      setIsEditing(false)
-      setFocusedRowId(null)
-    })
+  function handleStartEdit(service: Service) {
+    setPrices(prev => ({ ...prev, [service.id]: String(service.default_price ?? '') }))
+    setEditingServiceId(service.id)
   }
 
-  function handleCancel() {
-    setPrices(Object.fromEntries(services.map(s => [s.id, String(s.default_price ?? '')])))
-    setIsEditing(false)
-    setFocusedRowId(null)
+  function handleCancelEdit(service: Service) {
+    setPrices(prev => ({ ...prev, [service.id]: String(service.default_price ?? '') }))
+    setEditingServiceId(null)
+  }
+
+  function handleSaveService(service: Service) {
+    const rawPrice = prices[service.id]
+    const parsedPrice = Number(rawPrice)
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      alert('Ingresá un precio válido.')
+      return
+    }
+
+    startTransition(async () => {
+      const result = await updateServicioPrice(barbershopId, service.id, parsedPrice)
+      if ((result as { error?: string } | undefined)?.error) {
+        alert((result as { error?: string }).error)
+        return
+      }
+      setEditingServiceId(null)
+    })
   }
 
   function handleToggle(serviceId: string, newActive: boolean) {
@@ -63,23 +70,6 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
 
   return (
     <>
-      <div className={styles.tableControls}>
-        {isEditing ? (
-          <div className={styles.headerButtons}>
-            <button type="button" className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
-              {pending ? 'Guardando…' : 'Guardar precios'}
-            </button>
-            <button type="button" className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
-              Cancelar
-            </button>
-          </div>
-        ) : (
-          <button type="button" className={`${styles.btnPrimary} ${styles.btnEditMode}`} onClick={() => setIsEditing(true)}>
-            Editar precios
-          </button>
-        )}
-      </div>
-
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Nombre</span>
@@ -93,11 +83,11 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
         ) : (
           <>
             {services.map(s => {
-              const isFocused = focusedRowId === s.id
+              const isEditingService = editingServiceId === s.id
               return (
                 <div
                   key={s.id}
-                  className={`${styles.tableRow} ${styles.desktopRow} ${isEditing && isFocused ? styles.tableRowEditing : ''}`}
+                  className={`${styles.tableRow} ${styles.desktopRow} ${isEditingService ? styles.tableRowEditing : ''}`}
                 >
                   <span className={styles.cellName} data-label="Nombre">
                     {s.name}
@@ -105,7 +95,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                   </span>
 
                   <span className={styles.cellPrice} data-label="Precio">
-                    {isEditing ? (
+                    {isEditingService ? (
                       <div className={styles.priceEdit}>
                         <span className={styles.prefix}>$</span>
                         <input
@@ -114,8 +104,6 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                           className={styles.priceInput}
                           value={prices[s.id]}
                           onChange={e => handlePriceChange(s.id, e.target.value)}
-                          onFocus={() => setFocusedRowId(s.id)}
-                          onBlur={() => setFocusedRowId(null)}
                           disabled={pending}
                         />
                       </div>
@@ -133,8 +121,20 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                   </span>
 
                   <div className={styles.cellActions} data-label="Acciones">
-                    {!isEditing && (
+                    {isEditingService ? (
                       <>
+                        <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveService(s)}>
+                          {pending ? 'Guardando…' : 'Guardar'}
+                        </button>
+                        <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(s)}>
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(s)}>
+                          Editar
+                        </button>
                         <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
                           {s.active ? 'Desactivar' : 'Activar'}
                         </button>
@@ -172,7 +172,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                       <div className={styles.mobileInfoRow}>
                         <span className={styles.mobileInfoLabel}>Precio</span>
                         <div className={styles.mobilePriceBox}>
-                          {isEditing ? (
+                          {editingServiceId === s.id ? (
                             <div className={styles.priceEdit}>
                               <span className={styles.prefix}>$</span>
                               <input
@@ -181,8 +181,6 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                                 className={styles.priceInput}
                                 value={prices[s.id]}
                                 onChange={e => handlePriceChange(s.id, e.target.value)}
-                                onFocus={() => setFocusedRowId(s.id)}
-                                onBlur={() => setFocusedRowId(null)}
                                 disabled={pending}
                               />
                             </div>
@@ -194,8 +192,20 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                         </div>
                       </div>
 
-                      {!isEditing && (
+                      {editingServiceId === s.id ? (
+                        <div className={styles.mobileEditActions}>
+                          <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleSaveService(s)}>
+                            {pending ? 'Guardando…' : 'Guardar'}
+                          </button>
+                          <button type="button" className={styles.btnSecondary} disabled={pending} onClick={() => handleCancelEdit(s)}>
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
                         <>
+                          <button type="button" className={styles.btnEditInline} disabled={pending} onClick={() => handleStartEdit(s)}>
+                            Editar
+                          </button>
                           <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
                             {s.active ? 'Desactivar' : 'Activar'}
                           </button>
