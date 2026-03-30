@@ -54,8 +54,10 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {(pendingSales ?? []).map((sale) => {
-          const barberName = Array.isArray(sale.barbers) ? sale.barbers[0]?.name : sale.barbers?.name
-          const serviceName = Array.isArray(sale.service_types) ? sale.service_types[0]?.name : sale.service_types?.name
+          const b = sale.barbers as any
+          const st = sale.service_types as any
+          const barberName = (Array.isArray(b) ? b[0]?.name : b?.name) ?? 'Barbero'
+          const serviceName = (Array.isArray(st) ? st[0]?.name : st?.name) ?? 'Servicio'
 
           return (
             <div
@@ -82,7 +84,10 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
               </div>
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <form action={approveVenta.bind(null, barbershopId, sale.id)}>
+                <form action={async () => {
+                  'use server'
+                  await approveVenta(barbershopId, sale.id)
+                }}>
                   <button
                     type="submit"
                     style={{
@@ -101,7 +106,10 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
                   </button>
                 </form>
 
-                <form action={deleteVenta.bind(null, barbershopId, sale.id)}>
+                <form action={async () => {
+                  'use server'
+                  await deleteVenta(barbershopId, sale.id)
+                }}>
                   <button
                     type="submit"
                     style={{
