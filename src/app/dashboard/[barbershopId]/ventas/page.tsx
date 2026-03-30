@@ -30,6 +30,17 @@ function monthLabel(ym: string) {
     .toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
 }
 
+function formatShortTime(value: string) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Argentina/Buenos_Aires',
+  })
+}
+
 type ProductSaleRow = {
   id: string
   sale_price: number
@@ -414,7 +425,7 @@ export default async function VentasPage({
                     {groupedProductSalesDesktop.map(tx => (
                       <details key={tx.key} className={styles.productAccordionItem}>
                         <summary className={styles.productAccordionHeader}>
-                          <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)}</span>
+                          <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)} · {formatShortTime(tx.createdAt)}</span>
                           <span className={styles.productAccordionCount}>{tx.itemCount} item(s)</span>
                           <span className={styles.productAccordionTotal}>{formatARS(tx.total)}</span>
                         </summary>
@@ -443,7 +454,7 @@ export default async function VentasPage({
                   {groupedProductSalesMobile.map(tx => (
                     <details key={tx.key} className={styles.productAccordionItem}>
                       <summary className={styles.productAccordionHeader}>
-                        <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)}</span>
+                        <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)} · {formatShortTime(tx.createdAt)}</span>
                         <span className={styles.productAccordionCount}>{tx.itemCount} item(s)</span>
                         <span className={styles.productAccordionTotal}>{formatARS(tx.total)}</span>
                       </summary>
