@@ -21,6 +21,13 @@ function formatShortDate(date: string) {
   return `${dd}-${mm}-${yyyy.slice(-2)}`
 }
 
+function formatShortTime(dateTime?: string | null) {
+  if (!dateTime) return '—'
+  const parsed = new Date(dateTime)
+  if (Number.isNaN(parsed.getTime())) return '—'
+  return parsed.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
 function monthLabel(ym: string) {
   const [y, m] = ym.split('-')
   return new Date(Number(y), Number(m) - 1, 1)
@@ -51,10 +58,11 @@ export default async function VentasPage({
   const [
     { data: sales,        count: salesCount },
     { data: productSales, count: productCount },
+    { data: barbershopPlan },
   ] = await Promise.all([
     supabase
       .from('sales')
-      .select('id, amount, status, date, notes, barbers(name, commission_pct), service_types(name)', { count: 'exact' })
+      .select('id, amount, status, date, created_at, notes, barbers(name, commission_pct), service_types(name)', { count: 'exact' })
       .eq('barbershop_id', barbershopId)
       .gte('date', from)
       .lte('date', to)
@@ -70,7 +78,21 @@ export default async function VentasPage({
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
       .range(rangeFrom, rangeTo),
+    supabase.from('barbershops').select('plan_name').eq('id', barbershopId).single(),
   ])
+
+  const showStatus = (barbershopPlan?.plan_name ?? 'Base').toLowerCase() !== 'base'
+
+  const salesRows = (sales as Array<{
+    id: string
+    amount: number
+    status: string
+    date: string
+    created_at?: string
+    notes?: string
+    barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }
+    service_types?: Array<{ name: string }> | { name: string }
+  }>) ?? []
 
   // Totals for the full period (not paginated) — separate count queries
   const [{ data: allSalesTotals }, { data: allProdTotals }] = await Promise.all([
@@ -118,7 +140,7 @@ export default async function VentasPage({
   // Resumen por barbero (todos, sin paginar)
   const byBarber: Record<string, { name: string; count: number; total: number; commission: number }> = {}
   // Use paginated sales for byBarber (approximate, but good enough for UX)
-  for (const sale of sales ?? []) {
+  for (const sale of salesRows) {
     const barbers = (sale as { barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number } }).barbers
     const name    = (Array.isArray(barbers) ? barbers?.[0]?.name : barbers?.name) ?? 'Sin asignar'
     const commPct = (Array.isArray(barbers) ? barbers?.[0]?.commission_pct : barbers?.commission_pct) ?? 0
@@ -135,6 +157,18 @@ export default async function VentasPage({
   ]
 
   const baseHref = `?desde=${from}&hasta=${to}&tipo=${tipo}`
+
+  const salesGroupedByBarber = (() => {
+    const grouped: Record<string, { barberName: string; count: number; total: number; sales: typeof salesRows }> = {}
+    for (const sale of salesRows) {
+      const barberName = (Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? 'Sin asignar'
+      if (!grouped[barberName]) grouped[barberName] = { barberName, count: 0, total: 0, sales: [] }
+      grouped[barberName].count += 1
+      grouped[barberName].total += sale.amount ?? 0
+      grouped[barberName].sales.push(sale)
+    }
+    return Object.values(grouped).sort((a, b) => b.total - a.total)
+  })()
 
   return (
     <div>
@@ -222,38 +256,86 @@ export default async function VentasPage({
               tipo === 'servicio' && <div className={styles.empty}>No hay servicios en este período.</div>
             ) : (
               <>
-                <div className={styles.table} style={{ marginBottom: tipo === 'todos' && (productSales ?? []).length > 0 ? '16px' : undefined }}>
-                  <div className={styles.tableHeadService}>
-                    <span>Fecha</span>
-                    <span>Barbero</span>
-                    <span>Servicio</span>
-                    <span>Monto</span>
-                    <span>Com.</span>
-                    <span>Estado</span>
-                    <span>Obs.</span>
-                    <span></span>
+                <div className={styles.desktopServiceTable}>
+                  <div className={styles.table} style={{ marginBottom: tipo === 'todos' && (productSales ?? []).length > 0 ? '16px' : undefined }}>
+                    <div className={`${styles.tableHeadService} ${!showStatus ? styles.tableHeadServiceNoStatus : ''}`}>
+                      <span>Fecha</span>
+                      <span>Barbero</span>
+                      <span>Servicio</span>
+                      <span>Monto</span>
+                      <span>Com.</span>
+                      {showStatus && <span>Estado</span>}
+                      <span>Obs.</span>
+                      <span></span>
+                    </div>
+                    {salesRows.map(sale => {
+                      const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
+                      const commission = barber ? Math.round(sale.amount * barber.commission_pct / 100) : null
+                      const isPending = sale.status === 'pending'
+                      return (
+                        <div key={sale.id} className={`${styles.tableRowService} ${!showStatus ? styles.tableRowServiceNoStatus : ''}`}>
+                          <span className={styles.muted} data-label="Fecha">{formatShortDate(sale.date)}</span>
+                          <span data-label="Barbero">{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
+                          <span data-label="Servicio">{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
+                          <span className={styles.amount} data-label="Monto">{formatARS(sale.amount)}</span>
+                          <span className={styles.muted} data-label="Com.">{commission !== null ? formatARS(commission) : '—'}</span>
+                          {showStatus && (
+                            <span data-label="Estado">
+                              <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
+                                {isPending ? 'Pendiente' : 'Confirmado'}
+                              </span>
+                            </span>
+                          )}
+                          <span className={styles.muted} data-label="Obs.">{sale.notes ?? '—'}</span>
+                          <DeleteVentaButton barbershopId={barbershopId} saleId={sale.id} />
+                        </div>
+                      )
+                    })}
                   </div>
-                  {(sales as Array<{ id: string; amount: number; status: string; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }; service_types?: Array<{ name: string }> | { name: string } }>).map(sale => {
-                    const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
-                    const commission = barber ? Math.round(sale.amount * barber.commission_pct / 100) : null
-                    const isPending = sale.status === 'pending'
-                    return (
-                      <div key={sale.id} className={styles.tableRowService}>
-                        <span className={styles.muted} data-label="Fecha">{formatShortDate(sale.date)}</span>
-                        <span data-label="Barbero">{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
-                        <span data-label="Servicio">{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                        <span className={styles.amount} data-label="Monto">{formatARS(sale.amount)}</span>
-                        <span className={styles.muted} data-label="Com.">{commission !== null ? formatARS(commission) : '—'}</span>
-                        <span data-label="Estado">
-                          <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
-                            {isPending ? 'Pendiente' : 'Confirmado'}
-                          </span>
-                        </span>
-                        <span className={styles.muted} data-label="Obs.">{sale.notes ?? '—'}</span>
-                        <DeleteVentaButton barbershopId={barbershopId} saleId={sale.id} />
+                </div>
+
+                <div className={styles.mobileServiceAccordion}>
+                  {salesGroupedByBarber.map(group => (
+                    <details key={group.barberName} className={styles.accordionGroup}>
+                      <summary className={styles.accordionHeader}>
+                        <span className={styles.accordionBarber}>{group.barberName}</span>
+                        <span className={styles.accordionMeta}>{group.count} servicios · {formatARS(group.total)}</span>
+                      </summary>
+                      <div className={styles.accordionBody}>
+                        {group.sales.map(sale => {
+                          const isPending = sale.status === 'pending'
+                          return (
+                            <div key={sale.id} className={styles.accordionItem}>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Hora</span>
+                                <span>{formatShortTime(sale.created_at)}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Servicio</span>
+                                <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Monto</span>
+                                <span className={styles.amount}>{formatARS(sale.amount)}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Notas</span>
+                                <span className={styles.muted}>{sale.notes ?? '—'}</span>
+                              </p>
+                              {showStatus && (
+                                <p className={styles.accordionLine}>
+                                  <span className={styles.accordionLabel}>Estado</span>
+                                  <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
+                                    {isPending ? 'Pendiente' : 'Confirmado'}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
-                    )
-                  })}
+                    </details>
+                  ))}
                 </div>
                 {tipo === 'servicio' && (
                   <Paginacion current={page} total={totalSalesPages} baseHref={baseHref} />
