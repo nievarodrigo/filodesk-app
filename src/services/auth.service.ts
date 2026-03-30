@@ -1,4 +1,11 @@
+// Build Version: 2026-03-29.01 (Force clean build)
 import { SupabaseClient } from '@supabase/supabase-js'
+import { BarbershopRole } from '@/lib/definitions'
+import { PERMISSIONS_BY_ROLE } from '@/lib/permissions'
+import * as barberRepo from '@/repositories/barber.repository'
+import * as barbershopRepo from '@/repositories/barbershop.repository'
+import * as memberRepo from '@/repositories/member.repository'
+import { isFeatureEnabled } from '@/services/plan.service'
 
 export async function loginUser(
   supabase: SupabaseClient,
@@ -41,4 +48,83 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
   })
   const data = await res.json()
   return data.success === true
+}
+
+async function getUserEmailForContext(
+  supabase: SupabaseClient,
+  userId: string,
+  privilegedSupabase?: SupabaseClient
+) {
+  const currentUserResult = await supabase.auth.getUser()
+  if (!currentUserResult.error && currentUserResult.data.user?.id === userId) {
+    return currentUserResult.data.user.email?.trim().toLowerCase() ?? null
+  }
+
+  if (!privilegedSupabase) return null
+
+  const adminClient = privilegedSupabase as SupabaseClient & {
+    auth: {
+      admin?: {
+        getUserById: (id: string) => Promise<{ data: { user: { email?: string | null } | null }; error: unknown }>
+      }
+    }
+  }
+
+  const adminGetUser = adminClient.auth.admin?.getUserById
+  if (!adminGetUser) return null
+
+  const { data, error } = await adminGetUser(userId)
+  if (error || !data.user?.email) return null
+
+  return data.user.email.trim().toLowerCase()
+}
+
+export async function getServerAuthContext(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  userId: string,
+  privilegedSupabase?: SupabaseClient
+): Promise<{ role: BarbershopRole; plan: string; permissions: string[] } | null> {
+  const authLookupClient = privilegedSupabase ?? supabase
+
+  const barbershop = await barbershopRepo.findById(authLookupClient, barbershopId)
+  if (!barbershop) return null
+
+  const planName = barbershop.plan_name ?? 'Base'
+
+  let role: BarbershopRole | null = null
+
+  if (userId === barbershop.owner_id) {
+    role = 'owner'
+  } else {
+    role = await memberRepo.getMemberRole(authLookupClient, barbershopId, userId)
+  }
+
+  if (!role) return null
+
+  if (role === 'barber') {
+    const linkedBarber = await barberRepo.findByUserId(authLookupClient, barbershopId, userId)
+
+    if (!linkedBarber) {
+      const userEmail = await getUserEmailForContext(supabase, userId, privilegedSupabase)
+
+      if (userEmail) {
+        const barberByEmail = await barberRepo.findByEmailWithoutUserId(authLookupClient, barbershopId, userEmail)
+
+        if (barberByEmail) {
+          await barberRepo.attachUserId(authLookupClient, barberByEmail.id, userId)
+        }
+      }
+    }
+  }
+
+  if ((role === 'manager' || role === 'barber') && !isFeatureEnabled(planName, 'multi_user')) {
+    return null
+  }
+
+  return {
+    role,
+    plan: planName,
+    permissions: PERMISSIONS_BY_ROLE[role],
+  }
 }

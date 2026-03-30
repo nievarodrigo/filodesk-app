@@ -1,18 +1,69 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { today } from '@/lib/date'
+import { type ServiceType, type Sale, type ProductSale, type BarbershopRole } from '@/lib/definitions'
+import { getServerAuthContext } from '@/services/auth.service'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
+import VentasPendientesWidget from './VentasPendientesWidget'
 import BarberosCard from './BarberosCard'
+import CollapsibleCard from './CollapsibleCard'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Dashboard — FiloDesk' }
+export const revalidate = 0
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency', currency: 'ARS', maximumFractionDigits: 0,
   }).format(n)
+}
+
+function normalizeIdentity(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function resolveCurrentBarber(
+  user: { id: string; email?: string; user_metadata?: { first_name?: string; last_name?: string } },
+  barbers: Array<{ id: string; name: string; email?: string | null; user_id?: string | null; commission_pct: number; active: boolean }>
+) {
+  const userIdMatch = barbers.find((barber) => barber.user_id === user.id)
+  if (userIdMatch) return userIdMatch
+
+  const normalizedEmail = user.email?.trim().toLowerCase()
+  if (normalizedEmail) {
+    const emailMatch = barbers.find((barber) => barber.email?.trim().toLowerCase() === normalizedEmail)
+    if (emailMatch) return emailMatch
+  }
+
+  const candidates = new Set<string>()
+  const firstName = user.user_metadata?.first_name?.trim() ?? ''
+  const lastName = user.user_metadata?.last_name?.trim() ?? ''
+  const fullName = `${firstName} ${lastName}`.trim()
+
+  if (fullName) candidates.add(normalizeIdentity(fullName))
+  if (firstName) candidates.add(normalizeIdentity(firstName))
+
+  const emailLocalPart = user.email?.split('@')[0]?.replace(/[._-]+/g, ' ').trim()
+  if (emailLocalPart) candidates.add(normalizeIdentity(emailLocalPart))
+
+  const matches = barbers.filter((barber) => candidates.has(normalizeIdentity(barber.name)))
+  if (matches.length === 1) return matches[0]
+
+  return null
+}
+
+type SaleWithBarber = {
+  amount: number | null
+  barbers: { commission_pct?: number | null } | Array<{ commission_pct?: number | null }> | null
 }
 
 export default async function DashboardPage({
@@ -22,147 +73,266 @@ export default async function DashboardPage({
 }) {
   const { barbershopId } = await params
   const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
+  if (!context) redirect('/dashboard')
 
   const todayDate = today()
 
-  // Obtener info de suscripción
-  const { data: barbershopData } = await supabase
-    .from('barbershops')
-    .select('subscription_status, trial_ends_at, subscription_renews_at')
-    .eq('id', barbershopId)
-    .single()
-
-  const subscriptionDate = barbershopData?.subscription_status === 'trial'
-    ? barbershopData?.trial_ends_at
-    : barbershopData?.subscription_renews_at
-
-  const formattedSubDate = subscriptionDate
-    ? new Date(subscriptionDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
-    : null
-
   const [
+    { data: barbershop },
     { data: barbers },
     { data: rawServiceTypes },
-    { data: salesToday },
-    { data: recentSales },
     { data: products },
-    { data: productSalesToday },
-    { data: expensesToday },
   ] = await Promise.all([
-    supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
-    supabase.from('service_types').select('id, name, default_price').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
-    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
-    supabase.from('sales')
-      .select('id, amount, date, notes, barbers(name, commission_pct), service_types(name)')
-      .eq('barbershop_id', barbershopId)
-      .eq('date', todayDate)
-      .order('created_at', { ascending: false }),
+    supabase.from('barbershops').select('name, subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
+    supabase.from('barbers').select('id, name, email, user_id, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
+    supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('products')
       .select('id, name, sale_price, stock')
       .eq('barbershop_id', barbershopId)
       .eq('active', true)
       .gt('stock', 0)
       .order('name'),
-    supabase.from('product_sales')
-      .select('id, sale_price, quantity, products(name)')
-      .eq('barbershop_id', barbershopId)
-      .eq('date', todayDate)
-      .order('created_at', { ascending: false }),
-    supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
+  ])
+
+  const currentBarber = context.role === 'barber'
+    ? resolveCurrentBarber(session.user, (barbers ?? []).filter((barber) => barber.active))
+    : null
+
+  const salesBaseQuery = supabase
+    .from('sales')
+    .select('id, barber_id, amount, status, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
+    .eq('barbershop_id', barbershopId)
+    .eq('date', todayDate)
+
+  const salesTotalsQuery = supabase
+    .from('sales')
+    .select('amount, barber_id, barbers(name, commission_pct)')
+    .eq('barbershop_id', barbershopId)
+    .eq('date', todayDate)
+
+  const scopedSalesQuery = context.role === 'barber'
+    ? (currentBarber
+        ? salesBaseQuery.eq('barber_id', currentBarber.id)
+        : salesBaseQuery.eq('barber_id', '__no_barber_match__'))
+    : salesBaseQuery
+
+  const scopedSalesTotalsQuery = context.role === 'barber'
+    ? (currentBarber
+        ? salesTotalsQuery.eq('barber_id', currentBarber.id)
+        : salesTotalsQuery.eq('barber_id', '__no_barber_match__'))
+    : salesTotalsQuery
+
+  const [
+    { data: recentSales },
+    { data: salesToday },
+    { data: productSalesToday },
+    { data: expensesToday },
+  ] = await Promise.all([
+    scopedSalesQuery.order('created_at', { ascending: false }).limit(10),
+    scopedSalesTotalsQuery,
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as ProductSale[] })
+      : supabase.from('product_sales')
+          .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
+          .eq('barbershop_id', barbershopId)
+          .eq('date', todayDate)
+          .order('created_at', { ascending: false })
+          .limit(10),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as Array<{ amount: number }> })
+      : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
   ])
 
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
-  const overrideNames = new Set((rawServiceTypes ?? []).filter(s => (s as any).barbershop_id).map(s => s.name))
-  const serviceTypes = (rawServiceTypes ?? []).filter(s => (s as any).barbershop_id || !overrideNames.has(s.name))
+  const overrideNames = new Set((rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id).map(s => s.name))
+  const serviceTypes = (rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id || !overrideNames.has(s.name))
+  const salesTodayRows = (salesToday ?? []) as SaleWithBarber[]
 
-  const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const totalServiciosHoy = salesTodayRows.reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
-  const countHoy = (salesToday ?? []).length
+  const countHoy = salesTodayRows.length
 
-  const comisionesHoy = (recentSales ?? []).reduce((s, r: any) =>
-    s + Math.round((r.amount ?? 0) * ((r.barbers?.commission_pct ?? 0) / 100)), 0)
+  const comisionesHoy = salesTodayRows.reduce((s, r) => {
+    const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
+    return s + Math.round((r.amount ?? 0) * (pct / 100))
+  }, 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
 
   const activeBarbers = (barbers ?? []).filter(b => b.active)
+  const visibleBarbers = context.role === 'barber' && currentBarber ? [currentBarber] : activeBarbers
 
-  const kpis = [
-    { label: 'Servicios hoy',     value: countHoy.toString(),    color: 'var(--cream)' },
-    { label: 'Ingresos hoy',      value: formatARS(totalHoy),    color: 'var(--green)' },
-    { label: 'Comisiones hoy',    value: formatARS(comisionesHoy), color: 'var(--gold)' },
-    { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
-  ]
+  const barberAverageTicket = countHoy > 0 ? Math.round(totalServiciosHoy / countHoy) : 0
+  const showBarberWelcome = context.role === 'barber' && !!currentBarber && countHoy === 0
+  const kpis = context.role === 'barber'
+    ? [
+        { label: 'Tus servicios de hoy', value: countHoy.toString(), color: 'var(--cream)' },
+        { label: 'Tu facturación del día', value: formatARS(totalServiciosHoy), color: 'var(--green)' },
+        { label: 'Tu comisión del día', value: formatARS(comisionesHoy), color: 'var(--gold)' },
+        { label: 'Tu ticket promedio', value: countHoy > 0 ? formatARS(barberAverageTicket) : '—', color: 'var(--cream)' },
+      ]
+    : [
+        { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
+        { label: 'Ingresos hoy', value: formatARS(totalHoy), color: 'var(--green)' },
+        { label: 'Comisiones hoy', value: formatARS(comisionesHoy), color: 'var(--gold)' },
+        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
+      ]
+
+  const planName = context.plan
+  const subscriptionMessage = (() => {
+    if (barbershop?.subscription_renews_at) {
+      // 'checkout_pro' = pago manual único (MP checkout)
+      // cualquier otro valor = suscripción automática de MP (débito recurrente)
+      const isAutomatic = barbershop.subscription_payment_method !== null &&
+                          barbershop.subscription_payment_method !== 'checkout_pro'
+      const date = new Date(barbershop.subscription_renews_at)
+      const formattedDate = date.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
+      const renewalText = isAutomatic
+        ? `Se renueva el ${formattedDate}`
+        : `Vence el ${formattedDate}`
+      return { planName, renewalText }
+    }
+    return { planName, renewalText: null }
+  })()
 
   return (
     <div>
       <div className={styles.header}>
         <h1 className={styles.title}>Inicio</h1>
-        <div style={{ textAlign: 'right', fontSize: '.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>
-          <p>
-            Hoy: <strong style={{ color: 'var(--text)' }}>
-              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
-            </strong>
+        <div>
+          <p className={styles.date}>
+            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
           </p>
-          {formattedSubDate && (
-            <p>
-              {barbershopData?.subscription_status === 'trial' ? 'Trial' : 'Plan'} vence: <strong style={{ color: 'var(--gold)' }}>{formattedSubDate}</strong>
-            </p>
-          )}
+          <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontWeight: 600, color: 'var(--gold)' }}>Plan {subscriptionMessage.planName}</span>
+            {context.role === 'owner' && context.plan === 'Base' && (
+              <a href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>
+                Mejorar plan
+              </a>
+            )}
+            {subscriptionMessage.renewalText && (
+              <>
+                <span style={{ color: 'var(--muted)' }}>|</span>
+                <span style={{ color: 'var(--muted)' }}>{subscriptionMessage.renewalText}</span>
+              </>
+            )}
+          </p>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className={styles.kpis}>
-        {kpis.map(k => (
-          <div key={k.label} className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
-
-      {/* Forms: servicio + producto lado a lado */}
-      {activeBarbers.length === 0 ? (
-        <div className={styles.noBarbers}>
-          Agregá un barbero en <a href={`/dashboard/${barbershopId}/configuracion`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:kpis`}
+        title="Resumen del dia"
+      >
+        <div className={styles.kpis}>
+          {kpis.map(k => (
+            <div key={k.label} className={styles.kpiCard}>
+              <p className={styles.kpiLabel}>{k.label}</p>
+              <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+            </div>
+          ))}
         </div>
-      ) : (
-        <div className={styles.formRow}>
-          <NuevaVentaForm
-            barbershopId={barbershopId}
-            barbers={activeBarbers}
-            serviceTypes={serviceTypes ?? []}
-            compact
-          />
-          <VenderProductoWidget
-            barbershopId={barbershopId}
-            products={products ?? []}
-          />
-        </div>
+      </CollapsibleCard>
+
+      {context.role !== 'barber' && (
+        <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
       )}
 
-      {/* Ventas de hoy */}
-      <VentasHoySection
-        serviceSales={(recentSales ?? []).map((s: any) => ({
-          id: s.id,
-          type: 'servicio' as const,
-          barber: s.barbers?.name ?? '—',
-          service: s.service_types?.name ?? '—',
-          amount: s.amount ?? 0,
-          notes: s.notes ?? null,
-        }))}
-        productSales={(productSalesToday ?? []).map((s: any) => ({
-          id: s.id,
-          type: 'producto' as const,
-          product: s.products?.name ?? '—',
-          quantity: s.quantity ?? 1,
-          amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
-        }))}
+      <VentasPendientesWidget
+        barbershopId={barbershopId}
+        role={context.role as BarbershopRole}
       />
 
+      {showBarberWelcome && (
+        <section className={styles.welcomeBanner}>
+          <p className={styles.welcomeEyebrow}>Primer ingreso</p>
+          <h2 className={styles.welcomeTitle}>
+            ¡Bienvenido al equipo de {barbershop?.name ?? 'tu barbería'}!
+          </h2>
+          <p className={styles.welcomeText}>
+            Ya podés empezar a registrar tus ventas aquí mismo. Tu historial y tus comisiones se irán actualizando a medida que cargues tu actividad.
+          </p>
+        </section>
+      )}
+
+      <div style={{ marginTop: 16 }}>
+        <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
+          {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
+        </h2>
+        {/* Forms: servicio + producto lado a lado */}
+        {context.role === 'barber' && !currentBarber ? (
+          <div className={styles.noBarbers}>
+            Tu usuario todavía no está vinculado a un barbero activo. Pedile al dueño que revise tu perfil en Equipo o Barberos y Servicios.
+          </div>
+        ) : activeBarbers.length === 0 ? (
+          <div className={styles.noBarbers}>
+            Agregá un barbero en <a href={`/dashboard/${barbershopId}/barberosyservicios`} className={styles.link}>Barberos y Servicios</a> para empezar a registrar ventas.
+          </div>
+        ) : (
+          <div className={styles.formRow}>
+            <NuevaVentaForm
+              barbershopId={barbershopId}
+              barbers={visibleBarbers}
+              serviceTypes={serviceTypes ?? []}
+              compact
+              showOnboardingHint={context.role === 'barber'}
+            />
+            <VenderProductoWidget
+              barbershopId={barbershopId}
+              products={products ?? []}
+            />
+          </div>
+        )}
+      </div>
+
+      <CollapsibleCard
+        storageKey={`${barbershopId}:inicio:ventas-hoy`}
+        title={context.role === 'barber' ? 'Tu actividad de hoy' : 'Ventas de hoy'}
+        collapseOnMobile
+      >
+        <VentasHoySection
+          role={context.role as BarbershopRole}
+          serviceSales={(recentSales ?? []).map((s: Sale) => {
+            const barberName = (s.barbers && typeof s.barbers === 'object')
+              ? (Array.isArray(s.barbers) ? s.barbers[0]?.name : s.barbers.name)
+              : 'Sin nombre'
+            const serviceName = (s.service_types && typeof s.service_types === 'object')
+              ? (Array.isArray(s.service_types) ? s.service_types[0]?.name : s.service_types.name)
+              : 'Sin servicio'
+            return {
+              id: s.id,
+              barber_id: s.barber_id ?? '',
+              type: 'servicio' as const,
+              barber: barberName ?? '—',
+              service: serviceName ?? '—',
+              amount: s.amount ?? 0,
+              status: s.status ?? 'approved',
+              created_at: s.created_at ?? '',
+              notes: s.notes ?? null,
+            }
+          })}
+          productSales={(productSalesToday ?? []).map((s: ProductSale) => {
+            const productName = (s.products && typeof s.products === 'object')
+              ? (Array.isArray(s.products) ? s.products[0]?.name : s.products.name)
+              : 'Sin producto'
+            return {
+              id: s.id,
+              type: 'producto' as const,
+              product: productName ?? '—',
+              quantity: s.quantity ?? 1,
+              unit_price: s.sale_price ?? 0,
+              amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+              transaction_id: s.transaction_id ?? '',
+              created_at: s.created_at ?? '',
+            }
+          })}
+        />
+      </CollapsibleCard>
     </div>
   )
 }

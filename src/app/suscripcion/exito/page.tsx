@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import { createServiceClient } from '@/lib/supabase/server'
-import * as subscriptionService from '@/services/subscription.service'
 
 export default async function SuscripcionExitoPage({
   searchParams,
@@ -8,13 +6,7 @@ export default async function SuscripcionExitoPage({
   searchParams: Promise<{ barbershopId?: string }>
 }) {
   const { barbershopId: rawBarbershopId } = await searchParams
-  // MP agrega ?preapproval_id=... a la back_url que ya tiene ?, esto lo limpia
   const barbershopId = rawBarbershopId?.split('?')[0]
-
-  if (barbershopId) {
-    const supabase = createServiceClient()
-    await subscriptionService.activateByBarbershopId(supabase, barbershopId)
-  }
 
   return (
     <div style={{
@@ -26,12 +18,13 @@ export default async function SuscripcionExitoPage({
         borderRadius: 16, padding: '40px 36px', maxWidth: 440, width: '100%',
         display: 'flex', flexDirection: 'column', gap: 20, textAlign: 'center',
       }}>
-        <div style={{ fontSize: '2.5rem' }}>🎉</div>
+        <div style={{ fontSize: '2.5rem' }}>⌛</div>
         <h1 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--cream)' }}>
-          ¡Suscripción activada!
+          Procesando tu suscripción
         </h1>
         <p style={{ fontSize: '.9rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-          Ya podés usar FiloDesk sin límites. El pago se renueva automáticamente cada mes.
+          Estamos confirmando tu pago con Mercado Pago. Esto suele tardar unos segundos. 
+          Tu cuenta se activará automáticamente.
         </p>
         <Link
           href={barbershopId ? `/dashboard/${barbershopId}` : '/dashboard'}

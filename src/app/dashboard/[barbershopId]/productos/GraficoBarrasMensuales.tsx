@@ -4,19 +4,24 @@ import { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 
 interface MesData {
   mes: string   // "Ene", "Feb", etc.
   ingresos: number
 }
 
-interface Props { data: MesData[] }
+interface Props {
+  data: MesData[]
+  title?: string
+  emptyMessage?: string
+}
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipContent) => {
   if (!active || !payload?.[0]) return null
   return (
     <div style={{
@@ -29,7 +34,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export default function GraficoBarrasMensuales({ data }: Props) {
+export default function GraficoBarrasMensuales({
+  data,
+  title,
+  emptyMessage = 'Sin datos para este rango.',
+}: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -68,20 +77,24 @@ export default function GraficoBarrasMensuales({ data }: Props) {
             fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px',
             color: 'var(--muted)', fontWeight: 600, marginBottom: 12,
           }}>
-            Ingresos por productos — últimos 6 meses
+            {title ?? 'Ingresos por productos'}
           </p>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={data} barSize={32}>
-              <XAxis dataKey="mes" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(201,168,76,.08)' }} />
-              <Bar dataKey="ingresos" radius={[4, 4, 0, 0]}>
-                {data.map((_, i) => (
-                  <Cell key={i} fill={i === data.length - 1 ? 'var(--gold)' : 'var(--border)'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {data.length === 0 ? (
+            <p style={{ color: 'var(--muted)', fontSize: '.86rem' }}>{emptyMessage}</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={data} barSize={32}>
+                <XAxis dataKey="mes" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(201,168,76,.08)' }} />
+                <Bar dataKey="ingresos" radius={[4, 4, 0, 0]}>
+                  {data.map((_, i) => (
+                    <Cell key={i} fill={i === data.length - 1 ? 'var(--gold)' : 'var(--border)'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       )}
     </div>

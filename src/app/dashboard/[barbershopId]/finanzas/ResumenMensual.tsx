@@ -3,6 +3,7 @@
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
+import { TooltipContent } from '@/lib/definitions'
 
 interface MesData {
   mes: string
@@ -10,7 +11,10 @@ interface MesData {
   gastos: number
 }
 
-interface Props { data: MesData[] }
+interface Props {
+  data: MesData[]
+  title?: string
+}
 
 function fmtFull(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -21,10 +25,10 @@ function fmtARS(n: number) {
   return `$${n}`
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipContent) => {
   if (!active || !payload?.length) return null
-  const ing = payload.find((p: any) => p.dataKey === 'ingresos')?.value ?? 0
-  const gas = payload.find((p: any) => p.dataKey === 'gastos')?.value ?? 0
+  const ing = payload.find((p) => p.dataKey === 'ingresos')?.value ?? 0
+  const gas = payload.find((p) => p.dataKey === 'gastos')?.value ?? 0
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: '.82rem' }}>
       <p style={{ color: 'var(--cream)', fontWeight: 600, marginBottom: 6 }}>{label}</p>
@@ -37,12 +41,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export default function ResumenMensual({ data }: Props) {
+export default function ResumenMensual({ data, title }: Props) {
   if (data.length === 0) return null
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
       <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-        Ingresos vs Gastos — últimos 6 meses
+        {title ?? 'Ingresos vs Gastos'}
       </p>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={data} barGap={4} barSize={24}>

@@ -18,7 +18,7 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
       </button>
 
       {open && (
-        <div className={styles.formCard} style={{ marginTop: 16 }}>
+        <div className={`${styles.formCard} ${styles.formCardOpen}`}>
           <h3 className={styles.formTitle}>Nuevo servicio</h3>
           <form action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
@@ -29,8 +29,8 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
                 {state?.errors?.name && <p className={styles.error}>{state.errors.name[0]}</p>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label} htmlFor="default_price">Precio sugerido (ARS)</label>
-                <input id="default_price" name="default_price" type="number" min="0" step="1" className={styles.input} placeholder="Ej: 5000" />
+                <label className={styles.label} htmlFor="default_price">Precio (ARS)</label>
+                <input id="default_price" name="default_price" type="number" inputMode="numeric" min="0" step="1" className={styles.input} placeholder="Ej: 5000" />
                 {state?.errors?.default_price && <p className={styles.error}>{state.errors.default_price[0]}</p>}
               </div>
             </div>

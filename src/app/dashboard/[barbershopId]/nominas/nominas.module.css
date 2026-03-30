@@ -2,18 +2,137 @@
 .title  { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
 .pendingAlert { font-size: .82rem; color: var(--red); margin-top: 4px; }
 
+.filtersWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 10px;
+}
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.monthNav::-webkit-scrollbar { display: none; }
+.monthTab,
+.monthActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+}
+.monthTab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.monthActive {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 65%, transparent);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+}
+.periodDescription {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.kpiCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 124px;
+}
+.kpiLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: .76rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpiValue {
+  margin: 0;
+  color: var(--green);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.kpiValueDanger { color: var(--red); }
+
 .btnPrimary  { background: var(--gold); color: var(--bg); border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: .88rem; cursor: pointer; transition: background .15s; white-space: nowrap; }
 .btnPrimary:hover:not(:disabled) { background: var(--gold-soft); }
 .btnPrimary:disabled { opacity: .6; cursor: not-allowed; }
 .btnSecondary { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: .88rem; cursor: pointer; }
 .btnSecondary:hover { color: var(--text); border-color: rgba(196,30,58,.35); }
 
-.btnPay { background: rgba(94,207,135,.15); border: 1px solid rgba(94,207,135,.4); color: var(--green); padding: 6px 14px; border-radius: 6px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
-.btnPay:hover { background: rgba(94,207,135,.25); }
-.btnPay:disabled { opacity: .5; cursor: not-allowed; }
-.btnDelete { background: transparent; border: none; color: var(--muted); font-size: .85rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: color .15s; }
-.btnDelete:hover { color: var(--red); }
-.btnDelete:disabled { opacity: .4; }
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btnPay,
+.btnDelete {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: .79rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btnPay {
+  background: rgba(94, 207, 135, 0.12);
+  border-color: rgba(94, 207, 135, 0.35);
+  color: var(--green);
+}
+.btnPay:hover {
+  background: rgba(94, 207, 135, 0.2);
+  border-color: rgba(94, 207, 135, 0.5);
+}
+.btnDelete {
+  background: rgba(224, 112, 112, 0.08);
+  border-color: rgba(224, 112, 112, 0.35);
+  color: var(--red);
+}
+.btnDelete:hover {
+  background: rgba(224, 112, 112, 0.15);
+  border-color: rgba(224, 112, 112, 0.5);
+}
+.btnPay:disabled,
+.btnDelete:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.spinIcon {
+  animation: spin .8s linear infinite;
+}
 
 /* Form */
 .formCard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 28px; }
@@ -31,11 +150,146 @@
 
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
-.tableRow  { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 16px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
+.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
+.tableRow  { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto auto; padding: 16px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
 .muted { color: var(--muted); }
+
+.payrollGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.payrollGroup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.payrollSummary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid transparent;
+}
+.payrollSummary::-webkit-details-marker { display: none; }
+.payrollGroup[open] .payrollSummary {
+  border-bottom-color: var(--border);
+}
+.payrollSummaryMain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.payrollBarberName {
+  color: var(--cream);
+  font-weight: 700;
+  font-size: .95rem;
+}
+.payrollSummaryMeta {
+  color: var(--muted);
+  font-size: .78rem;
+}
+.payrollSummaryTotals {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .8rem;
+  white-space: nowrap;
+}
+.payrollPending {
+  color: var(--red);
+  font-weight: 600;
+}
+.payrollPaid {
+  color: var(--green);
+  font-weight: 600;
+}
+.payrollChevron {
+  color: var(--muted);
+  transition: transform .2s ease;
+}
+.payrollGroup[open] .payrollChevron {
+  transform: rotate(180deg);
+}
+
+.groupTable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.groupTableHead,
+.groupTableRow {
+  min-width: 760px;
+  display: grid;
+  grid-template-columns: 110px 1.4fr 1fr 1fr 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+}
+.groupTableHead {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  background: var(--hover);
+}
+.groupTableRow {
+  font-size: .88rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--hover);
+}
+.groupTableRow:last-child {
+  border-bottom: none;
+}
+.dateCell,
+.periodCell {
+  color: var(--muted);
+}
+.commissionCell {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.btnWhatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  background: rgba(37, 211, 102, 0.14);
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  color: #25d366;
+  font-size: .79rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.whatsappIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btnWhatsapp:hover {
+  background: rgba(37, 211, 102, 0.2);
+  border-color: rgba(37, 211, 102, 0.5);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 .badgePaid    { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(94,207,135,.12);  color: var(--green); }
 .badgePending { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(201,168,76,.12); color: var(--gold); }
@@ -43,6 +297,28 @@
 .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px; text-align: center; color: var(--muted); font-size: .9rem; }
 
 @media (max-width: 768px) {
+  .filtersWrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .payrollSummary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .payrollSummaryTotals {
+    width: 100%;
+    justify-content: space-between;
+    white-space: normal;
+  }
+  .groupTableHead,
+  .groupTableRow {
+    min-width: 700px;
+    padding: 10px 14px;
+    font-size: .8rem;
+  }
   .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead, .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
+  .tableHead, .tableRow { min-width: 680px; padding: 10px 14px; font-size: .82rem; }
+  .kpiCard { min-height: 112px; padding: 14px; }
+  .kpiValue { font-size: 1.2rem; }
 }

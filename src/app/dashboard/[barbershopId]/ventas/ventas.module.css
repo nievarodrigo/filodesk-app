@@ -59,9 +59,14 @@
   color: var(--muted);
   font-size: .85rem;
   cursor: pointer;
-  padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
   border-radius: 4px;
   transition: color .15s, background .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btnDelete:hover { color: var(--red); background: rgba(224,112,112,.08); }
 .btnDelete:disabled { opacity: .4; cursor: not-allowed; }
@@ -126,7 +131,8 @@
   background: transparent;
   border: 1px dashed var(--border);
   color: var(--muted);
-  padding: 4px 12px;
+  min-height: 44px;
+  padding: 10px 12px;
   border-radius: 6px;
   font-size: .8rem;
   cursor: pointer;
@@ -159,10 +165,15 @@
   color: var(--muted);
   font-size: .85rem;
   cursor: pointer;
-  padding: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px;
   border-radius: 4px;
   transition: color .15s;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btnRemoveRow:hover:not(:disabled) { color: var(--red); }
 .btnRemoveRow:disabled { opacity: .3; cursor: not-allowed; }
@@ -233,6 +244,33 @@
   padding: 10px 14px;
   font-size: .85rem;
   color: var(--red);
+}
+
+.onboardingHint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(201,168,76,.08);
+  border: 1px solid rgba(201,168,76,.2);
+  color: var(--gold);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.onboardingDot {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--bg);
+  font-size: .74rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 /* Table */
@@ -343,10 +381,16 @@
 /* ── Month nav ── */
 .monthNav {
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   gap: 6px;
-  flex-wrap: wrap;
 }
+.monthNav::-webkit-scrollbar { display: none; }
+.monthNav > :last-child { padding-right: 20px; }
 .monthTab {
+  flex: 0 0 auto;
   padding: 6px 12px;
   border-radius: 8px;
   font-size: .78rem;
@@ -360,6 +404,7 @@
 }
 .monthTab:hover { color: var(--text); border-color: var(--muted); }
 .monthActive {
+  flex: 0 0 auto;
   padding: 6px 12px;
   border-radius: 8px;
   font-size: .78rem;
@@ -391,6 +436,8 @@
 }
 .summaryLabel { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
 .summaryValue { font-size: 1.4rem; font-weight: 700; color: var(--cream); }
+.summaryValuePositive { color: var(--green); }
+.summaryValueGold { color: var(--gold); }
 
 /* ── By barber ── */
 .byBarber { margin-bottom: 24px; }
@@ -408,7 +455,14 @@
 
 /* ── Table section ── */
 .tableSection { }
+.serviceTableGap { margin-bottom: 16px; }
 .amount { color: var(--green); font-weight: 600; }
+.desktopServiceTable { display: block; }
+.desktopProductTable { display: block; }
+.byBarberMobileAccordion { display: none; }
+.productAccordion { display: none; }
+.desktopPagination { display: block; }
+.mobilePagination { display: none; }
 
 /* Filter row */
 .filterRow {
@@ -441,10 +495,31 @@
 /* Summary breakdown */
 .summaryBreak { font-size: .72rem; color: var(--muted); margin-top: 4px; }
 
-/* Service table (7 cols) */
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.statusPending {
+  background: rgba(201,168,76,.12);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,.25);
+}
+.statusApproved {
+  background: rgba(94, 207, 135, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(94, 207, 135, 0.2);
+}
+
+/* Service table (8 cols with Status) */
 .tableHeadService {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1.1fr 1fr auto;
   padding: 10px 16px;
   font-size: .7rem; text-transform: uppercase; letter-spacing: .7px;
   color: var(--muted); font-weight: 600;
@@ -453,7 +528,7 @@
 }
 .tableRowService {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1.1fr 1fr auto;
   padding: 11px 16px;
   font-size: .88rem; color: var(--text);
   border-bottom: 1px solid var(--hover);
@@ -461,6 +536,231 @@
 }
 .tableRowService:last-child { border-bottom: none; }
 .tableRowService:hover { background: var(--hover); }
+.tableHeadServiceNoStatus {
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+}
+.tableRowServiceNoStatus {
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+}
+
+/* Mobile accordion (agrupado por barbero) */
+.accordionGroup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.accordionHeader {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding: 18px 22px;
+  cursor: pointer;
+  user-select: none;
+}
+.accordionHeader::-webkit-details-marker { display: none; }
+.accordionHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.accordionBarber {
+  color: var(--cream);
+  font-weight: 700;
+  font-size: .95rem;
+  line-height: 1.6;
+}
+.accordionMeta {
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.6;
+  text-align: right;
+}
+.accordionCommission {
+  margin: 0;
+  color: var(--gold);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.accordionBody {
+  display: grid;
+  gap: 14px;
+  padding: 0 22px 18px;
+}
+.serviceAccordionList {
+  display: grid;
+  gap: 14px;
+}
+.serviceTxHead {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.3fr) 90px 120px;
+  gap: 8px;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.serviceTxRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.3fr) 90px 120px;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--hover);
+  padding-top: 10px;
+  font-size: .88rem;
+  color: var(--text);
+}
+.accordionItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 18px 22px;
+  display: grid;
+  gap: 14px;
+  line-height: 1.6;
+}
+.accordionLine {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+}
+.accordionLabel {
+  color: var(--muted);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 600;
+}
+.accordionPager {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+.accordionPagerInfo {
+  font-size: .78rem;
+  color: var(--muted);
+}
+.accordionPagerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.accordionPagerBtn {
+  border: 1px solid rgba(201,168,76,.28);
+  background: rgba(201,168,76,.08);
+  color: var(--gold);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.accordionPagerBtn:hover {
+  background: rgba(201,168,76,.14);
+}
+.moreServices {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+}
+.moreServicesToggle {
+  list-style: none;
+  cursor: pointer;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: .84rem;
+}
+.moreServicesToggle::-webkit-details-marker { display: none; }
+.moreServicesBody {
+  margin-top: 10px;
+  display: grid;
+  gap: 12px;
+}
+
+/* Mobile product accordion */
+.productAccordionItem {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.productAccordionHeader {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.productAccordionHeader::-webkit-details-marker { display: none; }
+.productAccordionDate {
+  color: var(--cream);
+  font-size: .82rem;
+  font-weight: 700;
+}
+.productAccordionCount {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.productAccordionTotal {
+  color: var(--green);
+  font-size: .92rem;
+  font-weight: 700;
+}
+.productAccordionBody {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: grid;
+  gap: 12px;
+  line-height: 1.6;
+}
+.productAccordionTableHead {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 90px 120px 120px;
+  align-items: center;
+  gap: 8px;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  padding-bottom: 6px;
+}
+.productAccordionRow {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 90px 120px 120px;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--hover);
+  padding-top: 8px;
+  font-size: .86rem;
+}
+.productLine {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.productLabel {
+  color: var(--muted);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 600;
+}
 
 /* Product table (4 cols) */
 .tableHeadProduct {
@@ -539,18 +839,197 @@
 }
 
 .pagNota { font-size: .72rem; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.desktopRecordsHint { display: block; }
 
-/* ── Mobile tables ── */
+/* ── Mobile tables (Ticket #001) ── */
 @media (max-width: 768px) {
-  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead,
-  .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
-  .tableHeadService,
-  .tableRowService { min-width: 640px; padding: 10px 14px; font-size: .82rem; }
-  .tableHeadProduct,
-  .tableRowProduct { padding: 10px 14px; font-size: .82rem; }
-  .servicesHead,
-  .serviceRow { grid-template-columns: 1fr 48px 1fr 28px; }
+  .desktopServiceTable { display: none; }
+  .desktopProductTable { display: none; }
+  .byBarberMobileAccordion { display: grid; gap: 14px; margin-bottom: 16px; }
+  .productAccordion { display: block; }
+  .barberGrid { display: none; }
+  .desktopPagination { display: none; }
+  .mobilePagination { display: block; }
+
+  .table { border: none; background: transparent; }
+  .tableHeadService, .tableHeadProduct { display: none; }
+  .filterTabs { display: none; }
+  .desktopRecordsHint { display: none; }
+  .serviceTxHead { display: none; }
+  .serviceTxRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-top: 12px;
+  }
+  .serviceTxRow > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: .9rem;
+  }
+  .serviceTxRow > span::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .productAccordionTableHead { display: none; }
+  .productAccordionRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    border-top: 1px solid var(--hover);
+    padding: 12px 0 0;
+  }
+  .productAccordionRow > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: .9rem;
+  }
+  .productAccordionRow > span::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .productAccordionHeader {
+    grid-template-columns: 1fr auto;
+    row-gap: 6px;
+  }
+  .productAccordionCount {
+    grid-column: 1 / 2;
+  }
+
+  /* Servicios Card */
+  .tableRowService {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    min-width: 0 !important;
+    line-height: 1.6;
+  }
+
+  .tableRowService > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
+  }
+
+  .tableRowService > span::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .tableRowService .amount { font-size: 1.1rem; }
+
+  /* Ajuste para el botón de eliminar en mobile */
+  .tableRowService > button {
+    align-self: flex-end;
+    margin-top: 8px;
+    background: rgba(224,112,112,.08);
+    color: var(--red);
+    border: 1px solid rgba(224,112,112,.2);
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border-radius: 8px;
+  }
+  .tableRowService > button::after { content: " Eliminar registro"; font-size: 0.85rem; }
+
+  /* Productos Card */
+  .tableRowProduct {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    min-width: 0 !important;
+    line-height: 1.6;
+  }
+  .tableRowProduct > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
+  }
+  .tableRowProduct > span::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+}
+
+/* ── Mobile Form Táctil (Ticket #002) ── */
+@media (max-width: 600px) {
+  .serviceRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 14px;
+    background: var(--hover);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .serviceRow > select {
+    grid-column: span 2; /* Servicio arriba a ancho completo */
+  }
+
+  .serviceRow > input {
+    width: 100% !important; /* Cantidad y Monto abajo */
+  }
+
+  .serviceRow > .btnRemoveRow {
+    grid-column: span 2;
+    width: 100%;
+    margin-top: 4px;
+    border: 1px solid rgba(224,112,112,.2);
+    background: rgba(224,112,112,.05);
+  }
+
+  .btnAddRow {
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: var(--surface);
+    border-style: solid;
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .input, .select {
+    min-height: 46px; /* Touch friendly */
+    font-size: 1rem; /* Evita zoom automático en iOS */
+  }
+
+  .servicesHead { display: none; } /* Ocultar labels de tabla en mobile form */
 }
 
 .noBarbers {

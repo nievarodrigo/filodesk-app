@@ -19,7 +19,7 @@ export default function NuevoBarberoForm({ barbershopId }: Props) {
       </button>
 
       {open && (
-        <div className={styles.formCard} style={{ marginTop: 16 }}>
+        <div className={`${styles.formCard} ${styles.formCardOpen}`}>
           <h3 className={styles.formTitle}>Nuevo barbero</h3>
           <form action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
@@ -28,6 +28,25 @@ export default function NuevoBarberoForm({ barbershopId }: Props) {
                 <label className={styles.label} htmlFor="name">Nombre *</label>
                 <input id="name" name="name" type="text" className={styles.input} placeholder="Ej: Martín" autoFocus />
                 {state?.errors?.name && <p className={styles.error}>{state.errors.name[0]}</p>}
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="lastName">Apellido *</label>
+                <input id="lastName" name="lastName" type="text" className={styles.input} placeholder="Ej: Pérez" />
+                {state?.errors?.lastName && <p className={styles.error}>{state.errors.lastName[0]}</p>}
+              </div>
+            </div>
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="email">Email *</label>
+                <input id="email" name="email" type="email" className={styles.input} placeholder="martin@barberia.com" />
+                {state?.errors?.email && <p className={styles.error}>{state.errors.email[0]}</p>}
+              </div>
+            </div>
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="phone">Teléfono *</label>
+                <input id="phone" name="phone" type="tel" className={styles.input} placeholder="+54 11 1234 5678" />
+                {state?.errors?.phone && <p className={styles.error}>{state.errors.phone[0]}</p>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="commission_pct">Comisión (%)</label>

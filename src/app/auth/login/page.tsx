@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import GoogleAuthButton from '../GoogleAuthButton'
 import LoginForm from './LoginForm'
 import Link from 'next/link'
 import styles from '../auth.module.css'
@@ -16,6 +17,10 @@ export default function LoginPage() {
         <div className={styles.logo}>✦ FiloDesk</div>
         <h1 className={styles.title}>Iniciá sesión</h1>
         <p className={styles.subtitle}>Bienvenido de vuelta</p>
+        <GoogleAuthButton />
+        <div className={styles.separator}>
+          <span>o con email</span>
+        </div>
         <LoginForm />
         <p className={styles.switchText}>
           ¿No tenés cuenta?{' '}

@@ -48,6 +48,35 @@ src/
 | **Action** | Valida input (Zod), llama al service, maneja `revalidatePath`/`redirect` | No tiene queries SQL ni lógica de negocio |
 | **API Route** | Parsea request HTTP, llama al service, devuelve response | No tiene queries SQL ni lógica de negocio |
 
+### Arquitectura de Roles (RBAC)
+
+FiloDesk soporta tres roles por barbería:
+
+- `owner` — acceso total a la barbería, configuración, finanzas, equipo, stock y suscripción.
+- `manager` — acceso operativo amplio, pero sin acciones sensibles como cambiar el plan o eliminar la barbería.
+- `barber` — acceso acotado al registro de ventas.
+
+La asignación se resuelve con `barbershop_members` y el contexto de seguridad del servidor. El sistema de entitlements por plan define si la funcionalidad multiusuario está habilitada:
+
+- `Base` — no habilita multiusuario.
+- `Pro` — habilita `multi_user`.
+- `Premium IA` — habilita `multi_user` e `ia_predict`.
+
+Si una barbería está en plan `Base`, un usuario con rol `manager` o `barber` no obtiene contexto válido de acceso.
+
+### Seguridad y Autorización
+
+La protección del dashboard se apoya en dos pilares:
+
+- `getServerAuthContext(...)` — resuelve en servidor el rol real del usuario, el plan activo y los permisos efectivos antes de renderizar layouts o páginas sensibles.
+- RLS en Supabase — las tablas críticas usan políticas de Row Level Security para asegurar aislamiento entre barberías y evitar accesos fuera de contexto.
+
+Reglas importantes:
+
+- Las acciones de usuario deben usar `createClient()` para respetar RLS.
+- `createServiceClient()` queda reservado para webhooks, callbacks o procesos sin sesión donde el bypass de RLS esté justificado.
+- Las rutas sensibles del dashboard validan permisos con `canAccess(role, permission)` antes de cargar datos.
+
 ### Supabase clients
 
 Hay dos clientes de Supabase con distintos permisos:
@@ -131,6 +160,32 @@ Para probar el flujo de pagos en staging se usan cuentas de prueba de MP:
 Requisito: el vendedor y el comprador **deben ser ambos cuentas de prueba**. Si mezclás una cuenta real con una de prueba, MP rechaza el pago.
 
 Antes de hacer un pago de prueba, deslogueate de mercadopago.com.ar/developers para que no interfiera con el checkout.
+
+## Testing
+
+El proyecto usa Vitest para pruebas unitarias de lógica de negocio.
+
+```bash
+npm test
+```
+
+Cobertura actual:
+
+- Suscripciones: descuentos, totales y cálculo de fechas de renovación.
+- Planes: matriz de entitlements por plan.
+- Permisos: la arquitectura de permisos se consume desde `canAccess(...)` y `getServerAuthContext(...)` en la capa de autorización.
+
+El workflow de CI ejecuta `npm install` y `npm test` en pushes y pull requests hacia `develop` y `main`.
+
+## Monitoreo
+
+El proyecto integra Sentry con Next.js para rastreo de errores en tiempo real.
+
+Se capturan fallos especialmente en:
+
+- webhooks críticos, como Mercado Pago,
+- server actions de suscripción,
+- acciones administrativas sensibles.
 
 ## Base de datos
 

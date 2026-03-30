@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toggleBarberActive } from '@/app/actions/barber'
+import styles from './barberos-card.module.css'
 
 interface Barber {
   id: string
@@ -21,81 +22,45 @@ export default function BarberosCard({ barbershopId, barbers }: Props) {
 
   return (
     <>
-      {/* Barra compacta */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 10,
-        padding: '10px 18px',
-        marginBottom: 16,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-          <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>
-            <strong style={{ color: 'var(--cream)', fontWeight: 700 }}>{activeCount}</strong>
+      <div className={styles.compactBar}>
+        <div className={styles.compactLeft}>
+          <div className={styles.statusDot} />
+          <span className={styles.compactText}>
+            <strong className={styles.compactStrong}>{activeCount}</strong>
             {' '}barbero{activeCount !== 1 ? 's' : ''} activo{activeCount !== 1 ? 's' : ''}
           </span>
         </div>
         <button
+          type="button"
+          className={styles.manageBtn}
           onClick={() => setOpen(true)}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            color: 'var(--muted)',
-            fontSize: '.75rem',
-            fontWeight: 600,
-            padding: '5px 12px',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => { const b = e.currentTarget; b.style.color = 'var(--gold)'; b.style.borderColor = 'var(--gold)' }}
-          onMouseLeave={e => { const b = e.currentTarget; b.style.color = 'var(--muted)'; b.style.borderColor = 'var(--border)' }}
         >
           Gestionar
         </button>
       </div>
 
-      {/* Modal */}
       {open && (
         <div
           onClick={() => setOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(0,0,0,.6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20,
-          }}
+          className={styles.backdrop}
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              padding: '24px 28px',
-              width: '100%',
-              maxWidth: 420,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 20,
-            }}
+            className={styles.modal}
           >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cream)' }}>Barberos</p>
+            <div className={styles.modalHeader}>
+              <p className={styles.modalTitle}>Barberos</p>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}
+                className={styles.closeBtn}
+                aria-label="Cerrar gestión de barberos"
               >
                 ✕
               </button>
             </div>
 
-            {/* Lista */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div className={styles.list}>
               {barbers.map(b => (
                 <BarberRow key={b.id} barbershopId={barbershopId} barber={b} />
               ))}
@@ -111,46 +76,27 @@ function BarberRow({ barbershopId, barber }: { barbershopId: string; barber: Bar
   const [pending, start] = useTransition()
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-      padding: '12px 0',
-      borderBottom: '1px solid var(--hover)',
-      opacity: barber.active ? 1 : 0.5,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 8, height: 8, borderRadius: '50%',
-          background: barber.active ? 'var(--green)' : 'var(--border)',
-          flexShrink: 0,
-        }} />
-        <div>
-          <p style={{ fontSize: '.9rem', fontWeight: 600, color: 'var(--cream)', lineHeight: 1.3 }}>{barber.name}</p>
-          <p style={{ fontSize: '.75rem', color: 'var(--muted)' }}>{barber.commission_pct}% comisión</p>
+    <details className={`${styles.row} ${barber.active ? '' : styles.rowInactive}`}>
+      <summary className={styles.rowSummary}>
+        <div className={styles.rowIdentity}>
+          <div className={`${styles.rowDot} ${barber.active ? styles.rowDotActive : styles.rowDotInactive}`} />
+          <div>
+            <p className={styles.rowName}>{barber.name}</p>
+            <p className={styles.rowMeta}>{barber.commission_pct}% comisión</p>
+          </div>
         </div>
+        <span className={styles.rowChevron} aria-hidden>▾</span>
+      </summary>
+      <div className={styles.rowBody}>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => start(() => { toggleBarberActive(barbershopId, barber.id, !barber.active) })}
+          className={barber.active ? styles.toggleOff : styles.toggleOn}
+        >
+          {pending ? '…' : barber.active ? 'Desactivar' : 'Reactivar'}
+        </button>
       </div>
-      <button
-        disabled={pending}
-        onClick={() => start(() => toggleBarberActive(barbershopId, barber.id, !barber.active))}
-        style={{
-          background: 'transparent',
-          border: `1px solid ${barber.active ? 'rgba(224,112,112,.4)' : 'rgba(94,207,135,.4)'}`,
-          color: barber.active ? 'var(--red)' : 'var(--green)',
-          padding: '5px 14px',
-          borderRadius: 6,
-          fontSize: '.78rem',
-          fontWeight: 600,
-          cursor: pending ? 'not-allowed' : 'pointer',
-          opacity: pending ? 0.5 : 1,
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
-          transition: 'opacity .15s',
-        }}
-      >
-        {pending ? '…' : barber.active ? 'Desactivar' : 'Activar'}
-      </button>
-    </div>
+    </details>
   )
 }

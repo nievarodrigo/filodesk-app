@@ -2,16 +2,27 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { canAccess } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { CreateProductSchema, UpdateProductDataSchema } from '@/lib/validations/product'
+import { getServerAuthContext } from '@/services/auth.service'
 import * as productService from '@/services/product.service'
 
-const ProductSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres.').trim(),
-  cost_price: z.number({ error: 'Ingresá un precio de costo.' }).min(0),
-  sale_price: z.number({ error: 'Ingresá un precio de venta.' }).positive('El precio de venta debe ser mayor a 0.'),
-  stock: z.number({ error: 'Ingresá la cantidad.' }).int().min(0),
-})
+async function requireManageProductsAccess(barbershopId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado.' as const }
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  const canManageProducts = !!context && (
+    canAccess(context.role, 'manage_products') || canAccess(context.role, 'manage_inventory')
+  )
+  if (!canManageProducts) {
+    return { error: 'No tenés permisos para gestionar productos.' as const }
+  }
+
+  return { supabase, user, context }
+}
 
 export type ProductoState = {
   errors?: { name?: string[]; cost_price?: string[]; sale_price?: string[]; stock?: string[] }
@@ -23,7 +34,7 @@ export async function createProducto(
   _state: ProductoState,
   formData: FormData
 ): Promise<ProductoState> {
-  const validated = ProductSchema.safeParse({
+  const validated = CreateProductSchema.safeParse({
     name: formData.get('name'),
     cost_price: Number(formData.get('cost_price')),
     sale_price: Number(formData.get('sale_price')),
@@ -31,10 +42,10 @@ export async function createProducto(
   })
   if (!validated.success) return { errors: validated.error.flatten().fieldErrors }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  const auth = await requireManageProductsAccess(barbershopId)
+  if ('error' in auth) return { message: auth.error }
 
+  const { supabase } = auth
   const result = await productService.createProduct(supabase, barbershopId, validated.data)
   if (result.error) return { message: result.error }
 
@@ -99,14 +110,61 @@ export async function reponerStock(
   quantity: number,
   cost_price: number
 ) {
-  const supabase = await createClient()
+  const auth = await requireManageProductsAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
   await productService.restockProduct(supabase, barbershopId, productId, quantity, cost_price)
   revalidatePath(`/dashboard/${barbershopId}/productos`)
   revalidatePath(`/dashboard/${barbershopId}/gastos`)
+  return { success: true }
 }
 
 export async function toggleProducto(barbershopId: string, productId: string, active: boolean) {
-  const supabase = await createClient()
-  await productService.toggleProduct(supabase, productId, active)
+  const auth = await requireManageProductsAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
+  const result = await productService.updateProductActive(supabase, barbershopId, productId, active)
+  if (result.error) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/productos`)
+  revalidatePath(`/dashboard/${barbershopId}`)
+  return { success: true }
+}
+
+export async function updateProductoData(
+  barbershopId: string,
+  productId: string,
+  payload: { name: string; sale_price: number; stock: number }
+) {
+  const validated = UpdateProductDataSchema.safeParse(payload)
+  if (!validated.success) {
+    const firstError = Object.values(validated.error.flatten().fieldErrors).find(Boolean)?.[0]
+    return { error: firstError ?? 'Datos inválidos.' }
+  }
+
+  const auth = await requireManageProductsAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
+  const result = await productService.updateProductData(supabase, barbershopId, productId, validated.data)
+  if (result.error) return { error: result.error }
+
+  revalidatePath(`/dashboard/${barbershopId}/productos`)
+  revalidatePath(`/dashboard/${barbershopId}`)
+  return { success: true }
+}
+
+export async function deleteProducto(barbershopId: string, productId: string) {
+  const auth = await requireManageProductsAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
+  const result = await productService.deleteProduct(supabase, barbershopId, productId)
+  if ('error' in result) return { error: result.error }
+
+  revalidatePath(`/dashboard/${barbershopId}/productos`)
+  revalidatePath(`/dashboard/${barbershopId}`)
+  revalidatePath(`/dashboard/${barbershopId}/ventas`)
+  return { success: true, mode: result.mode }
 }

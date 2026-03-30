@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import * as serviceTypeRepo from '@/repositories/service-type.repository'
+import * as saleRepo from '@/repositories/sale.repository'
 import type { CreateServiceTypeInput } from '@/types'
 
 export async function createServiceType(
@@ -78,9 +79,30 @@ export async function deleteServiceType(
   serviceId: string
 ) {
   const service = await serviceTypeRepo.findById(supabase, serviceId)
-  if (!service || service.barbershop_id !== barbershopId) {
-    return { error: 'Solo podés eliminar servicios propios, no los globales.' }
+  if (!service) return { error: 'El servicio no existe.' }
+
+  // If it's a local service, verify it belongs to this barbershop
+  if (service.barbershop_id !== null && service.barbershop_id !== barbershopId) {
+    return { error: 'No tenés permisos para eliminar este servicio.' }
   }
-  await serviceTypeRepo.deleteById(supabase, serviceId)
-  return {}
+
+  // Smart Delete: If no sales exist, hard delete. Otherwise, soft delete.
+  const salesCount = await saleRepo.countByServiceId(supabase, serviceId)
+
+  if (salesCount === 0) {
+    const hardDelete = await serviceTypeRepo.hardDeleteById(supabase, serviceId)
+    if (!hardDelete.error) return { mode: 'hard' as const }
+  }
+
+  // Global services with sales must not be disabled platform-wide.
+  // Create/update a local override set as inactive for this barbershop.
+  if (service.barbershop_id === null) {
+    await upsertOverride(supabase, barbershopId, service, { active: false })
+    return { mode: 'override' as const }
+  }
+
+  const softDelete = await serviceTypeRepo.softDeleteById(supabase, serviceId)
+  if (softDelete.error) return { error: 'No se pudo dar de baja el servicio.' }
+
+  return { mode: 'soft' as const }
 }

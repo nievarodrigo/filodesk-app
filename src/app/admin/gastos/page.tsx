@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
 import * as adminRepo from '@/repositories/admin.repository'
 import { addExpense, deleteExpense } from '@/app/actions/admin'
+import type { AdminExpense } from '@/lib/definitions'
 import styles from './page.module.css'
 
 export const metadata: Metadata = { title: 'Gastos — Admin FiloDesk' }
@@ -95,7 +96,7 @@ export default async function AdminGastosPage() {
               <span>Monto</span>
               <span></span>
             </div>
-            {expenses.map((e: any) => (
+            {expenses.map((e: AdminExpense) => (
               <div key={e.id} className={styles.tableRow}>
                 <span>{e.description}</span>
                 <span className={styles.cat}>{e.category}</span>

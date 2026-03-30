@@ -35,3 +35,135 @@ export type AuthFormState =
       message?: string
     }
   | undefined
+
+// Tipos de Supabase para Dashboard y Admin
+export interface ServiceType {
+  id: string
+  name: string
+  default_price: number
+  barbershop_id: string | null
+  active: boolean
+}
+
+export interface Sale {
+  id: string
+  barber_id?: string
+  amount: number
+  status?: 'pending' | 'approved'
+  date: string
+  created_at?: string
+  notes: string | null
+  barbers?: {
+    name: string
+    commission_pct: number
+  } | Array<{
+    name: string
+    commission_pct: number
+  }>
+  service_types?: {
+    name: string
+  } | Array<{
+    name: string
+  }>
+}
+
+export interface ProductSale {
+  id: string
+  sale_price: number
+  quantity: number
+  transaction_id?: string
+  created_at?: string
+  products?: {
+    name: string
+  } | Array<{
+    name: string
+  }>
+}
+
+export interface Barber {
+  id: string
+  name: string
+  commission_pct: number
+  active: boolean
+}
+
+export interface Expense {
+  id: string
+  amount: number
+  date: string
+}
+
+export interface AdminExpense {
+  id: string
+  amount: number
+  date: string
+  description: string
+  category: string
+}
+
+export interface Product {
+  id: string
+  name: string
+  sale_price: number
+  stock: number
+}
+
+export interface Barbershop {
+  id: string
+  name: string
+  created_at: string
+  subscription_status: 'active' | 'trial' | 'expired'
+  subscription_starts_at: string | null
+  subscription_renews_at: string | null
+  subscription_amount: number | null
+  subscription_payment_method: string | null
+  trial_ends_at: string | null
+}
+
+export type BarbershopRole = 'owner' | 'manager' | 'barber'
+
+export interface BarbershopMember {
+  id: string
+  barbershop_id: string
+  user_id: string
+  role: BarbershopRole
+  created_at: string
+}
+
+// Tipos para Finanzas
+export interface SaleWithCommission {
+  amount: number
+  barbers: { commission_pct?: number } | Array<{ commission_pct?: number }>
+}
+
+export interface SaleWithBarber {
+  amount: number
+  barber_id: string
+  barbers: { name?: string; commission_pct?: number } | Array<{ name?: string; commission_pct?: number }>
+}
+
+export interface SaleWithServiceType {
+  amount: number
+  service_types: { name?: string } | Array<{ name?: string }>
+}
+
+export interface ProductSaleWithProduct {
+  quantity: number
+  sale_price: number
+  products: { name?: string } | Array<{ name?: string }>
+}
+
+// Tipos para Recharts
+export interface PayloadEntry {
+  name: string
+  value: number
+  dataKey?: string
+  [key: string]: unknown
+}
+
+export interface TooltipContent {
+  active?: boolean
+  payload?: PayloadEntry[]
+  label?: string | number
+  [key: string]: unknown
+}

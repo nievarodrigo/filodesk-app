@@ -1,15 +1,31 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 
-export async function insert(
-  supabase: SupabaseClient,
-  data: { barbershop_id: string; product_id: string; quantity: number; sale_price: number; date: string }
-) {
+type ProductSaleRow = {
+  barbershop_id: string
+  product_id: string
+  quantity: number
+  sale_price: number
+  date: string
+  transaction_id?: string
+}
+
+export async function insert(supabase: SupabaseClient, data: ProductSaleRow) {
   return supabase.from('product_sales').insert(data)
 }
 
-export async function insertMany(
-  supabase: SupabaseClient,
-  rows: { barbershop_id: string; product_id: string; quantity: number; sale_price: number; date: string }[]
-) {
+export async function insertMany(supabase: SupabaseClient, rows: ProductSaleRow[]) {
   return supabase.from('product_sales').insert(rows)
+}
+
+export async function countByProductId(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  productId: string
+) {
+  const { count } = await supabase
+    .from('product_sales')
+    .select('id', { count: 'exact', head: true })
+    .eq('barbershop_id', barbershopId)
+    .eq('product_id', productId)
+  return count ?? 0
 }

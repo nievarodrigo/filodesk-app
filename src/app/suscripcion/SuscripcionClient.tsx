@@ -2,47 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
-import { createMPCheckoutWithMonths, createMPSubscription } from '@/app/actions/subscription'
-import { createGalioPAyPaymentLink } from '@/app/actions/galiopay'
+import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
 
-const PLANS = [
-  {
-    id: 'base',
-    name: 'Base',
-    price: 11999,
-    badge: 'BASE',
-    badgeColor: 'gold',
-    accent: 'var(--gold)',
-    sub: '14 días gratis · Cancelás cuando querés',
-    note: 'Sin compromiso, cancelás cuando querés',
-    features: ['Hasta 5 barberos', 'Comisiones automáticas', 'Ganancia neta en tiempo real', 'Control de stock y gastos'],
-    available: true,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 19999,
-    badge: 'PRÓXIMAMENTE',
-    badgeColor: 'blue',
-    accent: 'var(--blue)',
-    sub: 'En desarrollo — disponible pronto',
-    note: 'En desarrollo — disponible pronto',
-    features: ['Barberos ilimitados', 'Todo lo del plan Base', 'Roles: Dueño, Encargado, Barbero', 'Historial completo'],
-    available: false,
-  },
-  {
-    id: 'premium',
-    name: 'Premium IA',
-    price: 29999,
-    badge: 'PRÓXIMAMENTE',
-    badgeColor: 'green',
-    accent: 'linear-gradient(to right, var(--gold), var(--green))',
-    sub: 'En desarrollo — disponible pronto',
-    note: 'En desarrollo — disponible pronto',
-    features: ['Todo lo del plan Pro', 'Predicción de demanda', 'Alertas de ingresos', 'Asistente IA'],
-    available: false,
-  },
-]
+const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
 
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
@@ -54,33 +16,96 @@ const MONTH_OPTIONS = [
 type Method = 'checkout' | 'subscription' | 'transfer'
 type Screen = 'plans' | 'payment'
 
+interface Plan {
+  id: string
+  name: string
+  price: number
+  features: string[]
+  active: boolean
+}
+
 interface Props {
   barbershopId:       string
   barbershopName:     string
+  currentPlan:        string
   subscriptionStatus: string
   trialEnd:           string | null
+  plans:              Plan[]
 }
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
 }
 
-export default function SuscripcionClient({ barbershopId, barbershopName, subscriptionStatus, trialEnd }: Props) {
+export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
   const [screen, setScreen] = useState<Screen>('plans')
-  const [selectedPlan, setSelectedPlan] = useState<string>('base')
+  const normalizedCurrentPlan = currentPlan || 'Base'
+  const initialSelectedPlanId = plans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(initialSelectedPlanId)
   const [months, setMonths] = useState(1)
   const [method, setMethod] = useState<Method>('checkout')
   const [pending, start] = useTransition()
 
-  const plan = PLANS.find(p => p.id === selectedPlan)!
-  const opt = MONTH_OPTIONS.find(o => o.months === months)!
+  // Guard clause para evitar crash si no hay planes
+  if (!plans || plans.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <div style={{ textAlign: 'center', padding: 20 }}>
+          <h2 style={{ color: 'var(--cream)' }}>Servicio temporalmente no disponible</h2>
+          <p style={{ color: 'var(--muted)', marginTop: 10 }}>No pudimos cargar los planes. Por favor contactá a soporte.</p>
+          <a href="https://wa.me/5491138901234" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', display: 'block', marginTop: 20 }}>Hablar con soporte →</a>
+        </div>
+      </div>
+    )
+  }
+
+  const currentPlanData = plans.find((plan) => plan.name === normalizedCurrentPlan) ?? plans[0]
+  const currentPlanPrice = currentPlanData?.price ?? 0
+
+  const uiPlans = plans.map(p => {
+    const isCurrent = p.name === normalizedCurrentPlan
+    const isPremiumLocked = p.id === 'expert'
+    const isProLocked = p.id === 'pro' && barbershopId !== TESTING_BARBERSHOP_ID && !isCurrent
+    const isUpgrade = p.price > currentPlanPrice
+
+    return {
+      ...p,
+      badge: isCurrent ? 'TU PLAN ACTUAL' : isPremiumLocked ? 'PRÓXIMAMENTE' : isProLocked ? 'EN DESARROLLO' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
+      badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
+      accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
+      available: !isPremiumLocked && !isProLocked,
+      isCurrent,
+      isUpgrade,
+      sub: isCurrent
+        ? 'Este es el plan activo de tu barbería'
+        : isPremiumLocked
+          ? 'Estamos preparando la experiencia avanzada con IA'
+          : isProLocked
+            ? 'Estamos terminando los detalles del plan Pro'
+          : isUpgrade
+            ? 'Desbloqueá funciones adicionales para tu equipo'
+            : 'Disponible para elegir',
+      note: isCurrent
+        ? 'Podés conservarlo o mejorar cuando quieras'
+        : isPremiumLocked
+          ? 'Disponible próximamente'
+          : isProLocked
+            ? 'Acceso beta privado'
+          : isUpgrade
+            ? 'Upgrade disponible'
+            : 'También podés elegir este plan',
+    }
+  })
+
+  const plan = uiPlans.find(p => p.id === selectedPlanId) || uiPlans[0]
+  const opt = MONTH_OPTIONS.find(o => o.months === months) || MONTH_OPTIONS[0]
   const pricePerMonth = Math.round(plan.price * (1 - opt.discount))
   const total = pricePerMonth * months
   const savings = plan.price * months - total
   const subDisabled = months > 1
 
-  function selectPlan(planId: string) {
-    setSelectedPlan(planId)
+  function selectPlan(id: string) {
+    setSelectedPlanId(id)
     setMonths(1)
     setMethod('checkout')
     setScreen('payment')
@@ -92,17 +117,17 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
   function pickMonths(m: number) {
     setMonths(m)
-    if (m > 1) setMethod('checkout')
+    if (m > 1 && method === 'subscription') setMethod('checkout')
   }
 
   function handlePay() {
     start(async () => {
       if (method === 'subscription') {
-        await createMPSubscription(barbershopId)
+        await createMPSubscription(barbershopId, selectedPlanId)
       } else if (method === 'transfer') {
-        await createGalioPAyPaymentLink(barbershopId, months)
+        await createBankTransfer(barbershopId, months, selectedPlanId)
       } else {
-        await createMPCheckoutWithMonths(barbershopId, months)
+        await createMPCheckoutWithMonths(barbershopId, months, selectedPlanId)
       }
     })
   }
@@ -129,15 +154,9 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
         padding: '40px 20px',
         position: 'relative',
       }}>
-        {/* ── Header con fechas ── */}
         <div style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          textAlign: 'right',
-          fontSize: '.8rem',
-          color: 'var(--muted)',
-          lineHeight: 1.5,
+          position: 'absolute', top: 20, right: 20, textAlign: 'right',
+          fontSize: '.8rem', color: 'var(--muted)', lineHeight: 1.5,
         }}>
           <p>Hoy: <strong style={{ color: 'var(--text)' }}>{capitalize(today)}</strong></p>
           {trialEnd && (
@@ -148,462 +167,175 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
 
           {screen === 'plans' ? (
             <>
-              {/* ── Header ── */}
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-                <div>
-                  <Image src="/logo-dark.png"  alt="FiloDesk" width={68} height={68} className="logo-dark"  style={{ borderRadius: 14 }} />
-                  <Image src="/logo-light.png" alt="FiloDesk" width={68} height={68} className="logo-light" style={{ borderRadius: 14 }} />
-                </div>
+                <Image src="/logo-dark.png"  alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
                 <div>
                   <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
-                    {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
+                    {subscriptionStatus === 'active'
+                      ? 'Gestioná tu suscripción'
+                      : subscriptionStatus === 'trial'
+                        ? 'Tu período de prueba terminó'
+                        : 'Suscripción vencida'}
                   </h1>
                   <p style={{ fontSize: '.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                    {trialEnd ? `Tu prueba venció el ${trialEnd}.` : 'Tu suscripción está vencida.'}{' '}
+                    {subscriptionStatus === 'active'
+                      ? `Tu plan actual es ${normalizedCurrentPlan}. Podés mantenerlo o mejorar a un plan superior.`
+                      : trialEnd
+                        ? `Tu prueba venció el ${trialEnd}.`
+                        : 'Tu suscripción está vencida.'}{' '}
                     Elegí un plan para seguir con{' '}
                     <strong style={{ color: 'var(--text)' }}>{barbershopName}</strong>.
                   </p>
                 </div>
               </div>
 
-              {/* ── Planes ── */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                 gap: 16,
                 width: '100%',
               }}>
-                {PLANS.map(p => (
+                {uiPlans.map(p => (
                   <div
                     key={p.id}
                     style={{
                       background: 'var(--surface)',
                       border: `1.5px solid ${p.available ? p.accent === 'var(--gold)' ? 'var(--gold)' : 'var(--border)' : 'var(--border)'}`,
-                      borderRadius: 14,
-                      padding: '24px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 16,
-                      position: 'relative',
-                      cursor: p.available ? 'pointer' : 'default',
-                      transition: 'all 0.15s ease',
-                      opacity: p.available ? 1 : 0.75,
+                      borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16,
+                      position: 'relative', cursor: p.available && !p.isCurrent ? 'pointer' : 'default',
+                      transition: 'all 0.15s ease', opacity: p.available ? 1 : p.id === 'expert' ? 0.85 : 0.75,
                     }}
-                    onMouseEnter={(e) => {
-                      if (p.available) (e.currentTarget as HTMLDivElement).style.background = 'rgba(212,168,42,0.05)'
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'
-                    }}
-                    onClick={() => p.available && selectPlan(p.id)}
+                    onClick={() => p.available && !p.isCurrent && selectPlan(p.id)}
                   >
-                    {/* Top accent bar */}
+                    <div style={{ position: 'absolute', top: -1, left: -1, right: -1, height: 3, background: p.accent, borderRadius: '14px 14px 0 0' }} />
                     <div style={{
-                      position: 'absolute',
-                      top: -1,
-                      left: -1,
-                      right: -1,
-                      height: 3,
-                      background: p.accent,
-                      borderRadius: '14px 14px 0 0',
-                    }} />
-
-                    {/* Badge */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 12,
-                      right: 12,
-                      padding: '4px 12px',
-                      borderRadius: 20,
-                      fontSize: '.65rem',
-                      fontWeight: 700,
-                      letterSpacing: '.4px',
-                      textTransform: 'uppercase',
-                      ...(p.badgeColor === 'gold' && {
-                        background: 'rgba(212,168,42,0.2)',
-                        color: 'var(--gold)',
-                        border: '1px solid rgba(212,168,42,0.3)',
-                      }),
-                      ...(p.badgeColor === 'blue' && {
-                        background: 'rgba(196,30,58,0.15)',
-                        color: '#ff6b6b',
-                        border: '1px solid rgba(196,30,58,0.3)',
-                      }),
-                      ...(p.badgeColor === 'green' && {
-                        background: 'linear-gradient(135deg, rgba(212,168,42,0.15), rgba(94,207,135,0.15))',
-                        color: 'var(--green)',
-                        border: '1px solid rgba(94,207,135,0.3)',
-                      }),
-                    }}>
-                      {p.badge}
-                    </div>
-
-                    {/* Price section */}
+                      position: 'absolute', top: 12, right: 12, padding: '4px 12px', borderRadius: 20, fontSize: '.65rem', fontWeight: 700, letterSpacing: '.4px', textTransform: 'uppercase',
+                      ...(p.badgeColor === 'gold' && { background: 'rgba(212,168,42,0.2)', color: 'var(--gold)', border: '1px solid rgba(212,168,42,0.3)' }),
+                      ...(p.badgeColor === 'blue' && { background: 'rgba(196,30,58,0.15)', color: '#ff6b6b', border: '1px solid rgba(196,30,58,0.3)' }),
+                      ...(p.badgeColor === 'green' && { background: 'linear-gradient(135deg, rgba(212,168,42,0.15), rgba(94,207,135,0.15))', color: 'var(--green)', border: '1px solid rgba(94,207,135,0.3)' }),
+                    }}>{p.badge}</div>
                     <div style={{ marginTop: 8 }}>
-                      <p style={{
-                        fontSize: '1.8rem',
-                        fontWeight: 800,
-                        color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--cream)',
-                        lineHeight: 1
-                      }}>
+                      <p style={{ fontSize: '1.8rem', fontWeight: 800, color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--cream)', lineHeight: 1 }}>
                         {fmt(p.price)} <span style={{ fontSize: '.8rem', fontWeight: 400, color: 'var(--muted)' }}>ARS/mes</span>
                       </p>
                       <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>{p.sub}</p>
                     </div>
-
-                    {/* Features */}
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                      {p.features.map(f => (
+                      {(p.features || []).map(f => (
                         <li key={f} style={{ fontSize: '.82rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                          <span style={{
-                            color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--gold)',
-                            flexShrink: 0
-                          }}>✓</span>
+                          <span style={{ color: p.badgeColor === 'green' ? 'var(--green)' : p.badgeColor === 'blue' ? '#ff6b6b' : 'var(--gold)', flexShrink: 0 }}>✓</span>
                           {f}
                         </li>
                       ))}
                     </ul>
-
-                    {/* Button */}
-                    {p.available ? (
-                      <button style={{
-                        width: '100%', background: 'var(--gold)', color: 'var(--bg)',
-                        border: 'none', borderRadius: 8, padding: '11px 20px',
-                        fontSize: '.9rem', fontWeight: 700, cursor: 'pointer',
-                        marginTop: 'auto',
-                      }}>
-                        Elegir plan →
-                      </button>
-                    ) : (
-                      <button disabled style={{
-                        width: '100%', background: 'var(--border)', color: 'var(--muted)',
-                        border: 'none', borderRadius: 8, padding: '11px 20px',
-                        fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed',
-                        marginTop: 'auto',
-                      }}>
-                        Próximamente
-                      </button>
-                    )}
-
-                    {/* Note */}
-                    <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>
-                      {p.note}
-                    </p>
+                    <button
+                      disabled={p.isCurrent || !p.available}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        if (p.available && !p.isCurrent) selectPlan(p.id)
+                      }}
+                      style={{
+                        width: '100%',
+                        background: p.isCurrent || !p.available ? 'var(--border)' : 'var(--gold)',
+                        color: p.isCurrent || !p.available ? 'var(--muted)' : 'var(--bg)',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '11px 20px',
+                        fontSize: '.9rem',
+                        fontWeight: 700,
+                        cursor: p.isCurrent || !p.available ? 'not-allowed' : 'pointer',
+                        marginTop: 'auto'
+                      }}
+                    >
+                      {p.isCurrent ? 'Activo' : !p.available ? 'Próximamente' : p.isUpgrade ? 'Mejorar a este plan →' : 'Elegir plan →'}
+                    </button>
+                    <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>{p.note}</p>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <>
-              {/* ── Back + Plan seleccionado ── */}
-              <button
-                onClick={goBack}
-                style={{
-                  alignSelf: 'flex-start',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--gold)',
-                  cursor: 'pointer',
-                  fontSize: '.9rem',
-                  fontWeight: 600,
-                  padding: '4px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                ← Volver a planes
-              </button>
-
-              {/* ── Selector de meses ── */}
+            <div style={{ width: '100%', maxWidth: 460, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <button onClick={goBack} style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: '.9rem', fontWeight: 600, padding: '4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>← Volver a planes</button>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={labelStyle}>¿Por cuánto tiempo?</p>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: 6,
-                  background: 'var(--surface)',
-                  padding: 5,
-                  borderRadius: 12,
-                  border: '1px solid var(--border)',
-                }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, background: 'var(--surface)', padding: 5, borderRadius: 12, border: '1px solid var(--border)' }}>
                   {MONTH_OPTIONS.map(o => {
                     const active = months === o.months
                     return (
-                      <button
-                        key={o.months}
-                        className="suscripcion-month-btn"
-                        onClick={() => pickMonths(o.months)}
-                        style={{
-                          padding: '10px 4px',
-                          borderRadius: 8,
-                          border: 'none',
-                          cursor: 'pointer',
-                          background: active ? 'var(--gold)' : 'transparent',
-                          color: active ? '#0e0e0e' : 'var(--muted)',
-                          fontWeight: active ? 700 : 500,
-                          fontSize: '.8rem',
-                          transition: 'all 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 3,
-                        }}
-                      >
+                      <button key={o.months} className="suscripcion-month-btn" onClick={() => pickMonths(o.months)} style={{ padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer', background: active ? 'var(--gold)' : 'transparent', color: active ? '#0e0e0e' : 'var(--muted)', fontWeight: active ? 700 : 500, fontSize: '.8rem', transition: 'all 0.15s ease', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                         {o.label}
-                        {o.discount > 0 && (
-                          <span style={{
-                            fontSize: '.58rem',
-                            fontWeight: 700,
-                            color: active ? '#0e0e0e' : 'var(--green)',
-                          }}>
-                            -{Math.round(o.discount * 100)}%
-                          </span>
-                        )}
+                        {o.discount > 0 && <span style={{ fontSize: '.58rem', fontWeight: 700, color: active ? '#0e0e0e' : 'var(--green)' }}>-{Math.round(o.discount * 100)}%</span>}
                       </button>
                     )
                   })}
                 </div>
               </div>
-
-              {/* ── Precio ── */}
-              <div style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 14,
-                padding: '20px 22px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
-              }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                   <div>
-                    <p style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>
-                      {plan.name}
-                    </p>
-                    <p style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--cream)', lineHeight: 1 }}>
-                      {fmt(total)}
-                    </p>
-                    {months > 1 && (
-                      <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>
-                        {fmt(pricePerMonth)}/mes × {months}
-                      </p>
-                    )}
+                    <p style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Plan {plan.name}</p>
+                    <p style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--cream)', lineHeight: 1 }}>{fmt(total)}</p>
+                    {months > 1 && <p style={{ fontSize: '.78rem', color: 'var(--muted)', marginTop: 4 }}>{fmt(pricePerMonth)}/mes × {months}</p>}
                   </div>
-                  {savings > 0 && (
-                    <div style={{
-                      background: 'rgba(94,207,135,0.1)',
-                      border: '1px solid rgba(94,207,135,0.25)',
-                      borderRadius: 10,
-                      padding: '8px 14px',
-                      textAlign: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <p style={{ fontSize: '.62rem', color: 'var(--green)', fontWeight: 600, marginBottom: 2 }}>Ahorrás</p>
-                      <p style={{ fontSize: '.95rem', color: 'var(--green)', fontWeight: 800 }}>{fmt(savings)}</p>
-                    </div>
-                  )}
+                  {savings > 0 && <div style={{ background: 'rgba(94,207,135,0.1)', border: '1px solid rgba(94,207,135,0.25)', borderRadius: 10, padding: '8px 14px', textAlign: 'center', flexShrink: 0 }}><p style={{ fontSize: '.62rem', color: 'var(--green)', fontWeight: 600, marginBottom: 2 }}>Ahorrás</p><p style={{ fontSize: '.95rem', color: 'var(--green)', fontWeight: 800 }}>{fmt(savings)}</p></div>}
                 </div>
-
                 <div style={{ height: 1, background: 'var(--border)' }} />
-
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {plan.features.map(f => (
-                    <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--muted)' }}>
-                      <span style={{ color: 'var(--gold)', fontSize: '.72rem', flexShrink: 0 }}>✓</span>
-                      {f}
-                    </li>
+                  {(plan.features || []).map(f => (
+                    <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--muted)' }}><span style={{ color: 'var(--gold)', fontSize: '.72rem', flexShrink: 0 }}>✓</span>{f}</li>
                   ))}
                 </ul>
               </div>
-
-              {/* ── Método de pago ── */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={labelStyle}>Método de pago</p>
-
-                <MethodCard
-                  active={method === 'checkout'}
-                  disabled={false}
-                  onClick={() => setMethod('checkout')}
-                  icon="💳"
-                  title={`Pagar ${months === 1 ? 'este mes' : `${months} meses`}`}
-                  subtitle="MP · Uala · NaranjaX · Tarjetas · y más"
-                />
-
-                <MethodCard
-                  active={method === 'subscription'}
-                  disabled={subDisabled}
-                  onClick={() => setMethod('subscription')}
-                  icon="🔄"
-                  title="Débito automático"
-                  subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva automáticamente cada mes'}
-                  badge="MENSUAL"
-                />
-
-                <MethodCard
-                  active={method === 'transfer'}
-                  disabled={false}
-                  onClick={() => setMethod('transfer')}
-                  icon="🏦"
-                  title="Transferencia bancaria"
-                  subtitle="Desde cualquier banco · Rápido y seguro"
-                  badge="RECOMENDADO"
-                  badgeColor="gold"
-                />
+                <MethodCard active={method === 'checkout'} onClick={() => setMethod('checkout')} icon="💳" title={`Pagar ${months === 1 ? 'este mes' : `${months} meses`}`} subtitle="MP · Uala · NaranjaX · Tarjetas" />
+                <MethodCard active={method === 'subscription'} disabled={subDisabled} onClick={() => setMethod('subscription')} icon="🔄" title="Débito automático" subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva mensualmente'} badge="MENSUAL" />
+                <MethodCard active={method === 'transfer'} onClick={() => setMethod('transfer')} icon="🏦" title="Transferencia bancaria" subtitle="Desde cualquier banco · Rápido" badge="RECOMENDADO" badgeColor="gold" />
               </div>
-
-              {/* ── CTA ── */}
-              <button
-                className="suscripcion-pay-btn"
-                onClick={handlePay}
-                disabled={pending}
-                style={{
-                  width: '100%',
-                  padding: '15px 24px',
-                  background: pending ? 'var(--border)' : 'var(--gold)',
-                  color: pending ? 'var(--muted)' : '#0e0e0e',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontSize: '.95rem',
-                  fontWeight: 700,
-                  cursor: pending ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                }}
-              >
-                {pending ? (
-                  <>
-                    <span style={{
-                      width: 15, height: 15,
-                      border: '2px solid var(--muted)',
-                      borderTopColor: 'transparent',
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                      animation: 'spin 0.7s linear infinite',
-                    }} />
-                    Redirigiendo...
-                  </>
-                ) : (
-                  method === 'checkout'
-                    ? `Pagar ${fmt(total)} →`
-                    : method === 'transfer'
-                    ? `Transferir ${fmt(total)} →`
-                    : 'Activar débito automático →'
-                )}
+              <button className="suscripcion-pay-btn" onClick={handlePay} disabled={pending} style={{ width: '100%', padding: '15px 24px', background: pending ? 'var(--border)' : 'var(--gold)', color: pending ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 12, fontSize: '.95rem', fontWeight: 700, cursor: pending ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {pending ? 'Redirigiendo...' : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Pagar con Transferencia →` : 'Activar débito automático →')}
               </button>
-
-              {/* ── Footer ── */}
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {method === 'transfer' ? (
-                  <>
-                    <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
-                      🔒 Procesado de forma segura por GalioPay
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>
-                      🔒 Pagos procesados de forma segura por MercadoPago
-                    </p>
-                    {method === 'checkout' && (
-                      <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>
-                        No necesitás tener cuenta en MercadoPago
-                      </p>
-                    )}
-                  </>
-                )}
+                <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}</p>
+                {method !== 'subscription' && <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>{method === 'transfer' ? 'Activación manual en 24hs' : 'No necesitás cuenta en MercadoPago'}</p>}
               </div>
-            </>
+            </div>
           )}
-
         </div>
       </div>
     </>
   )
 }
 
-/* ── Subcomponentes ── */
-
 const labelStyle: React.CSSProperties = {
-  fontSize: '.72rem',
-  fontWeight: 700,
-  letterSpacing: '1px',
-  textTransform: 'uppercase',
-  color: 'var(--muted)',
+  fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--muted)',
 }
 
-function MethodCard({
-  active, disabled, onClick, icon, title, subtitle, badge, badgeColor,
-}: {
-  active: boolean
-  disabled: boolean
-  onClick: () => void
-  icon: string
-  title: string
-  subtitle: string
-  badge?: string
-  badgeColor?: 'green' | 'gold'
-}) {
-  return (
-    <button
-      className="suscripcion-method-btn"
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '13px 16px',
-        background: active ? 'rgba(212,168,42,0.07)' : 'var(--surface)',
-        border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-        borderRadius: 12,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        textAlign: 'left',
-        transition: 'border-color 0.15s ease, background 0.15s ease',
-        width: '100%',
-        opacity: disabled ? 0.45 : 1,
-      }}
-    >
-      <div style={{
-        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-        background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.1rem',
-      }}>
-        {icon}
-      </div>
+interface MethodCardProps {
+  active:      boolean
+  disabled?:   boolean
+  onClick:     () => void
+  icon:        string
+  title:       string
+  subtitle:    string
+  badge?:      string
+  badgeColor?: string
+}
 
+function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge, badgeColor }: MethodCardProps) {
+  return (
+    <button className="suscripcion-method-btn" onClick={onClick} disabled={disabled} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', background: active ? 'rgba(212,168,42,0.07)' : 'var(--surface)', border: `1.5px solid ${active ? 'var(--gold)' : 'var(--border)'}`, borderRadius: 12, cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'border-color 0.15s ease', width: '100%', opacity: disabled ? 0.45 : 1 }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: active ? 'rgba(212,168,42,0.14)' : 'var(--card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
           <p style={{ fontSize: '.86rem', fontWeight: 600, color: 'var(--cream)' }}>{title}</p>
-          {badge && (
-            <span style={{
-              fontSize: '.58rem', fontWeight: 700, padding: '1px 7px',
-              background: badgeColor === 'gold' ? 'rgba(212,168,42,0.12)' : 'rgba(94,207,135,0.1)',
-              color: badgeColor === 'gold' ? 'var(--gold)' : 'var(--green)',
-              border: badgeColor === 'gold' ? '1px solid rgba(212,168,42,0.3)' : '1px solid rgba(94,207,135,0.22)',
-              borderRadius: 20,
-              letterSpacing: '.4px',
-            }}>
-              {badge}
-            </span>
-          )}
+          {badge && <span style={{ fontSize: '.58rem', fontWeight: 700, padding: '1px 7px', background: badgeColor === 'gold' ? 'rgba(212,168,42,0.12)' : 'rgba(94,207,135,0.1)', color: badgeColor === 'gold' ? 'var(--gold)' : 'var(--green)', border: badgeColor === 'gold' ? '1px solid rgba(212,168,42,0.3)' : '1px solid rgba(94,207,135,0.22)', borderRadius: 20 }}>{badge}</span>}
         </div>
         <p style={{ fontSize: '.74rem', color: 'var(--muted)' }}>{subtitle}</p>
       </div>
-
-      <div style={{
-        width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-        border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'border-color 0.15s ease',
-      }}>
-        {active && (
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-        )}
+      <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? 'var(--gold)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {active && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
       </div>
     </button>
   )

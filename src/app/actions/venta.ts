@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { canAccess } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
+import { getServerAuthContext } from '@/services/auth.service'
 import * as saleService from '@/services/sale.service'
 
 export type CreateVentaState = { message?: string } | undefined
@@ -37,8 +39,17 @@ export async function createVenta(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || !canAccess(context.role, 'register_sale')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
+
   const result = await saleService.createSale(supabase, barbershopId, {
-    barber_id, date, notes, services,
+    barber_id,
+    date,
+    notes,
+    services,
+    status: context.role === 'barber' ? 'pending' : 'approved',
   })
   if (result.error) return { message: result.error }
 
@@ -51,4 +62,32 @@ export async function deleteVenta(barbershopId: string, saleId: string) {
   await saleService.deleteSale(supabase, saleId)
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
   revalidatePath(`/dashboard/${barbershopId}`)
+}
+
+export async function approveVenta(barbershopId: string, saleId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || context.role === 'barber') {
+    redirect(`/dashboard/${barbershopId}`)
+  }
+
+  const { error } = await supabase
+    .from('sales')
+    .update({ status: 'approved' })
+    .eq('id', saleId)
+    .eq('barbershop_id', barbershopId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/${barbershopId}`)
+  revalidatePath(`/dashboard/${barbershopId}/ventas`)
+  revalidatePath(`/dashboard/${barbershopId}/finanzas`)
+  revalidatePath(`/dashboard/${barbershopId}/nominas`)
+
+  return { success: true }
 }

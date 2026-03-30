@@ -1,7 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-export default async function proxy(request: NextRequest) {
+/**
+ * NOTE: Rate limiting se delega a Cloudflare WAF.
+ * El middleware de Next.js se ejecuta en entorno stateless (Vercel Functions)
+ * donde un Map en memoria no persiste entre requests/distribución en nodos.
+ * 
+ * Para rate limiting efectivo, configurar en Cloudflare:
+ * - Dashboard → Security → WAF → Rate Limiting Rules
+ * - O usar Cloudflare Workers para lógica custom
+ * 
+ * Docs: https://developers.cloudflare.com/waf/rate-limiting-rules/
+ */
+
+export default async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -41,5 +53,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/auth/:path*'],
+  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/auth/:path*', '/api/:path*'],
 }
