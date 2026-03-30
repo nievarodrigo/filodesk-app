@@ -133,10 +133,17 @@
 @media (max-width: 800px) { .twoCol { grid-template-columns: 1fr; gap: 20px; } }
 
 /* ── Month selector ── */
+.periodNav {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 .monthNav {
   display: flex;
   gap: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -144,6 +151,80 @@
 }
 .monthNav::-webkit-scrollbar { display: none; }
 .monthNav > :last-child { padding-right: 20px; }
+.customRangePicker {
+  position: relative;
+}
+.customRangeTrigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+}
+.customRangeTrigger::-webkit-details-marker { display: none; }
+.customRangeTriggerActive {
+  color: var(--gold);
+  border-color: rgba(201,168,76,.35);
+  background: rgba(201,168,76,.1);
+}
+.calendarIcon {
+  width: 17px;
+  height: 17px;
+}
+.customRangeForm {
+  margin-top: 8px;
+  width: min(320px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+}
+.customRangeField {
+  display: grid;
+  gap: 4px;
+  font-size: .72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  font-weight: 600;
+}
+.customRangeField input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--hover);
+  color: var(--text);
+  padding: 8px 10px;
+}
+.customRangeSubmit {
+  min-height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+.customRangeHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: .7rem;
+}
+.customRangeWarning {
+  margin: 0;
+  color: var(--gold);
+  font-size: .7rem;
+}
 .monthTab {
   flex: 0 0 auto;
   padding: 6px 14px;
@@ -167,6 +248,7 @@
 .monthActive:hover { background: var(--gold); color: var(--bg); }
 
 @media (max-width: 600px) {
+  .periodNav { grid-template-columns: 1fr auto; gap: 8px; }
   .kpiCard { padding: 14px 14px; }
   .kpiLabel { margin-bottom: 4px; font-size: .62rem; letter-spacing: .8px; }
   .kpiValue { font-size: 1.4rem; }
@@ -177,6 +259,8 @@
   .kpiDelta { margin-top: 4px; font-size: .66rem; padding: 3px 7px; }
   .kpiDeltaShort { display: inline; }
   .kpiDeltaLong { display: none; }
+  .customRangeTrigger { width: 34px; height: 34px; }
+  .customRangeForm { width: min(300px, calc(100vw - 26px)); }
 }
 
 .panelCard {

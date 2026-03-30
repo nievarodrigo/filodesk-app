@@ -45,6 +45,40 @@ function monthLabel(ym: string) {
   return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
 }
 
+function toISODate(date: Date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function parseISODate(value?: string) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const [y, m, d] = value.split('-').map(Number)
+  const parsed = new Date(y, (m ?? 1) - 1, d ?? 1)
+  if (Number.isNaN(parsed.getTime())) return null
+  return parsed
+}
+
+function addDays(date: Date, days: number) {
+  const copy = new Date(date)
+  copy.setDate(copy.getDate() + days)
+  return copy
+}
+
+function diffDaysInclusive(from: Date, to: Date) {
+  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  const end = new Date(to.getFullYear(), to.getMonth(), to.getDate())
+  const ms = end.getTime() - start.getTime()
+  return Math.max(1, Math.floor(ms / 86400000) + 1)
+}
+
+function formatShortDate(date: string) {
+  const [yyyy, mm, dd] = date.slice(0, 10).split('-')
+  if (!yyyy || !mm || !dd) return date
+  return `${dd}/${mm}/${yyyy}`
+}
+
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
@@ -53,10 +87,10 @@ export default async function FinanzasPage({
   searchParams,
 }: {
   params: Promise<{ barbershopId: string }>
-  searchParams: Promise<{ mes?: string }>
+  searchParams: Promise<{ mes?: string; periodo?: string; desde?: string; hasta?: string }>
 }) {
   const { barbershopId } = await params
-  const { mes } = await searchParams
+  const { mes, periodo, desde, hasta } = await searchParams
   const hdrs = await headers()
   const userAgent = hdrs.get('user-agent') || ''
   const isMobile = /mobile/i.test(userAgent)
@@ -73,17 +107,58 @@ export default async function FinanzasPage({
 
   const ym = mes ?? currentYM()
   const [selY, selM] = ym.split('-').map(Number)
-  const from = `${ym}-01`
-  const to   = `${selY}-${String(selM).padStart(2, '0')}-${new Date(selY, selM, 0).getDate()}`
+  const monthFromDate = new Date(selY, selM - 1, 1)
+  const monthToDate = new Date(selY, selM, 0)
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const weekFromDate = addDays(todayDate, -7)
 
-  const isCurrentMonth = ym === currentYM()
-  const daysInMonth    = new Date(selY, selM, 0).getDate()
-  const dayOfMonth     = isCurrentMonth ? now.getDate() : daysInMonth
+  const customFrom = parseISODate(desde)
+  const customTo = parseISODate(hasta)
 
-  const prevD     = new Date(selY, selM - 2, 1)
-  const prevYM    = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}`
-  const prevFrom  = `${prevYM}-01`
-  const prevTo    = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}-${new Date(prevD.getFullYear(), prevD.getMonth() + 1, 0).getDate()}`
+  const isBasePlan = (context.plan ?? 'Base').toLowerCase() === 'base'
+  const basePlanMinDate = new Date(todayDate.getFullYear(), todayDate.getMonth() - 6, todayDate.getDate())
+
+  let periodMode: 'mes' | 'ultima-semana' | 'custom' = 'mes'
+  let fromDate = monthFromDate
+  let toDate = monthToDate
+  let rangeAdjustedForPlan = false
+
+  if (periodo === 'ultima-semana') {
+    periodMode = 'ultima-semana'
+    fromDate = weekFromDate
+    toDate = todayDate
+  } else if (customFrom && customTo) {
+    periodMode = 'custom'
+    fromDate = customFrom <= customTo ? customFrom : customTo
+    toDate = customFrom <= customTo ? customTo : customFrom
+
+    if (toDate > todayDate) toDate = todayDate
+    if (isBasePlan && fromDate < basePlanMinDate) {
+      fromDate = basePlanMinDate
+      rangeAdjustedForPlan = true
+    }
+    if (fromDate > toDate) {
+      toDate = fromDate
+      rangeAdjustedForPlan = true
+    }
+  }
+
+  const from = toISODate(fromDate)
+  const to = toISODate(toDate)
+  const rangeDays = diffDaysInclusive(fromDate, toDate)
+  const prevToDate = addDays(fromDate, -1)
+  const prevFromDate = addDays(prevToDate, -(rangeDays - 1))
+  const prevFrom = toISODate(prevFromDate)
+  const prevTo = toISODate(prevToDate)
+
+  const isCurrentMonth = periodMode === 'mes' && ym === currentYM()
+  const daysInMonth = new Date(selY, selM, 0).getDate()
+  const dayOfMonth = isCurrentMonth ? now.getDate() : daysInMonth
+  const periodDescription = periodMode === 'ultima-semana'
+    ? `Última semana (${formatShortDate(from)} al ${formatShortDate(to)})`
+    : periodMode === 'custom'
+      ? `Rango personalizado (${formatShortDate(from)} al ${formatShortDate(to)})`
+      : `Resumen y exportación de ${monthLabel(ym)}`
 
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10)
 
@@ -161,6 +236,8 @@ export default async function FinanzasPage({
   const proyeccion = isCurrentMonth && dayOfMonth > 1
     ? Math.round(ingresosMes / dayOfMonth * daysInMonth)
     : null
+  const isProjectionAvailable = periodMode === 'mes' && isCurrentMonth && proyeccion !== null
+  const avgDailyProjection = dayOfMonth > 0 ? Math.round(ingresosMes / dayOfMonth) : 0
 
   const trendMap: Record<string, { ingresos: number; gastos: number }> = {}
   for (let i = 5; i >= 0; i--) {
@@ -293,11 +370,11 @@ export default async function FinanzasPage({
     },
     {
       label: 'Proyección',
-      value: proyeccion !== null ? formatARS(proyeccion) : '—',
-      valueClass: proyeccion !== null ? styles.kpiValueGold : styles.kpiValueMuted,
-      detail: proyeccion !== null
+      value: isProjectionAvailable ? formatARS(proyeccion) : 'N/A',
+      valueClass: isProjectionAvailable ? styles.kpiValueGold : styles.kpiValueMuted,
+      detail: isProjectionAvailable
         ? `Día ${dayOfMonth} de ${daysInMonth} al ritmo actual`
-        : 'No disponible fuera del mes actual',
+        : 'Proyección solo disponible en vista mensual',
       cardClass: styles.kpiCardForecast,
     },
     {
@@ -316,7 +393,7 @@ export default async function FinanzasPage({
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Finanzas</h1>
-          <p className={styles.subtitle}>Resumen y exportación del mes actual</p>
+          <p className={styles.subtitle}>{periodDescription}</p>
         </div>
         <ExportCsvButton
           data={financeExportRows}
@@ -325,12 +402,45 @@ export default async function FinanzasPage({
           barbershopId={barbershopId}
         />
       </div>
-      <div className={styles.monthNav}>
-        {months.map(mo => (
-          <a key={mo} href={`?mes=${mo}`} className={mo === ym ? styles.monthActive : styles.monthTab}>
-            {monthLabel(mo)}
+      <div className={styles.periodNav}>
+        <div className={styles.monthNav}>
+          <a
+            href="?periodo=ultima-semana"
+            className={periodMode === 'ultima-semana' ? styles.monthActive : styles.monthTab}
+          >
+            Última semana
           </a>
-        ))}
+          {months.map(mo => (
+            <a key={mo} href={`?mes=${mo}`} className={periodMode === 'mes' && mo === ym ? styles.monthActive : styles.monthTab}>
+              {monthLabel(mo)}
+            </a>
+          ))}
+        </div>
+        <details className={styles.customRangePicker}>
+          <summary className={`${styles.customRangeTrigger} ${periodMode === 'custom' ? styles.customRangeTriggerActive : ''}`} aria-label="Rango personalizado">
+            <svg viewBox="0 0 24 24" className={styles.calendarIcon} aria-hidden>
+              <path d="M7 2v3M17 2v3M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </summary>
+          <form className={styles.customRangeForm} method="get">
+            <input type="hidden" name="periodo" value="custom" />
+            <label className={styles.customRangeField}>
+              <span>Desde</span>
+              <input type="date" name="desde" defaultValue={from} max={toISODate(todayDate)} min={isBasePlan ? toISODate(basePlanMinDate) : undefined} />
+            </label>
+            <label className={styles.customRangeField}>
+              <span>Hasta</span>
+              <input type="date" name="hasta" defaultValue={to} max={toISODate(todayDate)} min={isBasePlan ? toISODate(basePlanMinDate) : undefined} />
+            </label>
+            <button type="submit" className={styles.customRangeSubmit}>Aplicar</button>
+            {isBasePlan && (
+              <p className={styles.customRangeHint}>Plan Base: máximo 6 meses de historial.</p>
+            )}
+            {rangeAdjustedForPlan && (
+              <p className={styles.customRangeWarning}>Rango ajustado automáticamente al límite de 6 meses.</p>
+            )}
+          </form>
+        </details>
       </div>
       <div className={styles.kpiBlock}>
       <div className={styles.kpis}>
@@ -428,11 +538,54 @@ export default async function FinanzasPage({
       <div className={styles.kpiBlock}>
         <div className={styles.kpis}>
           {operationalKpis.map(k => (
-            <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
-              <p className={styles.kpiLabel}>{k.label}</p>
-              <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
-              <p className={styles.kpiMeta}>{k.detail}</p>
-            </div>
+            k.label === 'Proyección' ? (
+              isProjectionAvailable ? (
+                <details key={k.label} className={`${styles.kpiCard} ${styles.kpiInteractive} ${k.cardClass}`}>
+                  <summary className={styles.kpiSummary}>
+                    <div>
+                      <p className={styles.kpiLabel}>{k.label}</p>
+                      <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
+                    </div>
+                    <span className={styles.kpiChevron} aria-hidden>▾</span>
+                  </summary>
+                  <p className={styles.kpiMeta}>{k.detail}</p>
+                  <div className={styles.kpiExpand}>
+                    <div className={styles.kpiExpandInner}>
+                      <ul className={styles.kpiDrillList}>
+                        <li className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>Fórmula</span>
+                          <span className={styles.kpiDrillValue}>(Ingresos / Día actual) * Días del mes</span>
+                        </li>
+                        <li className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>Ingresos hoy</span>
+                          <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)}</span>
+                        </li>
+                        <li className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>Promedio diario</span>
+                          <span className={styles.kpiDrillValue}>{formatARS(avgDailyProjection)}</span>
+                        </li>
+                        <li className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>Días del mes</span>
+                          <span className={styles.kpiDrillValue}>{daysInMonth}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </details>
+              ) : (
+                <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
+                  <p className={styles.kpiLabel}>{k.label}</p>
+                  <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
+                  <p className={styles.kpiMeta}>{k.detail}</p>
+                </div>
+              )
+            ) : (
+              <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
+                <p className={styles.kpiLabel}>{k.label}</p>
+                <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
+                <p className={styles.kpiMeta}>{k.detail}</p>
+              </div>
+            )
           ))}
         </div>
       </div>
