@@ -1,4 +1,5 @@
 import styles from './finanzas.module.css'
+import InfoTooltip from './InfoTooltip'
 
 type DailyQuickViewProps = {
   salesToday: number
@@ -24,15 +25,39 @@ export default function DailyQuickView({
   return (
     <section className={styles.dailyQuickView} aria-label="Caja diaria de hoy">
       <div className={styles.quickStat}>
-        <p className={styles.quickLabel}>Ventas de Hoy</p>
+        <p className={styles.quickLabel}>
+          <span className={styles.metricLabelRow}>
+            <span>Ventas de Hoy</span>
+            <InfoTooltip
+              ariaLabel="Qué significa Ventas de Hoy"
+              content="Total que ingresó hoy sumando servicios y productos registrados."
+            />
+          </span>
+        </p>
         <p className={`${styles.quickValue} ${styles.kpiValuePositive}`}>{formatARS(salesToday)}</p>
       </div>
       <div className={styles.quickStat}>
-        <p className={styles.quickLabel}>Servicios de Hoy</p>
+        <p className={styles.quickLabel}>
+          <span className={styles.metricLabelRow}>
+            <span>Servicios de Hoy</span>
+            <InfoTooltip
+              ariaLabel="Qué significa Servicios de Hoy"
+              content="Cantidad de servicios cobrados durante la jornada actual."
+            />
+          </span>
+        </p>
         <p className={styles.quickValue}>{servicesToday}</p>
       </div>
       <div className={styles.quickStat}>
-        <p className={styles.quickLabel}>Efectivo vs. Transferencia</p>
+        <p className={styles.quickLabel}>
+          <span className={styles.metricLabelRow}>
+            <span>Efectivo vs. Transferencia</span>
+            <InfoTooltip
+              ariaLabel="Qué significa Efectivo vs. Transferencia"
+              content="Distribución de cobros por método de pago del día. Si aparece N/D, todavía no hay desglose disponible."
+            />
+          </span>
+        </p>
         <p className={styles.quickValue}>{paymentSplit}</p>
       </div>
     </section>

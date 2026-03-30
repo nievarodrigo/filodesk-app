@@ -6,14 +6,14 @@ import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import type { LucideIcon } from 'lucide-react'
-import { DollarSign, Package, PieChart, TrendingUp } from 'lucide-react'
 import { getServerAuthContext } from '@/services/auth.service'
 import { isFeatureEnabled } from '@/services/plan.service'
 import { redirect } from 'next/navigation'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
 import DailyQuickView from './DailyQuickView'
+import InfoTooltip from './InfoTooltip'
+import { buildFinanceKpiConfigs, type KpiTone } from './kpi-config'
 import styles from './finanzas.module.css'
 
 export const metadata: Metadata = { title: 'Finanzas — FiloDesk' }
@@ -85,6 +85,14 @@ function formatShortDate(date: string) {
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+function kpiToneClass(tone: KpiTone) {
+  if (tone === 'positive') return styles.kpiValuePositive
+  if (tone === 'negative') return styles.kpiValueNegative
+  if (tone === 'gold') return styles.kpiValueGold
+  if (tone === 'muted') return styles.kpiValueMuted
+  return ''
+}
 
 export default async function FinanzasPage({
   params,
@@ -367,91 +375,31 @@ export default async function FinanzasPage({
     })),
   ]
 
-  const interactiveKpis = [
-    { label: 'Ingresos', value: formatARS(ingresosMes), delta: ingDelta },
-    { label: 'Gastos',   value: formatARS(gastosMes),   delta: gasDelta },
-    { label: 'Comisiones', value: formatARS(comisionesMes), delta: null },
-    { label: 'Neto',     value: formatARS(netoMes),     delta: null },
-  ]
-
-  const strategicKpis: Array<{
-    label: string
-    value: string
-    detail: string
-    delta: number | null
-    Icon: LucideIcon
-    valueClass?: string
-  }> = [
-    {
-      label: 'Ingresos Brutos',
-      value: formatARS(ingresosMes),
-      detail: 'Ventas + servicios del período',
-      delta: ingDelta,
-      Icon: DollarSign,
-      valueClass: styles.kpiValuePositive,
-    },
-    {
-      label: 'Ticket Promedio (AOV)',
-      value: formatARS(ticketPromedio),
-      detail: `${totalServicios} ventas de servicio`,
-      delta: ticketDelta,
-      Icon: TrendingUp,
-      valueClass: styles.kpiValueGold,
-    },
-    {
-      label: 'Ventas de Productos',
-      value: formatARS(ingProductos),
-      detail: `${prodRanking.reduce((acc, prod) => acc + prod.cantidad, 0)} unidades vendidas`,
-      delta: prodDelta,
-      Icon: Package,
-      valueClass: styles.kpiValuePositive,
-    },
-    {
-      label: 'Margen Operativo (Estimado)',
-      value: formatARS(margenOperativo),
-      detail: 'Ingresos - gastos registrados',
-      delta: margenOperativoDelta,
-      Icon: PieChart,
-      valueClass: margenOperativo >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative,
-    },
-  ]
-
-  const operationalKpis = [
-    {
-      label: 'Ticket Promedio',
-      value: formatARS(ticketPromedio),
-      valueClass: styles.kpiValueGold,
-      detail: `${totalServicios} servicios realizados`,
-      cardClass: '',
-    },
-    {
-      label: 'Mejor Día',
-      value: bestDay ? DIAS[bestDay.dow] : '—',
-      valueClass: bestDay ? styles.kpiValuePositive : styles.kpiValueMuted,
-      detail: bestDay
-        ? `${formatARS(bestDay.avg)} promedio por ${DIAS[bestDay.dow].toLowerCase()}`
-        : 'Sin datos suficientes',
-      cardClass: '',
-    },
-    {
-      label: 'Proyección',
-      value: isProjectionAvailable ? formatARS(proyeccion) : 'N/A',
-      valueClass: isProjectionAvailable ? styles.kpiValueGold : styles.kpiValueMuted,
-      detail: isProjectionAvailable
-        ? `Día ${dayOfMonth} de ${daysInMonth} al ritmo actual`
-        : 'Proyección solo disponible en vista mensual',
-      cardClass: styles.kpiCardForecast,
-    },
-    {
-      label: 'Margen de Ganancia',
-      value: `${marginPct}%`,
-      valueClass: marginPct > 30 ? styles.kpiValuePositive : (marginPct >= 15 ? styles.kpiValueGold : styles.kpiValueNegative),
-      detail: ingresosMes > 0
-        ? `${formatARS(netoMes)} neto sobre ${formatARS(ingresosMes)} ingresados`
-        : 'Sin ingresos para calcular',
-      cardClass: '',
-    },
-  ]
+  const productUnits = prodRanking.reduce((acc, prod) => acc + prod.cantidad, 0)
+  const { strategicKpis, interactiveKpis, operationalKpis } = buildFinanceKpiConfigs({
+    formatARS,
+    ingresosMes,
+    gastosMes,
+    comisionesMes,
+    netoMes,
+    ingDelta,
+    gasDelta,
+    ticketPromedio,
+    totalServicios,
+    ticketDelta,
+    ingProductos,
+    productUnits,
+    prodDelta,
+    margenOperativo,
+    margenOperativoDelta,
+    bestDayName: bestDay ? DIAS[bestDay.dow] : null,
+    bestDayAvg: bestDay?.avg ?? null,
+    isProjectionAvailable,
+    proyeccion,
+    dayOfMonth,
+    daysInMonth,
+    marginPct,
+  })
 
   return (
     <div>
@@ -513,183 +461,215 @@ export default async function FinanzasPage({
         cashToday={efectivoHoy}
         transferToday={transferenciaHoy}
       />
-      <div className={styles.kpiBlock}>
-        <div className={`${styles.kpis} ${styles.masterKpis}`}>
-          {strategicKpis.map((kpi) => (
-            <div key={kpi.label} className={`${styles.kpiCard} ${styles.masterKpiCard}`}>
-              <div className={styles.masterKpiHeader}>
-                <div className={styles.masterKpiIconWrap}>
-                  <kpi.Icon className={styles.masterKpiIcon} aria-hidden />
+      <details className={styles.metricsGroup} open>
+        <summary className={styles.metricsGroupSummary}>
+          <div>
+            <p className={styles.metricsGroupTitle}>Métricas de Rendimiento</p>
+            <p className={styles.metricsGroupMini}>Ingresos Totales: {formatARS(ingresosMes)}</p>
+          </div>
+          <div className={styles.metricsGroupActions}>
+            <span className={styles.metricsWhenOpen}>Contraer resumen</span>
+            <span className={styles.metricsWhenClosed}>Ver resumen</span>
+            <span className={styles.metricsGroupChevron} aria-hidden>▾</span>
+          </div>
+        </summary>
+        <div className={styles.metricsGroupContent}>
+          <div className={styles.kpiBlock}>
+            <div className={`${styles.kpis} ${styles.masterKpis}`}>
+              {strategicKpis.map((kpi) => (
+                <div key={kpi.id} className={`${styles.kpiCard} ${styles.masterKpiCard}`}>
+                  <div className={styles.masterKpiHeader}>
+                    <div className={styles.masterKpiIconWrap}>
+                      <kpi.icon className={styles.masterKpiIcon} aria-hidden />
+                    </div>
+                    <p className={styles.kpiLabel}>
+                      <span className={styles.metricLabelRow}>
+                        <span>{kpi.label}</span>
+                        <InfoTooltip ariaLabel={`Qué significa ${kpi.label}`} content={kpi.help} />
+                      </span>
+                    </p>
+                  </div>
+                  <p className={`${styles.kpiValue} ${kpiToneClass(kpi.valueTone)}`}>{kpi.value}</p>
+                  <p className={styles.kpiMeta}>{kpi.detail}</p>
+                  {kpi.delta !== null && (
+                    <p className={`${styles.kpiDelta} ${kpi.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative}`}>
+                      <span>{kpi.delta >= 0 ? '▲' : '▼'}</span>
+                      <span>{Math.abs(kpi.delta)}%</span>
+                      <span className={styles.kpiDeltaLong}>vs período anterior</span>
+                      <span className={styles.kpiDeltaShort}>vs ant.</span>
+                    </p>
+                  )}
                 </div>
-                <p className={styles.kpiLabel}>{kpi.label}</p>
-              </div>
-              <p className={`${styles.kpiValue} ${kpi.valueClass ?? ''}`}>{kpi.value}</p>
-              <p className={styles.kpiMeta}>{kpi.detail}</p>
-              {kpi.delta !== null && (
-                <p className={`${styles.kpiDelta} ${kpi.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative}`}>
-                  <span>{kpi.delta >= 0 ? '▲' : '▼'}</span>
-                  <span>{Math.abs(kpi.delta)}%</span>
-                  <span className={styles.kpiDeltaLong}>vs período anterior</span>
-                  <span className={styles.kpiDeltaShort}>vs ant.</span>
-                </p>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-      <div className={styles.kpiBlock}>
-      <div className={styles.kpis}>
-        {interactiveKpis.map(k => (
-          <details key={k.label} className={`${styles.kpiCard} ${styles.kpiInteractive}`} open={isMobile && k.label === 'Ingresos'}>
-            <summary className={styles.kpiSummary}>
-              <div>
-                <p className={styles.kpiLabel}>{k.label}</p>
-                <p className={`${styles.kpiValue} ${
-                  k.label === 'Ingresos'
-                    ? styles.kpiValuePositive
-                    : k.label === 'Gastos'
-                      ? styles.kpiValueNegative
-                      : k.label === 'Comisiones'
-                        ? styles.kpiValueMuted
-                        : (netoMes >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative)
-                }`}>{k.value}</p>
-              </div>
-              <span className={styles.kpiChevron} aria-hidden>▾</span>
-            </summary>
-            {k.delta !== null && (
-              <p className={`${styles.kpiDelta} ${
-                k.label === 'Gastos'
-                  ? (k.delta > 0 ? styles.kpiDeltaNegative : styles.kpiDeltaPositive)
-                  : (k.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative)
-              }`}>
-                <span>{k.delta >= 0 ? '▲' : '▼'}</span>
-                <span>{Math.abs(k.delta)}%</span>
-                <span className={styles.kpiDeltaLong}>vs mes anterior</span>
-                <span className={styles.kpiDeltaShort}>vs mes ant.</span>
-              </p>
-            )}
-            <div className={styles.kpiExpand}>
-              <div className={styles.kpiExpandInner}>
-                {k.label === 'Ingresos' && (
-                  <ul className={styles.kpiDrillList}>
-                    <li className={styles.kpiDrillRow}>
-                      <span className={styles.kpiDrillKey}>Servicios</span>
-                      <span className={styles.kpiDrillValue}>{formatARS(ingServicios)}</span>
-                    </li>
-                    <li className={styles.kpiDrillRow}>
-                      <span className={styles.kpiDrillKey}>Productos</span>
-                      <span className={styles.kpiDrillValue}>{formatARS(ingProductos)}</span>
-                    </li>
-                  </ul>
-                )}
-                {k.label === 'Gastos' && (
-                  <>
-                    <ul className={styles.kpiDrillList}>
-                      {topExpenseCategories.length > 0 ? topExpenseCategories.map(([cat, amt]) => (
-                        <li key={cat} className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>{cat}</span>
-                          <span className={styles.kpiDrillValue}>{formatARS(amt)}</span>
-                        </li>
-                      )) : (
-                        <li className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>Sin gastos</span>
-                          <span className={styles.kpiDrillValue}>—</span>
-                        </li>
-                      )}
-                    </ul>
-                    <Link href={`/dashboard/${barbershopId}/gastos`} className={styles.kpiActionLink}>
-                      <span aria-hidden>+</span>
-                      <span>Gestionar Gastos</span>
-                    </Link>
-                  </>
-                )}
-                {k.label === 'Comisiones' && (
-                  <ul className={styles.kpiDrillList}>
-                    {topCommissionBarbers.length > 0 ? topCommissionBarbers.map((barber) => (
-                      <li key={barber.name} className={styles.kpiDrillRow}>
-                        <span className={styles.kpiDrillKey}>{barber.name}</span>
-                        <span className={styles.kpiDrillValue}>{formatARS(barber.comision)}</span>
-                      </li>
-                    )) : (
-                      <li className={styles.kpiDrillRow}>
-                        <span className={styles.kpiDrillKey}>Sin comisiones</span>
-                        <span className={styles.kpiDrillValue}>—</span>
-                      </li>
-                    )}
-                  </ul>
-                )}
-                {k.label === 'Neto' && (
-                  <ul className={styles.kpiDrillList}>
-                    <li className={styles.kpiDrillRow}>
-                      <span className={styles.kpiDrillKey}>Fórmula</span>
-                      <span className={styles.kpiDrillValue}>Ingresos - (Gastos + Comisiones)</span>
-                    </li>
-                    <li className={styles.kpiDrillRow}>
-                      <span className={styles.kpiDrillKey}>Cálculo</span>
-                      <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)} - ({formatARS(gastosMes)} + {formatARS(comisionesMes)})</span>
-                    </li>
-                  </ul>
-                )}
-              </div>
-            </div>
-          </details>
-        ))}
-      </div>
-      </div>
-      <div className={styles.kpiBlock}>
-        <div className={styles.kpis}>
-          {operationalKpis.map(k => (
-            k.label === 'Proyección' ? (
-              isProjectionAvailable ? (
-                <details key={k.label} className={`${styles.kpiCard} ${styles.kpiInteractive} ${k.cardClass}`}>
+          </div>
+          <div className={styles.kpiBlock}>
+            <div className={styles.kpis}>
+              {interactiveKpis.map(k => (
+                <details key={k.id} className={`${styles.kpiCard} ${styles.kpiInteractive}`} open={isMobile && k.id === 'ingresos'}>
                   <summary className={styles.kpiSummary}>
                     <div>
-                      <p className={styles.kpiLabel}>{k.label}</p>
-                      <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
+                      <p className={styles.kpiLabel}>
+                        <span className={styles.metricLabelRow}>
+                          <span>{k.label}</span>
+                          <InfoTooltip ariaLabel={`Qué significa ${k.label}`} content={k.help} />
+                        </span>
+                      </p>
+                      <p className={`${styles.kpiValue} ${kpiToneClass(k.valueTone)}`}>{k.value}</p>
                     </div>
                     <span className={styles.kpiChevron} aria-hidden>▾</span>
                   </summary>
-                  <p className={styles.kpiMeta}>{k.detail}</p>
+                  {k.delta !== null && (
+                    <p className={`${styles.kpiDelta} ${
+                      k.deltaMode === 'inverse'
+                        ? (k.delta > 0 ? styles.kpiDeltaNegative : styles.kpiDeltaPositive)
+                        : (k.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative)
+                    }`}>
+                      <span>{k.delta >= 0 ? '▲' : '▼'}</span>
+                      <span>{Math.abs(k.delta)}%</span>
+                      <span className={styles.kpiDeltaLong}>vs mes anterior</span>
+                      <span className={styles.kpiDeltaShort}>vs mes ant.</span>
+                    </p>
+                  )}
                   <div className={styles.kpiExpand}>
                     <div className={styles.kpiExpandInner}>
-                      <ul className={styles.kpiDrillList}>
-                        <li className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>Fórmula</span>
-                          <span className={styles.kpiDrillValue}>(Ingresos / Día actual) * Días del mes</span>
-                        </li>
-                        <li className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>Ingresos hoy</span>
-                          <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)}</span>
-                        </li>
-                        <li className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>Promedio diario</span>
-                          <span className={styles.kpiDrillValue}>{formatARS(avgDailyProjection)}</span>
-                        </li>
-                        <li className={styles.kpiDrillRow}>
-                          <span className={styles.kpiDrillKey}>Días del mes</span>
-                          <span className={styles.kpiDrillValue}>{daysInMonth}</span>
-                        </li>
-                      </ul>
+                      {k.id === 'ingresos' && (
+                        <ul className={styles.kpiDrillList}>
+                          <li className={styles.kpiDrillRow}>
+                            <span className={styles.kpiDrillKey}>Servicios</span>
+                            <span className={styles.kpiDrillValue}>{formatARS(ingServicios)}</span>
+                          </li>
+                          <li className={styles.kpiDrillRow}>
+                            <span className={styles.kpiDrillKey}>Productos</span>
+                            <span className={styles.kpiDrillValue}>{formatARS(ingProductos)}</span>
+                          </li>
+                        </ul>
+                      )}
+                      {k.id === 'gastos' && (
+                        <>
+                          <ul className={styles.kpiDrillList}>
+                            {topExpenseCategories.length > 0 ? topExpenseCategories.map(([cat, amt]) => (
+                              <li key={cat} className={styles.kpiDrillRow}>
+                                <span className={styles.kpiDrillKey}>{cat}</span>
+                                <span className={styles.kpiDrillValue}>{formatARS(amt)}</span>
+                              </li>
+                            )) : (
+                              <li className={styles.kpiDrillRow}>
+                                <span className={styles.kpiDrillKey}>Sin gastos</span>
+                                <span className={styles.kpiDrillValue}>—</span>
+                              </li>
+                            )}
+                          </ul>
+                          <Link href={`/dashboard/${barbershopId}/gastos`} className={styles.kpiActionLink}>
+                            <span aria-hidden>+</span>
+                            <span>Gestionar Gastos</span>
+                          </Link>
+                        </>
+                      )}
+                      {k.id === 'comisiones' && (
+                        <ul className={styles.kpiDrillList}>
+                          {topCommissionBarbers.length > 0 ? topCommissionBarbers.map((barber) => (
+                            <li key={barber.name} className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>{barber.name}</span>
+                              <span className={styles.kpiDrillValue}>{formatARS(barber.comision)}</span>
+                            </li>
+                          )) : (
+                            <li className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>Sin comisiones</span>
+                              <span className={styles.kpiDrillValue}>—</span>
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                      {k.id === 'neto' && (
+                        <ul className={styles.kpiDrillList}>
+                          <li className={styles.kpiDrillRow}>
+                            <span className={styles.kpiDrillKey}>Fórmula</span>
+                            <span className={styles.kpiDrillValue}>Ingresos - (Gastos + Comisiones)</span>
+                          </li>
+                          <li className={styles.kpiDrillRow}>
+                            <span className={styles.kpiDrillKey}>Cálculo</span>
+                            <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)} - ({formatARS(gastosMes)} + {formatARS(comisionesMes)})</span>
+                          </li>
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </details>
-              ) : (
-                <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
-                  <p className={styles.kpiLabel}>{k.label}</p>
-                  <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
-                  <p className={styles.kpiMeta}>{k.detail}</p>
-                </div>
-              )
-            ) : (
-              <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
-                <p className={styles.kpiLabel}>{k.label}</p>
-                <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
-                <p className={styles.kpiMeta}>{k.detail}</p>
-              </div>
-            )
-          ))}
+              ))}
+            </div>
+          </div>
+          <div className={styles.kpiBlock}>
+            <div className={styles.kpis}>
+              {operationalKpis.map(k => (
+                k.id === 'proyeccion' ? (
+                  isProjectionAvailable ? (
+                    <details key={k.id} className={`${styles.kpiCard} ${styles.kpiInteractive} ${k.cardVariant === 'forecast' ? styles.kpiCardForecast : ''}`}>
+                      <summary className={styles.kpiSummary}>
+                        <div>
+                          <p className={styles.kpiLabel}>
+                            <span className={styles.metricLabelRow}>
+                              <span>{k.label}</span>
+                              <InfoTooltip ariaLabel={`Qué significa ${k.label}`} content={k.help} />
+                            </span>
+                          </p>
+                          <p className={`${styles.kpiValue} ${kpiToneClass(k.valueTone)}`}>{k.value}</p>
+                        </div>
+                        <span className={styles.kpiChevron} aria-hidden>▾</span>
+                      </summary>
+                      <p className={styles.kpiMeta}>{k.detail}</p>
+                      <div className={styles.kpiExpand}>
+                        <div className={styles.kpiExpandInner}>
+                          <ul className={styles.kpiDrillList}>
+                            <li className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>Fórmula</span>
+                              <span className={styles.kpiDrillValue}>(Ingresos / Día actual) * Días del mes</span>
+                            </li>
+                            <li className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>Ingresos hoy</span>
+                              <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)}</span>
+                            </li>
+                            <li className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>Promedio diario</span>
+                              <span className={styles.kpiDrillValue}>{formatARS(avgDailyProjection)}</span>
+                            </li>
+                            <li className={styles.kpiDrillRow}>
+                              <span className={styles.kpiDrillKey}>Días del mes</span>
+                              <span className={styles.kpiDrillValue}>{daysInMonth}</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </details>
+                  ) : (
+                    <div key={k.id} className={`${styles.kpiCard} ${k.cardVariant === 'forecast' ? styles.kpiCardForecast : ''}`}>
+                      <p className={styles.kpiLabel}>
+                        <span className={styles.metricLabelRow}>
+                          <span>{k.label}</span>
+                          <InfoTooltip ariaLabel={`Qué significa ${k.label}`} content={k.help} />
+                        </span>
+                      </p>
+                      <p className={`${styles.kpiValue} ${kpiToneClass(k.valueTone)}`}>{k.value}</p>
+                      <p className={styles.kpiMeta}>{k.detail}</p>
+                    </div>
+                  )
+                ) : (
+                  <div key={k.id} className={`${styles.kpiCard} ${k.cardVariant === 'forecast' ? styles.kpiCardForecast : ''}`}>
+                    <p className={styles.kpiLabel}>
+                      <span className={styles.metricLabelRow}>
+                        <span>{k.label}</span>
+                        <InfoTooltip ariaLabel={`Qué significa ${k.label}`} content={k.help} />
+                      </span>
+                    </p>
+                    <p className={`${styles.kpiValue} ${kpiToneClass(k.valueTone)}`}>{k.value}</p>
+                    <p className={styles.kpiMeta}>{k.detail}</p>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </details>
       <div className={styles.section}>
         <ResumenMensual data={trendData} />
       </div>
