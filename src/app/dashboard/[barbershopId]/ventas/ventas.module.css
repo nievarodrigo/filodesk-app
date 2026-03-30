@@ -381,10 +381,16 @@
 /* ── Month nav ── */
 .monthNav {
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   gap: 6px;
-  flex-wrap: wrap;
 }
+.monthNav::-webkit-scrollbar { display: none; }
+.monthNav > :last-child { padding-right: 20px; }
 .monthTab {
+  flex: 0 0 auto;
   padding: 6px 12px;
   border-radius: 8px;
   font-size: .78rem;
@@ -398,6 +404,7 @@
 }
 .monthTab:hover { color: var(--text); border-color: var(--muted); }
 .monthActive {
+  flex: 0 0 auto;
   padding: 6px 12px;
   border-radius: 8px;
   font-size: .78rem;
