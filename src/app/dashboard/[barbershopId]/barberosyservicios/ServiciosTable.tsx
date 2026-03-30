@@ -61,13 +61,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
     if (!confirm(`¿Estás seguro de eliminar el servicio "${serviceName}"?`)) return
     startTransition(async () => {
       const result = await deleteServicio(barbershopId, serviceId)
-      if (result && 'error' in result) {
-        alert(result.error)
-        return
-      }
-      if (result?.mode === 'override') {
-        alert('Servicio global ocultado solo para esta barbería.')
-      }
+      if (result && 'error' in result) alert(result.error)
     })
   }
 

@@ -135,12 +135,6 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
         alert(result.error)
         return
       }
-
-      if (result?.mode === 'hard') {
-        alert('Barbero eliminado definitivamente.')
-      } else {
-        alert('Barbero dado de baja (historial conservado).')
-      }
     })
   }
 
