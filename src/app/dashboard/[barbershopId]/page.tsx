@@ -61,6 +61,11 @@ function resolveCurrentBarber(
   return null
 }
 
+type SaleWithBarber = {
+  amount: number | null
+  barbers: { commission_pct?: number | null } | Array<{ commission_pct?: number | null }> | null
+}
+
 export default async function DashboardPage({
   params,
 }: {
@@ -145,13 +150,14 @@ export default async function DashboardPage({
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
   const overrideNames = new Set((rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id).map(s => s.name))
   const serviceTypes = (rawServiceTypes ?? []).filter((s): s is ServiceType => !!s.barbershop_id || !overrideNames.has(s.name))
+  const salesTodayRows = (salesToday ?? []) as SaleWithBarber[]
 
-  const totalServiciosHoy = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const totalServiciosHoy = salesTodayRows.reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
-  const countHoy = (salesToday ?? []).length
+  const countHoy = salesTodayRows.length
 
-  const comisionesHoy = (salesToday ?? []).reduce((s, r) => {
+  const comisionesHoy = salesTodayRows.reduce((s, r) => {
     const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
     return s + Math.round((r.amount ?? 0) * (pct / 100))
   }, 0)
