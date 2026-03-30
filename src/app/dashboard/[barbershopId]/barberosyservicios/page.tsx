@@ -33,7 +33,7 @@ export default async function ConfiguracionPage({
     .single()
 
   const [{ data: barbers }, { data: allServices }] = await Promise.all([
-    supabase.from('barbers').select('id, name, email, phone, commission_pct, active, created_at').eq('barbershop_id', barbershopId).order('created_at'),
+    supabase.from('barbers').select('id, name, last_name, email, phone, commission_pct, active, created_at').eq('barbershop_id', barbershopId).order('created_at'),
     supabase.from('service_types').select('id, name, default_price, active, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).order('name'),
   ])
 

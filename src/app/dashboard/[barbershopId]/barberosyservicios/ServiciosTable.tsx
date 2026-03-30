@@ -91,61 +91,125 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
         {!services || services.length === 0 ? (
           <div className={styles.empty}>No hay servicios todavía.</div>
         ) : (
-          services.map(s => {
-            const isFocused = focusedRowId === s.id
-            return (
-              <div
-                key={s.id}
-                className={`${styles.tableRow} ${isEditing && isFocused ? styles.tableRowEditing : ''}`}
-              >
-                <span className={styles.cellName} data-label="Nombre">
-                  {s.name}
-                  {s.barbershop_id === null && <span className={styles.tagGlobal}>global</span>}
-                </span>
-
-                <span className={styles.cellPrice} data-label="Precio">
-                  {isEditing ? (
-                    <div className={styles.priceEdit}>
-                      <span className={styles.prefix}>$</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        className={styles.priceInput}
-                        value={prices[s.id]}
-                        onChange={e => handlePriceChange(s.id, e.target.value)}
-                        onFocus={() => setFocusedRowId(s.id)}
-                        onBlur={() => setFocusedRowId(null)}
-                        disabled={pending}
-                      />
-                    </div>
-                  ) : (
-                    <span className={styles.priceValue}>
-                      {s.default_price != null ? `$${Number(s.default_price).toLocaleString('es-AR')}` : '—'}
-                    </span>
-                  )}
-                </span>
-
-                <span className={styles.cellStatus} data-label="Estado">
-                  <span className={s.active ? styles.badgeActive : styles.badgeInactive}>
-                    {s.active ? 'Activo' : 'Inactivo'}
+          <>
+            {services.map(s => {
+              const isFocused = focusedRowId === s.id
+              return (
+                <div
+                  key={s.id}
+                  className={`${styles.tableRow} ${styles.desktopRow} ${isEditing && isFocused ? styles.tableRowEditing : ''}`}
+                >
+                  <span className={styles.cellName} data-label="Nombre">
+                    {s.name}
+                    {s.barbershop_id === null && <span className={styles.tagGlobal}>global</span>}
                   </span>
-                </span>
 
-                <div className={styles.cellActions} data-label="Acciones">
-                  {!isEditing && (
-                    <>
-                      <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
-                        {s.active ? 'Desactivar' : 'Activar'}
-                      </button>
-                      <button type="button" className={styles.btnDelete} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
-                        ✕
-                      </button>
-                    </>
-                  )}
+                  <span className={styles.cellPrice} data-label="Precio">
+                    {isEditing ? (
+                      <div className={styles.priceEdit}>
+                        <span className={styles.prefix}>$</span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          className={styles.priceInput}
+                          value={prices[s.id]}
+                          onChange={e => handlePriceChange(s.id, e.target.value)}
+                          onFocus={() => setFocusedRowId(s.id)}
+                          onBlur={() => setFocusedRowId(null)}
+                          disabled={pending}
+                        />
+                      </div>
+                    ) : (
+                      <span className={styles.priceValue}>
+                        {s.default_price != null ? `$${Number(s.default_price).toLocaleString('es-AR')}` : '—'}
+                      </span>
+                    )}
+                  </span>
+
+                  <span className={styles.cellStatus} data-label="Estado">
+                    <span className={s.active ? styles.badgeActive : styles.badgeInactive}>
+                      {s.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </span>
+
+                  <div className={styles.cellActions} data-label="Acciones">
+                    {!isEditing && (
+                      <>
+                        <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
+                          {s.active ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button type="button" className={styles.btnDelete} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
+                          ✕
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })
+              )
+            })}
+
+            <div className={styles.mobileAccordionList}>
+              {services.map(s => {
+                return (
+                  <details key={`mobile-${s.id}`} className={styles.mobileAccordionItem}>
+                    <summary className={styles.mobileAccordionSummary}>
+                      <span className={styles.mobileAccordionName}>
+                        {s.name}
+                        {s.barbershop_id === null && <span className={styles.tagGlobal}>global</span>}
+                      </span>
+                      <span className={styles.mobileAccordionSummaryRight}>
+                        <span className={styles.priceValue}>
+                          {s.default_price != null ? `$${Number(s.default_price).toLocaleString('es-AR')}` : '—'}
+                        </span>
+                        <span className={s.active ? styles.badgeActive : styles.badgeInactive}>
+                          {s.active ? 'Activo' : 'Inactivo'}
+                        </span>
+                        <span className={styles.mobileChevron} aria-hidden>▾</span>
+                      </span>
+                    </summary>
+
+                    <div className={styles.mobileAccordionBody}>
+                      <div className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Precio</span>
+                        <div className={styles.mobilePriceBox}>
+                          {isEditing ? (
+                            <div className={styles.priceEdit}>
+                              <span className={styles.prefix}>$</span>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                className={styles.priceInput}
+                                value={prices[s.id]}
+                                onChange={e => handlePriceChange(s.id, e.target.value)}
+                                onFocus={() => setFocusedRowId(s.id)}
+                                onBlur={() => setFocusedRowId(null)}
+                                disabled={pending}
+                              />
+                            </div>
+                          ) : (
+                            <span className={styles.priceValue}>
+                              {s.default_price != null ? `$${Number(s.default_price).toLocaleString('es-AR')}` : '—'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {!isEditing && (
+                        <>
+                          <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
+                            {s.active ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button type="button" className={`${styles.btnDelete} ${styles.btnDeleteFull}`} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
+                            Eliminar servicio
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </details>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
     </>

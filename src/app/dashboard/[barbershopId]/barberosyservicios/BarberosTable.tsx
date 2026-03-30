@@ -8,6 +8,7 @@ import styles from './barberos.module.css'
 interface Barber {
   id: string
   name: string
+  last_name?: string | null
   email: string | null
   phone: string | null
   commission_pct: number | null
@@ -83,66 +84,147 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
         {!barbers || barbers.length === 0 ? (
           <div className={styles.empty}>Todavía no hay barberos. Agregá el primero arriba.</div>
         ) : (
-          barbers.map(barber => (
-            <div key={barber.id} className={styles.tableRow}>
-              <div className={styles.cellIdentity} data-label="Ficha">
-                <span className={styles.cellName}>{barber.name}</span>
-                <span className={styles.cellMeta}>{barber.email}</span>
-                <span className={styles.cellMeta}>{barber.phone}</span>
-              </div>
+          <>
+            {barbers.map(barber => (
+              <div key={barber.id} className={`${styles.tableRow} ${styles.desktopRow}`}>
+                <div className={styles.cellIdentity} data-label="Ficha">
+                  <span className={styles.cellName}>{`${barber.name} ${barber.last_name ?? ''}`.trim()}</span>
+                  <span className={styles.cellMeta}>{barber.email}</span>
+                  <span className={styles.cellMeta}>{barber.phone}</span>
+                </div>
 
-              <span className={styles.cellCommission} data-label="Comisión">
-                {isEditing ? (
-                  <div className={styles.commissionEdit}>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max="100"
-                      step="1"
-                      className={styles.commissionInput}
-                      value={commissions[barber.id]}
-                      onChange={e => handleCommissionChange(barber.id, e.target.value)}
-                      disabled={pending}
-                    />
-                    <span className={styles.commissionSuffix}>%</span>
-                  </div>
-                ) : (
-                  <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
-                )}
-              </span>
-
-              <span className={styles.cellStatus} data-label="Estado">
-                <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
-                  {barber.active ? 'Activo' : 'Inactivo'}
+                <span className={styles.cellCommission} data-label="Comisión">
+                  {isEditing ? (
+                    <div className={styles.commissionEdit}>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        max="100"
+                        step="1"
+                        className={styles.commissionInput}
+                        value={commissions[barber.id]}
+                        onChange={e => handleCommissionChange(barber.id, e.target.value)}
+                        disabled={pending}
+                      />
+                      <span className={styles.commissionSuffix}>%</span>
+                    </div>
+                  ) : (
+                    <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
+                  )}
                 </span>
-              </span>
 
-              <div className={styles.cellActions} data-label="Acciones">
-                {!isEditing && barber.phone && (
-                  <a
-                    href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.btnInvite}
-                    aria-label={`Invitar a ${barber.name} por WhatsApp`}
-                  >
-                    WhatsApp
-                  </a>
-                )}
-                {!isEditing && (
-                  <button
-                    type="button"
-                    className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
-                    disabled={pending}
-                    onClick={() => handleToggle(barber.id, !barber.active)}
-                  >
-                    {barber.active ? 'Desactivar' : 'Activar'}
-                  </button>
-                )}
+                <span className={styles.cellStatus} data-label="Estado">
+                  <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
+                    {barber.active ? 'Activo' : 'Inactivo'}
+                  </span>
+                </span>
+
+                <div className={styles.cellActions} data-label="Acciones">
+                  {!isEditing && barber.phone && (
+                    <a
+                      href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.btnInvite}
+                      aria-label={`Invitar a ${barber.name} por WhatsApp`}
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
+                      disabled={pending}
+                      onClick={() => handleToggle(barber.id, !barber.active)}
+                    >
+                      {barber.active ? 'Desactivar' : 'Activar'}
+                    </button>
+                  )}
+                </div>
               </div>
+            ))}
+
+            <div className={styles.mobileAccordionList}>
+              {barbers.map(barber => {
+                const fullName = `${barber.name} ${barber.last_name ?? ''}`.trim()
+                return (
+                  <details key={`mobile-${barber.id}`} className={styles.mobileAccordionItem}>
+                    <summary className={styles.mobileAccordionSummary}>
+                      <span className={styles.mobileAccordionName}>{fullName}</span>
+                      <span className={styles.mobileAccordionSummaryRight}>
+                        <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
+                          {barber.active ? 'Activo' : 'Inactivo'}
+                        </span>
+                        <span className={styles.mobileChevron} aria-hidden>▾</span>
+                      </span>
+                    </summary>
+
+                    <div className={styles.mobileAccordionBody}>
+                      <p className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Email</span>
+                        <span className={styles.mobileInfoValue}>{barber.email || '—'}</span>
+                      </p>
+
+                      <div className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Teléfono</span>
+                        <div className={styles.mobilePhoneRow}>
+                          <span className={styles.mobileInfoValue}>{barber.phone || '—'}</span>
+                          {!isEditing && barber.phone && (
+                            <a
+                              href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={styles.btnInvite}
+                              aria-label={`Invitar a ${fullName} por WhatsApp`}
+                            >
+                              WhatsApp
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Comisión</span>
+                        <div className={styles.mobileCommissionBox}>
+                          {isEditing ? (
+                            <div className={styles.commissionEdit}>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                min="0"
+                                max="100"
+                                step="1"
+                                className={styles.commissionInput}
+                                value={commissions[barber.id]}
+                                onChange={e => handleCommissionChange(barber.id, e.target.value)}
+                                disabled={pending}
+                              />
+                              <span className={styles.commissionSuffix}>%</span>
+                            </div>
+                          ) : (
+                            <span className={styles.commissionValue}>{barber.commission_pct ?? 0}%</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {!isEditing && (
+                        <button
+                          type="button"
+                          className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
+                          disabled={pending}
+                          onClick={() => handleToggle(barber.id, !barber.active)}
+                        >
+                          {barber.active ? 'Desactivar' : 'Activar'}
+                        </button>
+                      )}
+                    </div>
+                  </details>
+                )
+              })}
             </div>
-          ))
+          </>
         )}
       </div>
     </>

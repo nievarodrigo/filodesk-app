@@ -49,6 +49,8 @@
 }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); }
+.desktopRow { display: grid; }
+.mobileAccordionList { display: none; }
 
 .cellName {
   font-weight: 600;
@@ -217,55 +219,76 @@
     overflow: visible;
   }
   .tableHead { display: none; }
-  .tableRow {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-    padding: 18px 18px;
+  .desktopRow { display: none; }
+
+  .mobileAccordionList { display: grid; gap: 14px; }
+  .mobileAccordionItem {
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: var(--surface);
-    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .mobileAccordionSummary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px;
+  }
+  .mobileAccordionSummary::-webkit-details-marker { display: none; }
+  .mobileAccordionName {
+    color: var(--cream);
+    font-weight: 700;
+    font-size: .96rem;
+  }
+  .mobileAccordionSummaryRight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobileChevron {
+    color: var(--muted);
+    font-size: .9rem;
+    transition: transform .2s ease;
+  }
+  .mobileAccordionItem[open] .mobileChevron {
+    transform: rotate(180deg);
   }
 
-  .cellIdentity,
-  .cellCommission,
-  .cellStatus,
-  .cellActions {
-    width: 100%;
-    padding-top: 14px;
-    position: relative;
+  .mobileAccordionBody {
+    padding: 0 18px 18px;
+    display: grid;
+    gap: 12px;
   }
-  .cellIdentity::before,
-  .cellCommission::before,
-  .cellStatus::before,
-  .cellActions::before {
-    content: attr(data-label);
-    position: absolute;
-    top: 0;
-    left: 0;
-    font-size: .68rem;
+  .mobileInfoRow {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .mobileInfoLabel {
+    font-size: .7rem;
     text-transform: uppercase;
     letter-spacing: .7px;
     color: var(--muted);
     font-weight: 700;
   }
-
-  .cellIdentity { gap: 4px; }
-  .cellCommission,
-  .cellStatus {
+  .mobileInfoValue {
+    color: var(--text);
+    font-size: .9rem;
+  }
+  .mobilePhoneRow {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .mobileCommissionBox {
+    display: flex;
+    justify-content: center;
     align-items: center;
   }
-
-  .cellActions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .cellActions > * { width: 100%; }
 
   .commissionEdit {
     width: 100%;
@@ -276,6 +299,11 @@
     width: 120px;
     min-height: 46px;
     font-size: 1rem;
+  }
+
+  .mobileAccordionBody .btnToggleOff,
+  .mobileAccordionBody .btnToggleOn {
+    width: 100%;
   }
 
   .tableControls,
