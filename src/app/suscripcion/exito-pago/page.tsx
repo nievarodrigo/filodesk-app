@@ -37,7 +37,7 @@ export default async function PagoExitoPage({
         approved = false
       } else {
         // Pago verificado exitosamente — activar suscripción
-        await subscriptionService.activatePayment(supabase, barbershopId, verification.months)
+        await subscriptionService.activatePayment(supabase, barbershopId, verification.months, verification.planId)
         approved = true
       }
     }

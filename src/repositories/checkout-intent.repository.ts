@@ -6,6 +6,7 @@ export async function create(
     barbershop_id: string
     months: number
     expected_amount: number
+    plan_id: string
     currency_id?: string
   }
 ) {

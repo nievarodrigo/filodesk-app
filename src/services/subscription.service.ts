@@ -36,7 +36,7 @@ export function calculateRenewsAt(startDate: Date, months: number): string {
 async function getPlanData(supabase: SupabaseClient, planId: string) {
   const { data, error } = await supabase
     .from('plans')
-    .select('price, name')
+    .select('id, price, name')
     .eq('id', planId)
     .eq('active', true)
     .single()
@@ -108,6 +108,7 @@ export async function createMPCheckout(
     barbershop_id: barbershopId,
     months,
     expected_amount: totalPrice,
+    plan_id: planId,
     currency_id: 'ARS',
   })
 
@@ -179,7 +180,12 @@ export async function verifyCheckoutPayment(
     const updateResult = await checkoutIntentRepo.markCompletedIfPending(supabase, intentId, paymentId)
     if (updateResult.error) return { error: 'already_completed' as const }
 
-    return { ok: true, months: intentResult.months, amount: intentResult.expected_amount }
+    return {
+      ok: true,
+      months: intentResult.months,
+      amount: intentResult.expected_amount,
+      planId: intentResult.plan_id ?? 'base',
+    }
   } catch (err) {
     console.error('[MP verify] error:', err)
     return { error: 'verification_failed' as const }
@@ -190,10 +196,11 @@ export async function activatePayment(
   supabase: SupabaseClient,
   barbershopId: string,
   months = 1,
+  planId: string = 'base',
 ) {
   if (!isMonthAllowed(months)) return { error: 'invalid_months' as const }
   
-  const plan = await getPlanData(supabase, 'base')
+  const plan = await getPlanData(supabase, planId)
   if (!plan) return { error: 'invalid_plan' as const }
 
   const now = new Date()
@@ -202,9 +209,28 @@ export async function activatePayment(
 
   await barbershopRepo.updateSubscription(
     supabase, barbershopId, 'active', null,
-    now.toISOString(), renewsAt, amount, 'checkout_pro'
+    now.toISOString(), renewsAt, amount, 'checkout_pro', plan.name
   )
   return { ok: true }
+}
+
+async function getPlanByName(supabase: SupabaseClient, planName: string) {
+  const { data, error } = await supabase
+    .from('plans')
+    .select('id, name')
+    .eq('name', planName)
+    .eq('active', true)
+    .single()
+
+  if (error || !data) return null
+  return data
+}
+
+function extractPlanNameFromReason(reason: string | null | undefined) {
+  if (!reason) return null
+
+  const match = reason.match(/\(Plan ([^)]+)\)/i)
+  return match?.[1] ?? null
 }
 
 export async function createBankTransfer(
@@ -267,7 +293,27 @@ export async function processWebhook(
   const renewsAt = subscription.next_payment_date ?? null
   const amount = subscription.auto_recurring?.transaction_amount ?? null
   const paymentMethod = subscription.payment_method_id ?? null
+  const extractedPlanName = extractPlanNameFromReason(subscription.reason)
+  let planName: string | null = extractedPlanName
 
-  await barbershopRepo.updateSubscription(supabase, barbershopId, status, subscriptionId, startsAt, renewsAt, amount, paymentMethod)
+  if (!planName && subscription.preapproval_plan_id) {
+    const planById = await getPlanData(supabase, subscription.preapproval_plan_id)
+    planName = planById?.name ?? null
+  } else if (planName) {
+    const planByName = await getPlanByName(supabase, planName)
+    planName = planByName?.name ?? planName
+  }
+
+  await barbershopRepo.updateSubscription(
+    supabase,
+    barbershopId,
+    status,
+    subscriptionId,
+    startsAt,
+    renewsAt,
+    amount,
+    paymentMethod,
+    planName
+  )
   return { ok: true }
 }

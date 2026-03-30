@@ -46,6 +46,7 @@ export async function updateSubscription(
   renewsAt?: string | null,
   amount?: number | null,
   paymentMethod?: string | null,
+  planName?: string | null,
 ) {
   return supabase
     .from('barbershops')
@@ -56,6 +57,7 @@ export async function updateSubscription(
       ...(renewsAt !== undefined && { subscription_renews_at: renewsAt }),
       ...(amount !== undefined && { subscription_amount: amount }),
       ...(paymentMethod !== undefined && { subscription_payment_method: paymentMethod }),
+      ...(planName !== undefined && { plan_name: planName }),
     })
     .eq('id', barbershopId)
 }
