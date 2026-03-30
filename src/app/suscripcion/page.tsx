@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getServerAuthContext } from '@/services/auth.service'
 import SuscripcionClient from './SuscripcionClient'
 
 export default async function SuscripcionPage({
@@ -9,21 +10,24 @@ export default async function SuscripcionPage({
 }) {
   const { barbershopId } = await searchParams
   const supabase = await createClient()
-  
+  const serviceClient = createServiceClient()
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
   if (!barbershopId) redirect('/dashboard')
 
-  // SECURITY: Filtrar por owner_id (Issue Medium)
-  const { data: barbershop, error } = await supabase
+  const context = await getServerAuthContext(supabase, barbershopId, user.id, serviceClient)
+  const { data: barbershop, error } = await serviceClient
     .from('barbershops')
-    .select('name, subscription_status, trial_ends_at')
+    .select('name, subscription_status, trial_ends_at, plan_name')
     .eq('id', barbershopId)
-    .eq('owner_id', user.id)
     .single()
 
   if (error || !barbershop) redirect('/dashboard')
-  if (barbershop.subscription_status === 'active') redirect(`/dashboard/${barbershopId}`)
+
+  if (!context || (context.role !== 'owner' && context.role !== 'manager')) {
+    redirect('/dashboard')
+  }
 
   // Obtener planes desde DB (Issue Medium - Single Source of Truth)
   const { data: plans } = await supabase
@@ -40,6 +44,7 @@ export default async function SuscripcionPage({
     <SuscripcionClient
       barbershopId={barbershopId}
       barbershopName={barbershop.name}
+      currentPlan={barbershop.plan_name ?? 'Base'}
       subscriptionStatus={barbershop.subscription_status}
       trialEnd={trialEnd}
       plans={plans || []}

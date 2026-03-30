@@ -51,9 +51,12 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
 export async function getServerAuthContext(
   supabase: SupabaseClient,
   barbershopId: string,
-  userId: string
+  userId: string,
+  privilegedSupabase?: SupabaseClient
 ): Promise<{ role: BarbershopRole; plan: string; permissions: string[] } | null> {
-  const barbershop = await barbershopRepo.findById(supabase, barbershopId)
+  const authLookupClient = privilegedSupabase ?? supabase
+
+  const barbershop = await barbershopRepo.findById(authLookupClient, barbershopId)
   if (!barbershop) return null
 
   const planName = barbershop.plan_name ?? 'Base'
@@ -63,7 +66,7 @@ export async function getServerAuthContext(
   if (userId === barbershop.owner_id) {
     role = 'owner'
   } else {
-    role = await memberRepo.getMemberRole(supabase, barbershopId, userId)
+    role = await memberRepo.getMemberRole(authLookupClient, barbershopId, userId)
   }
 
   if (!role) return null
