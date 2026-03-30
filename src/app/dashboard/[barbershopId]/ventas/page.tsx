@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { today, startOfMonth as som } from '@/lib/date'
-import DeleteVentaButton from './DeleteVentaButton'
 import FiltroFechas from './FiltroFechas'
 import GraficoIngresos from './GraficoIngresos'
 import BarberMobileAccordion from './BarberMobileAccordion'
@@ -64,6 +63,17 @@ type GroupedProductTransaction = {
     unitPrice: number
     subtotal: number
   }>
+}
+
+type ServiceSaleRow = {
+  id: string
+  amount: number
+  status: string
+  date: string
+  created_at?: string
+  notes?: string
+  barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }
+  service_types?: Array<{ name: string }> | { name: string }
 }
 
 function transactionGroupKey(sale: ProductSaleRow) {
@@ -178,27 +188,7 @@ export default async function VentasPage({
 
   const showStatus = (barbershopPlan?.plan_name ?? 'Base').toLowerCase() !== 'base'
 
-  const salesRows = (sales as Array<{
-    id: string
-    amount: number
-    status: string
-    date: string
-    created_at?: string
-    notes?: string
-    barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }
-    service_types?: Array<{ name: string }> | { name: string }
-  }>) ?? []
-
-  const salesForBarbersRows = (salesForBarbers as Array<{
-    id: string
-    amount: number
-    status: string
-    date: string
-    created_at?: string
-    notes?: string
-    barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }
-    service_types?: Array<{ name: string }> | { name: string }
-  }>) ?? []
+  const salesForBarbersRows = (salesForBarbers as ServiceSaleRow[]) ?? []
 
   // Totals for the full period (not paginated) — separate count queries
   const [{ data: allSalesTotals }, { data: allProdTotals }] = await Promise.all([
@@ -258,7 +248,7 @@ export default async function VentasPage({
   const productsBaseHref = `${baseHref}&pb=${barberPage}`
 
   const salesGroupedByBarberAll = (() => {
-    const grouped: Record<string, { barberName: string; count: number; total: number; commission: number; sales: typeof salesRows }> = {}
+    const grouped: Record<string, { barberName: string; count: number; total: number; commission: number; sales: ServiceSaleRow[] }> = {}
     for (const sale of salesForBarbersRows) {
       const barberName = (Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? 'Sin asignar'
       const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
@@ -360,52 +350,49 @@ export default async function VentasPage({
         {/* Servicios */}
         {(tipo === 'todos' || tipo === 'servicio') && (
           <>
-            {tipo === 'todos' && (sales ?? []).length > 0 && (
+            {tipo === 'todos' && salesGroupedByBarber.length > 0 && (
               <p className={styles.tableGroupLabel}>Servicios</p>
             )}
-            {(sales ?? []).length === 0 ? (
+            {salesGroupedByBarber.length === 0 ? (
               tipo === 'servicio' && <div className={styles.empty}>No hay servicios en este período.</div>
             ) : (
-              <>
-                <div className={styles.desktopServiceTable}>
-                  <div className={`${styles.table} ${tipo === 'todos' && (productSales ?? []).length > 0 ? styles.serviceTableGap : ''}`}>
-                    <div className={`${styles.tableHeadService} ${!showStatus ? styles.tableHeadServiceNoStatus : ''}`}>
-                      <span>Fecha</span>
-                      <span>Barbero</span>
-                      <span>Servicio</span>
-                      <span>Monto</span>
-                      <span>Com.</span>
-                      {showStatus && <span>Estado</span>}
-                      <span>Obs.</span>
-                      <span></span>
-                    </div>
-                    {salesRows.map(sale => {
-                      const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
-                      const commission = barber ? Math.round(sale.amount * barber.commission_pct / 100) : null
-                      const isPending = sale.status === 'pending'
-                      return (
-                        <div key={sale.id} className={`${styles.tableRowService} ${!showStatus ? styles.tableRowServiceNoStatus : ''}`}>
-                          <span className={styles.muted} data-label="Fecha">{formatShortDate(sale.date)}</span>
-                          <span data-label="Barbero">{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
-                          <span data-label="Servicio">{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                          <span className={styles.amount} data-label="Monto">{formatARS(sale.amount)}</span>
-                          <span className={styles.muted} data-label="Com.">{commission !== null ? formatARS(commission) : '—'}</span>
-                          {showStatus && (
-                            <span data-label="Estado">
-                              <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
-                                {isPending ? 'Pendiente' : 'Confirmado'}
-                              </span>
+              <div className={`${styles.serviceAccordionList} ${tipo === 'todos' && (productSales ?? []).length > 0 ? styles.serviceTableGap : ''}`}>
+                {salesGroupedByBarber.map(group => (
+                  <details key={`svc-group-${group.barberName}`} className={styles.accordionGroup}>
+                    <summary className={styles.accordionHeader}>
+                      <div className={styles.accordionHeaderTop}>
+                        <span className={styles.accordionBarber}>{group.barberName}</span>
+                        <span className={styles.accordionMeta}>×{group.count} · {formatARS(group.total)}</span>
+                      </div>
+                    </summary>
+                    <div className={styles.accordionBody}>
+                      <div className={styles.serviceTxHead}>
+                        <span>Hora</span>
+                        <span>Servicio</span>
+                        <span>Cantidad</span>
+                        <span>Monto</span>
+                      </div>
+                      {group.sales.map(sale => {
+                        const serviceName = (Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'
+                        const isPending = sale.status === 'pending'
+                        return (
+                          <div key={sale.id} className={styles.serviceTxRow}>
+                            <span data-label="Hora">{formatShortDate(sale.date)} · {formatShortTime(sale.created_at ?? sale.date)}</span>
+                            <span data-label="Servicio">{serviceName}</span>
+                            <span data-label="Cantidad">1</span>
+                            <span className={styles.amount} data-label="Monto">
+                              {formatARS(sale.amount)}
+                              {showStatus && isPending && (
+                                <span className={`${styles.statusBadge} ${styles.statusPending}`}>Pendiente</span>
+                              )}
                             </span>
-                          )}
-                          <span className={styles.muted} data-label="Obs.">{sale.notes ?? '—'}</span>
-                          <DeleteVentaButton barbershopId={barbershopId} saleId={sale.id} />
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-              </>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </details>
+                ))}
+              </div>
             )}
           </>
         )}

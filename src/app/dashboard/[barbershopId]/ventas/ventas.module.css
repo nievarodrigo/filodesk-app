@@ -590,6 +590,32 @@
   gap: 14px;
   padding: 0 22px 18px;
 }
+.serviceAccordionList {
+  display: grid;
+  gap: 14px;
+}
+.serviceTxHead {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.3fr) 90px 120px;
+  gap: 8px;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.serviceTxRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.3fr) 90px 120px;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--hover);
+  padding-top: 10px;
+  font-size: .88rem;
+  color: var(--text);
+}
 .accordionItem {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -829,6 +855,28 @@
   .tableHeadService, .tableHeadProduct { display: none; }
   .filterTabs { display: none; }
   .desktopRecordsHint { display: none; }
+  .serviceTxHead { display: none; }
+  .serviceTxRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-top: 12px;
+  }
+  .serviceTxRow > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: .9rem;
+  }
+  .serviceTxRow > span::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
 
   .productAccordionTableHead { display: none; }
   .productAccordionRow {
