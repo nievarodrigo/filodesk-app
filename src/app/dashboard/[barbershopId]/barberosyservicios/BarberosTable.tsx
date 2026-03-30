@@ -58,15 +58,15 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
       <div className={styles.tableControls}>
         {isEditing ? (
           <div className={styles.headerButtons}>
-            <button className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
+            <button type="button" className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
               {pending ? 'Guardando…' : 'Guardar comisiones'}
             </button>
-            <button className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
+            <button type="button" className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
               Cancelar
             </button>
           </div>
         ) : (
-          <button className={styles.btnPrimary} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: '160px' }} onClick={() => setIsEditing(true)}>
+          <button type="button" className={`${styles.btnPrimary} ${styles.btnEditMode}`} onClick={() => setIsEditing(true)}>
             Editar comisiones
           </button>
         )}
@@ -75,9 +75,9 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Ficha</span>
-          <span style={{ textAlign: 'center' }}>Comisión</span>
-          <span style={{ textAlign: 'center' }}>Estado</span>
-          <span style={{ textAlign: 'right' }}>Acciones</span>
+          <span className={styles.thCenter}>Comisión</span>
+          <span className={styles.thCenter}>Estado</span>
+          <span className={styles.thRight}>Acciones</span>
         </div>
 
         {!barbers || barbers.length === 0 ? (
@@ -85,13 +85,13 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
         ) : (
           barbers.map(barber => (
             <div key={barber.id} className={styles.tableRow}>
-              <div className={styles.cellIdentity}>
+              <div className={styles.cellIdentity} data-label="Ficha">
                 <span className={styles.cellName}>{barber.name}</span>
                 <span className={styles.cellMeta}>{barber.email}</span>
                 <span className={styles.cellMeta}>{barber.phone}</span>
               </div>
 
-              <span className={styles.cellCommission}>
+              <span className={styles.cellCommission} data-label="Comisión">
                 {isEditing ? (
                   <div className={styles.commissionEdit}>
                     <input
@@ -112,13 +112,13 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                 )}
               </span>
 
-              <span className={styles.cellStatus}>
+              <span className={styles.cellStatus} data-label="Estado">
                 <span className={barber.active ? styles.badgeActive : styles.badgeInactive}>
                   {barber.active ? 'Activo' : 'Inactivo'}
                 </span>
               </span>
 
-              <div className={styles.cellActions}>
+              <div className={styles.cellActions} data-label="Acciones">
                 {!isEditing && barber.phone && (
                   <a
                     href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
@@ -132,6 +132,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                 )}
                 {!isEditing && (
                   <button
+                    type="button"
                     className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}
                     disabled={pending}
                     onClick={() => handleToggle(barber.id, !barber.active)}

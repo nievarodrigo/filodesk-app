@@ -34,6 +34,9 @@
   border-bottom: 1px solid var(--border);
   background: rgba(255,255,255,0.02);
 }
+.thCenter { text-align: center; }
+.thRight { text-align: right; }
+
 .tableRow {
   display: grid;
   grid-template-columns: minmax(170px, 2fr) minmax(100px, 1fr) minmax(92px, 1fr) 132px;
@@ -71,13 +74,21 @@
 .cellCommission { text-align: center; display: flex; justify-content: center; align-items: center; }
 .cellStatus { text-align: center; display: flex; justify-content: center; align-items: center; }
 .cellActions { display: flex; justify-content: flex-end; gap: 8px; }
+.cellActions:empty { display: none; }
 
 .commissionValue { color: var(--gold); font-weight: 600; }
 
-.commissionEdit { display: flex; align-items: center; gap: 4px; justify-content: center; }
+.commissionEdit { display: flex; align-items: center; gap: 6px; justify-content: center; }
 .commissionInput {
-  background: var(--bg); border: 1px solid var(--gold); border-radius: 6px;
-  padding: 6px 10px; color: var(--text); font-size: .9rem; outline: none; width: 70px;
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: .95rem;
+  outline: none;
+  width: 78px;
+  min-height: 44px;
   text-align: center;
 }
 .commissionSuffix { font-size: .85rem; color: var(--muted); }
@@ -101,33 +112,43 @@
   cursor: pointer; min-height: 44px; font-size: .88rem;
   display: inline-flex; align-items: center; justify-content: center;
 }
+.btnEditMode {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  min-width: 160px;
+}
 .btnSecondary {
   background: transparent; border: 1px solid var(--border); color: var(--muted);
   padding: 10px 20px; border-radius: 8px; font-weight: 600;
   cursor: pointer; min-height: 44px; font-size: .88rem;
 }
 
+.btnToggleOff,
+.btnToggleOn,
+.btnInvite {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btnToggleOff {
   background: transparent; border: 1px solid rgba(224,112,112,0.3); color: var(--red);
-  padding: 6px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer;
 }
 .btnToggleOn {
   background: transparent; border: 1px solid rgba(94,207,135,0.3); color: var(--green);
-  padding: 6px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer;
 }
 .btnInvite {
   background: rgba(37, 211, 102, 0.12);
   border: 1px solid rgba(37, 211, 102, 0.3);
   color: #25d366;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: .78rem;
-  font-weight: 700;
-  cursor: pointer;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btnActions { display: flex; gap: 8px; align-items: center; }
@@ -145,9 +166,134 @@
 
 .empty { padding: 48px; text-align: center; color: var(--muted); }
 
+/* Forms */
+.formCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.formCardOpen { margin-top: 16px; }
+.formTitle { font-size: 1rem; font-weight: 700; color: var(--cream); margin: 0 0 12px; }
+.form { display: flex; flex-direction: column; gap: 14px; }
+.formRow { display: flex; gap: 12px; }
+.field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.input {
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: .92rem;
+}
+.formActions { display: flex; justify-content: flex-end; }
+.error { margin: 0; font-size: .75rem; color: var(--red); }
+.errorBox {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(224,112,112,.08);
+  border: 1px solid rgba(224,112,112,.2);
+  color: var(--red);
+  font-size: .85rem;
+}
+
 @media (max-width: 768px) {
   .block { padding: 16px; }
-  .table { overflow-x: auto; }
-  .tableHead, .tableRow { min-width: 500px; padding: 12px 16px; }
   .blockHeader { flex-direction: column; align-items: flex-start; }
+
+  .table {
+    background: transparent;
+    border: none;
+    overflow: visible;
+  }
+  .tableHead { display: none; }
+  .tableRow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 18px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    margin-bottom: 14px;
+  }
+
+  .cellIdentity,
+  .cellCommission,
+  .cellStatus,
+  .cellActions {
+    width: 100%;
+    padding-top: 14px;
+    position: relative;
+  }
+  .cellIdentity::before,
+  .cellCommission::before,
+  .cellStatus::before,
+  .cellActions::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .cellIdentity { gap: 4px; }
+  .cellCommission,
+  .cellStatus {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .cellActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .cellActions > * { width: 100%; }
+
+  .commissionEdit {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+  .commissionInput {
+    width: 120px;
+    min-height: 46px;
+    font-size: 1rem;
+  }
+
+  .tableControls,
+  .headerButtons {
+    width: 100%;
+  }
+  .headerButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .tableControls .btnPrimary,
+  .tableControls .btnSecondary {
+    width: 100%;
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

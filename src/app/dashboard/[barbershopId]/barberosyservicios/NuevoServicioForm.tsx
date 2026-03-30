@@ -18,7 +18,7 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
       </button>
 
       {open && (
-        <div className={styles.formCard} style={{ marginTop: 16 }}>
+        <div className={`${styles.formCard} ${styles.formCardOpen}`}>
           <h3 className={styles.formTitle}>Nuevo servicio</h3>
           <form action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}

@@ -66,15 +66,15 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
       <div className={styles.tableControls}>
         {isEditing ? (
           <div className={styles.headerButtons}>
-            <button className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
+            <button type="button" className={styles.btnPrimary} onClick={handleSaveChanges} disabled={pending}>
               {pending ? 'Guardando…' : 'Guardar precios'}
             </button>
-            <button className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
+            <button type="button" className={styles.btnSecondary} onClick={handleCancel} disabled={pending}>
               Cancelar
             </button>
           </div>
         ) : (
-          <button className={styles.btnPrimary} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: '160px' }} onClick={() => setIsEditing(true)}>
+          <button type="button" className={`${styles.btnPrimary} ${styles.btnEditMode}`} onClick={() => setIsEditing(true)}>
             Editar precios
           </button>
         )}
@@ -83,9 +83,9 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
       <div className={styles.table}>
         <div className={styles.tableHead}>
           <span>Nombre</span>
-          <span style={{ textAlign: 'center' }}>Precio</span>
-          <span style={{ textAlign: 'center' }}>Estado</span>
-          <span style={{ textAlign: 'right' }}>Acciones</span>
+          <span className={styles.thCenter}>Precio</span>
+          <span className={styles.thCenter}>Estado</span>
+          <span className={styles.thRight}>Acciones</span>
         </div>
 
         {!services || services.length === 0 ? (
@@ -96,15 +96,14 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
             return (
               <div
                 key={s.id}
-                className={styles.tableRow}
-                style={isEditing && isFocused ? { background: 'rgba(212, 168, 42, 0.12)', borderLeft: '3px solid var(--gold)' } : {}}
+                className={`${styles.tableRow} ${isEditing && isFocused ? styles.tableRowEditing : ''}`}
               >
-                <span className={styles.cellName}>
+                <span className={styles.cellName} data-label="Nombre">
                   {s.name}
                   {s.barbershop_id === null && <span className={styles.tagGlobal}>global</span>}
                 </span>
 
-                <span className={styles.cellPrice}>
+                <span className={styles.cellPrice} data-label="Precio">
                   {isEditing ? (
                     <div className={styles.priceEdit}>
                       <span className={styles.prefix}>$</span>
@@ -126,19 +125,19 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
                   )}
                 </span>
 
-                <span className={styles.cellStatus}>
+                <span className={styles.cellStatus} data-label="Estado">
                   <span className={s.active ? styles.badgeActive : styles.badgeInactive}>
                     {s.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </span>
 
-                <div className={styles.cellActions}>
+                <div className={styles.cellActions} data-label="Acciones">
                   {!isEditing && (
                     <>
-                      <button className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
+                      <button type="button" className={s.active ? styles.btnToggleOff : styles.btnToggleOn} disabled={pending} onClick={() => handleToggle(s.id, !s.active)}>
                         {s.active ? 'Desactivar' : 'Activar'}
                       </button>
-                      <button className={styles.btnDelete} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
+                      <button type="button" className={styles.btnDelete} disabled={pending} onClick={() => handleDelete(s.id, s.name)}>
                         ✕
                       </button>
                     </>
