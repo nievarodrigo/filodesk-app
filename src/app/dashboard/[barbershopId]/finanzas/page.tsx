@@ -5,6 +5,7 @@ import { canAccess } from '@/lib/permissions'
 import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import { headers } from 'next/headers'
+import Link from 'next/link'
 import { getServerAuthContext } from '@/services/auth.service'
 import { isFeatureEnabled } from '@/services/plan.service'
 import { redirect } from 'next/navigation'
@@ -488,19 +489,25 @@ export default async function FinanzasPage({
                   </ul>
                 )}
                 {k.label === 'Gastos' && (
-                  <ul className={styles.kpiDrillList}>
-                    {topExpenseCategories.length > 0 ? topExpenseCategories.map(([cat, amt]) => (
-                      <li key={cat} className={styles.kpiDrillRow}>
-                        <span className={styles.kpiDrillKey}>{cat}</span>
-                        <span className={styles.kpiDrillValue}>{formatARS(amt)}</span>
-                      </li>
-                    )) : (
-                      <li className={styles.kpiDrillRow}>
-                        <span className={styles.kpiDrillKey}>Sin gastos</span>
-                        <span className={styles.kpiDrillValue}>—</span>
-                      </li>
-                    )}
-                  </ul>
+                  <>
+                    <ul className={styles.kpiDrillList}>
+                      {topExpenseCategories.length > 0 ? topExpenseCategories.map(([cat, amt]) => (
+                        <li key={cat} className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>{cat}</span>
+                          <span className={styles.kpiDrillValue}>{formatARS(amt)}</span>
+                        </li>
+                      )) : (
+                        <li className={styles.kpiDrillRow}>
+                          <span className={styles.kpiDrillKey}>Sin gastos</span>
+                          <span className={styles.kpiDrillValue}>—</span>
+                        </li>
+                      )}
+                    </ul>
+                    <Link href={`/dashboard/${barbershopId}/gastos`} className={styles.kpiActionLink}>
+                      <span aria-hidden>+</span>
+                      <span>Gestionar Gastos</span>
+                    </Link>
+                  </>
                 )}
                 {k.label === 'Comisiones' && (
                   <ul className={styles.kpiDrillList}>

@@ -103,6 +103,26 @@
   font-weight: 600;
   text-align: right;
 }
+.kpiActionLink {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--hover);
+  transition: color .15s, border-color .15s, background .15s;
+}
+.kpiActionLink:hover {
+  color: var(--gold);
+  border-color: rgba(201,168,76,.32);
+  background: rgba(201,168,76,.08);
+}
 .kpiDelta {
   display: inline-flex;
   align-items: center;
