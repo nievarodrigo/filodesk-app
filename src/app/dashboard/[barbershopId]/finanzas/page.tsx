@@ -6,11 +6,14 @@ import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import { headers } from 'next/headers'
 import Link from 'next/link'
+import type { LucideIcon } from 'lucide-react'
+import { DollarSign, Package, PieChart, TrendingUp } from 'lucide-react'
 import { getServerAuthContext } from '@/services/auth.service'
 import { isFeatureEnabled } from '@/services/plan.service'
 import { redirect } from 'next/navigation'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
+import DailyQuickView from './DailyQuickView'
 import styles from './finanzas.module.css'
 
 export const metadata: Metadata = { title: 'Finanzas — FiloDesk' }
@@ -146,6 +149,7 @@ export default async function FinanzasPage({
 
   const from = toISODate(fromDate)
   const to = toISODate(toDate)
+  const todayISO = toISODate(todayDate)
   const rangeDays = diffDaysInclusive(fromDate, toDate)
   const prevToDate = addDays(fromDate, -1)
   const prevFromDate = addDays(prevToDate, -(rangeDays - 1))
@@ -185,6 +189,8 @@ export default async function FinanzasPage({
     { data: barberSalesMonth },
     { data: prodSalesMonth },
     { data: serviceCountMonth },
+    { data: salesToday },
+    { data: productSalesToday },
   ] = await Promise.all([
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
     supabase.from('sales').select('amount, barbers(commission_pct)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
@@ -200,6 +206,8 @@ export default async function FinanzasPage({
     supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
     supabase.from('product_sales').select('quantity, sale_price, products(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
     supabase.from('sales').select('amount, service_types(name)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('status', 'approved').eq('date', todayISO),
+    supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).eq('date', todayISO),
   ])
 
   const ingServicios = (salesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
@@ -309,7 +317,21 @@ export default async function FinanzasPage({
 
   const ingDelta = pctChange(ingresosMes, ingPrev)
   const gasDelta = pctChange(gastosMes, gasPrev)
+  const prodPrev = (productSalesPrev ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const prodDelta = pctChange(ingProductos, prodPrev)
+  const totalServiciosPrev = (salesPrev ?? []).length
+  const ticketPromedioPrev = totalServiciosPrev > 0 ? Math.round(ingPrev / totalServiciosPrev) : 0
+  const ticketDelta = pctChange(ticketPromedio, ticketPromedioPrev)
+  const margenOperativo = ingresosMes - gastosMes
+  const margenOperativoPrev = ingPrev - gasPrev
+  const margenOperativoDelta = pctChange(margenOperativo, margenOperativoPrev)
   const marginPct = ingresosMes > 0 ? Math.round((netoMes / ingresosMes) * 100) : 0
+  const ventasHoyServicios = (salesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const ventasHoyProductos = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const ventasHoy = ventasHoyServicios + ventasHoyProductos
+  const serviciosHoy = (salesToday ?? []).length
+  const efectivoHoy: number | null = null
+  const transferenciaHoy: number | null = null
   const topExpenseCategories = Object.entries(catMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
@@ -350,6 +372,48 @@ export default async function FinanzasPage({
     { label: 'Gastos',   value: formatARS(gastosMes),   delta: gasDelta },
     { label: 'Comisiones', value: formatARS(comisionesMes), delta: null },
     { label: 'Neto',     value: formatARS(netoMes),     delta: null },
+  ]
+
+  const strategicKpis: Array<{
+    label: string
+    value: string
+    detail: string
+    delta: number | null
+    Icon: LucideIcon
+    valueClass?: string
+  }> = [
+    {
+      label: 'Ingresos Brutos',
+      value: formatARS(ingresosMes),
+      detail: 'Ventas + servicios del período',
+      delta: ingDelta,
+      Icon: DollarSign,
+      valueClass: styles.kpiValuePositive,
+    },
+    {
+      label: 'Ticket Promedio (AOV)',
+      value: formatARS(ticketPromedio),
+      detail: `${totalServicios} ventas de servicio`,
+      delta: ticketDelta,
+      Icon: TrendingUp,
+      valueClass: styles.kpiValueGold,
+    },
+    {
+      label: 'Ventas de Productos',
+      value: formatARS(ingProductos),
+      detail: `${prodRanking.reduce((acc, prod) => acc + prod.cantidad, 0)} unidades vendidas`,
+      delta: prodDelta,
+      Icon: Package,
+      valueClass: styles.kpiValuePositive,
+    },
+    {
+      label: 'Margen Operativo (Estimado)',
+      value: formatARS(margenOperativo),
+      detail: 'Ingresos - gastos registrados',
+      delta: margenOperativoDelta,
+      Icon: PieChart,
+      valueClass: margenOperativo >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative,
+    },
   ]
 
   const operationalKpis = [
@@ -442,6 +506,36 @@ export default async function FinanzasPage({
             )}
           </form>
         </details>
+      </div>
+      <DailyQuickView
+        salesToday={ventasHoy}
+        servicesToday={serviciosHoy}
+        cashToday={efectivoHoy}
+        transferToday={transferenciaHoy}
+      />
+      <div className={styles.kpiBlock}>
+        <div className={`${styles.kpis} ${styles.masterKpis}`}>
+          {strategicKpis.map((kpi) => (
+            <div key={kpi.label} className={`${styles.kpiCard} ${styles.masterKpiCard}`}>
+              <div className={styles.masterKpiHeader}>
+                <div className={styles.masterKpiIconWrap}>
+                  <kpi.Icon className={styles.masterKpiIcon} aria-hidden />
+                </div>
+                <p className={styles.kpiLabel}>{kpi.label}</p>
+              </div>
+              <p className={`${styles.kpiValue} ${kpi.valueClass ?? ''}`}>{kpi.value}</p>
+              <p className={styles.kpiMeta}>{kpi.detail}</p>
+              {kpi.delta !== null && (
+                <p className={`${styles.kpiDelta} ${kpi.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative}`}>
+                  <span>{kpi.delta >= 0 ? '▲' : '▼'}</span>
+                  <span>{Math.abs(kpi.delta)}%</span>
+                  <span className={styles.kpiDeltaLong}>vs período anterior</span>
+                  <span className={styles.kpiDeltaShort}>vs ant.</span>
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       <div className={styles.kpiBlock}>
       <div className={styles.kpis}>
