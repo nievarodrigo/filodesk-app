@@ -448,7 +448,7 @@
 .tableSection { }
 .amount { color: var(--green); font-weight: 600; }
 .desktopServiceTable { display: block; }
-.mobileServiceAccordion { display: none; }
+.byBarberMobileAccordion { display: none; }
 
 /* Filter row */
 .filterRow {
@@ -535,18 +535,23 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 16px;
 }
 .accordionHeader {
   list-style: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  gap: 8px;
   padding: 18px 22px;
   cursor: pointer;
   user-select: none;
 }
 .accordionHeader::-webkit-details-marker { display: none; }
+.accordionHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
 .accordionBarber {
   color: var(--cream);
   font-weight: 700;
@@ -558,6 +563,13 @@
   font-size: .8rem;
   line-height: 1.6;
   text-align: right;
+}
+.accordionCommission {
+  margin: 0;
+  color: var(--gold);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.6;
 }
 .accordionBody {
   display: grid;
@@ -669,7 +681,8 @@
 /* ── Mobile tables (Ticket #001) ── */
 @media (max-width: 768px) {
   .desktopServiceTable { display: none; }
-  .mobileServiceAccordion { display: grid; gap: 14px; margin-bottom: 16px; }
+  .byBarberMobileAccordion { display: grid; gap: 14px; margin-bottom: 16px; }
+  .barberGrid { display: none; }
 
   .table { border: none; background: transparent; }
   .tableHeadService, .tableHeadProduct { display: none; }

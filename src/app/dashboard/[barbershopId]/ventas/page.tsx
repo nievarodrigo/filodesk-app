@@ -159,12 +159,15 @@ export default async function VentasPage({
   const baseHref = `?desde=${from}&hasta=${to}&tipo=${tipo}`
 
   const salesGroupedByBarber = (() => {
-    const grouped: Record<string, { barberName: string; count: number; total: number; sales: typeof salesRows }> = {}
+    const grouped: Record<string, { barberName: string; count: number; total: number; commission: number; sales: typeof salesRows }> = {}
     for (const sale of salesRows) {
       const barberName = (Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? 'Sin asignar'
-      if (!grouped[barberName]) grouped[barberName] = { barberName, count: 0, total: 0, sales: [] }
+      const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
+      const commission = barber ? Math.round((sale.amount ?? 0) * (barber.commission_pct ?? 0) / 100) : 0
+      if (!grouped[barberName]) grouped[barberName] = { barberName, count: 0, total: 0, commission: 0, sales: [] }
       grouped[barberName].count += 1
       grouped[barberName].total += sale.amount ?? 0
+      grouped[barberName].commission += commission
       grouped[barberName].sales.push(sale)
     }
     return Object.values(grouped).sort((a, b) => b.total - a.total)
@@ -215,7 +218,7 @@ export default async function VentasPage({
       {/* Resumen por barbero */}
       {Object.keys(byBarber).length > 0 && (tipo === 'todos' || tipo === 'servicio') && (
         <div className={styles.byBarber}>
-          <h2 className={styles.subTitle}>Por barbero {page > 1 && <span className={styles.pagNota}>(pág. {page})</span>}</h2>
+          <h2 className={styles.subTitle}>Barberos del día {page > 1 && <span className={styles.pagNota}>(pág. {page})</span>}</h2>
           <div className={styles.barberGrid}>
             {Object.values(byBarber).map(b => (
               <div key={b.name} className={styles.barberCard}>
@@ -223,6 +226,53 @@ export default async function VentasPage({
                 <p className={styles.barberStat}>{b.count} servicios · {formatARS(b.total)}</p>
                 <p className={styles.barberComm}>Comisión: {formatARS(b.commission)}</p>
               </div>
+            ))}
+          </div>
+
+          <div className={styles.byBarberMobileAccordion}>
+            {salesGroupedByBarber.map(group => (
+              <details key={group.barberName} className={styles.accordionGroup}>
+                <summary className={styles.accordionHeader}>
+                  <div className={styles.accordionHeaderTop}>
+                    <span className={styles.accordionBarber}>{group.barberName}</span>
+                    <span className={styles.accordionMeta}>{group.count} servicios · {formatARS(group.total)}</span>
+                  </div>
+                  <p className={styles.accordionCommission}>Comisión: {formatARS(group.commission)}</p>
+                </summary>
+                <div className={styles.accordionBody}>
+                  {group.sales.map(sale => {
+                    const isPending = sale.status === 'pending'
+                    return (
+                      <div key={sale.id} className={styles.accordionItem}>
+                        <p className={styles.accordionLine}>
+                          <span className={styles.accordionLabel}>Hora</span>
+                          <span>{formatShortTime(sale.created_at)}</span>
+                        </p>
+                        <p className={styles.accordionLine}>
+                          <span className={styles.accordionLabel}>Servicio</span>
+                          <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
+                        </p>
+                        <p className={styles.accordionLine}>
+                          <span className={styles.accordionLabel}>Monto</span>
+                          <span className={styles.amount}>{formatARS(sale.amount)}</span>
+                        </p>
+                        <p className={styles.accordionLine}>
+                          <span className={styles.accordionLabel}>Notas</span>
+                          <span className={styles.muted}>{sale.notes ?? '—'}</span>
+                        </p>
+                        {showStatus && (
+                          <p className={styles.accordionLine}>
+                            <span className={styles.accordionLabel}>Estado</span>
+                            <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
+                              {isPending ? 'Pendiente' : 'Confirmado'}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </details>
             ))}
           </div>
         </div>
@@ -294,49 +344,6 @@ export default async function VentasPage({
                   </div>
                 </div>
 
-                <div className={styles.mobileServiceAccordion}>
-                  {salesGroupedByBarber.map(group => (
-                    <details key={group.barberName} className={styles.accordionGroup}>
-                      <summary className={styles.accordionHeader}>
-                        <span className={styles.accordionBarber}>{group.barberName}</span>
-                        <span className={styles.accordionMeta}>{group.count} servicios · {formatARS(group.total)}</span>
-                      </summary>
-                      <div className={styles.accordionBody}>
-                        {group.sales.map(sale => {
-                          const isPending = sale.status === 'pending'
-                          return (
-                            <div key={sale.id} className={styles.accordionItem}>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Hora</span>
-                                <span>{formatShortTime(sale.created_at)}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Servicio</span>
-                                <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Monto</span>
-                                <span className={styles.amount}>{formatARS(sale.amount)}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Notas</span>
-                                <span className={styles.muted}>{sale.notes ?? '—'}</span>
-                              </p>
-                              {showStatus && (
-                                <p className={styles.accordionLine}>
-                                  <span className={styles.accordionLabel}>Estado</span>
-                                  <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
-                                    {isPending ? 'Pendiente' : 'Confirmado'}
-                                  </span>
-                                </p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </details>
-                  ))}
-                </div>
                 {tipo === 'servicio' && (
                   <Paginacion current={page} total={totalSalesPages} baseHref={baseHref} />
                 )}
