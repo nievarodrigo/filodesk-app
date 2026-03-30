@@ -141,7 +141,9 @@ export default async function VentasPage({
 
   const totalSalesPages = Math.ceil(countServicios / PAGE_SIZE_DESKTOP)
   const totalProductPagesDesktop = Math.ceil(countProductos / PAGE_SIZE_DESKTOP)
-  const totalProductPagesMobile = Math.ceil(countProductos / PAGE_SIZE_PRODUCTS_MOBILE)
+  const totalProductPagesMobile = Math.ceil((productCount ?? 0) / PAGE_SIZE_PRODUCTS_MOBILE)
+  const hasProductRowsDesktop = (productSales?.length ?? 0) > 0
+  const hasProductRowsMobile = (productSalesMobile?.length ?? 0) > 0
 
   // Últimos 6 meses para accesos rápidos
   const [curY, curM] = defaultDesde.split('-').map(Number)
@@ -232,7 +234,7 @@ export default async function VentasPage({
       {/* Resumen por barbero */}
       {Object.keys(byBarber).length > 0 && (tipo === 'todos' || tipo === 'servicio') && (
         <div className={styles.byBarber}>
-          <h2 className={styles.subTitle}>Barberos del día {page > 1 && <span className={styles.pagNota}>(pág. {page})</span>}</h2>
+          <h2 className={styles.subTitle}>Actividad por Barbero {page > 1 && <span className={styles.pagNota}>(pág. {page})</span>}</h2>
           <div className={styles.barberGrid}>
             {Object.values(byBarber).map(b => (
               <div key={b.name} className={styles.barberCard}>
@@ -295,7 +297,7 @@ export default async function VentasPage({
       {/* Tabla */}
       <div className={styles.tableSection}>
         <div className={styles.filterRow}>
-          <h2 className={styles.subTitle}>Detalle</h2>
+          <h2 className={styles.subTitle}>Ventas de Productos</h2>
           <div className={styles.filterTabs}>
             {tipoTabs.map(t => (
               <a
@@ -369,10 +371,10 @@ export default async function VentasPage({
         {/* Productos */}
         {(tipo === 'todos' || tipo === 'producto') && (
           <>
-            {tipo === 'todos' && (productSales ?? []).length > 0 && (
+            {tipo === 'todos' && (hasProductRowsDesktop || hasProductRowsMobile) && (
               <p className={styles.tableGroupLabel}>Productos vendidos</p>
             )}
-            {(productSales ?? []).length === 0 ? (
+            {(!hasProductRowsDesktop && !hasProductRowsMobile) ? (
               tipo === 'producto' && <div className={styles.empty}>No hay ventas de productos en este período.</div>
             ) : (
               <>
@@ -457,7 +459,7 @@ export default async function VentasPage({
           />
         )}
 
-        {tipo === 'todos' && (sales ?? []).length === 0 && (productSales ?? []).length === 0 && (
+        {tipo === 'todos' && (sales ?? []).length === 0 && !hasProductRowsDesktop && !hasProductRowsMobile && (
           <div className={styles.empty}>No hay ventas en este período.</div>
         )}
       </div>
