@@ -14,7 +14,7 @@
 |---|--------|----------|--------|----------|
 | SEC-001 | Security headers (HSTS, CSP, X-Frame-Options, etc.) | HIGH | ✅ APPLIED | `next.config.ts` |
 | SEC-002 | Rate limiting middleware | MEDIUM | ✅ APPLIED | `src/proxy.ts` |
-| SEC-003 | Turnstile CAPTCHA re-activation | HIGH | 🔲 PENDING | `src/app/actions/auth.ts` |
+| SEC-003 | Turnstile CAPTCHA re-activation | HIGH | ✅ APPLIED | `src/app/actions/auth.ts`, `RegisterForm.tsx` |
 | SEC-004 | Password policy hardening (Supabase) | HIGH | 🔲 PENDING | Dashboard Supabase |
 | SEC-005 | 2FA enforcement (GitHub, Supabase, Vercel) | HIGH | 🔲 PENDING | Manual |
 | SEC-006 | DMARC record (Cloudflare) | MEDIUM | 🔲 PENDING | DNS |
@@ -87,20 +87,45 @@ curl -X POST https://filodesk.com/auth/login -d "email=test@test.com&password=te
 
 ## PENDING CHANGES
 
-### SEC-003: Turnstile CAPTCHA (HIGH)
+### SEC-003: Turnstile CAPTCHA ✅
 
-**Archivo:** `src/app/actions/auth.ts:32-35`
+**Fecha:** 2026-03-30  
+**Archivos:** `src/app/actions/auth.ts`, `src/app/auth/register/RegisterForm.tsx`  
+**Commit:** `72a4c6c`
 
-**Estado actual:** Comentado con TODO
-```typescript
-// TODO: reactivar Turnstile cuando se configure el dominio en Cloudflare
+**Implementación:**
+- Widget de Turnstile en formulario de registro
+- Verificación server-side con `verifyTurnstile()`
+- Requiere `NEXT_PUBLIC_TURNSTILE_SITE_KEY` en env vars
+- Fallback graceful si no está configurado (permite registro)
+
+**Validación post-deploy:**
+```bash
+# Verificar que el script de Turnstile carga
+curl -I https://filodesk.com/auth/register | grep challenges.cloudflare
+
+# Registrar usuario sin CAPTCHA → debería fallar
+# Registrar usuario con CAPTCHA válido → debería funcionar
 ```
-
-**Acción requerida:** Descomentar cuando el dominio esté configurado en Cloudflare Turnstile.
 
 ---
 
 ### SEC-004: Password Policy (HIGH)
+
+**Ubicación:** Supabase Dashboard → Authentication → User Settings → Security
+
+**Cambios:**
+| Setting | Current | Recommended |
+|---------|---------|-------------|
+| Min length | 6 | 12 |
+| Require lowercase | ❌ | ✅ |
+| Require uppercase | ❌ | ✅ |
+| Require numbers | ❌ | ✅ |
+| Require special | ❌ | ✅ |
+
+---
+
+### SEC-005: 2FA Enforcement (HIGH)
 
 **Ubicación:** Supabase Dashboard → Authentication → User Settings → Security
 
