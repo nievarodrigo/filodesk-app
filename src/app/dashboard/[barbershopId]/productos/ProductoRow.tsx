@@ -27,6 +27,13 @@ function stockTone(stock: number) {
   return styles.stockOk
 }
 
+function marginTone(margin: number | null) {
+  if (margin === null) return styles.marginNeutral
+  if (margin < 20) return styles.marginLow
+  if (margin <= 50) return styles.marginMid
+  return styles.marginHigh
+}
+
 export default function ProductoRow({ barbershopId, product }: Props) {
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [productDrafts, setProductDrafts] = useState<Record<string, { name: string; sale_price: string; stock: string }>>({
@@ -165,7 +172,7 @@ export default function ProductoRow({ barbershopId, product }: Props) {
           )}
         </span>
 
-        <span className={styles.marginValue}>
+        <span className={`${styles.marginValue} ${marginTone(margin)}`}>
           {margin !== null ? `${margin}%` : '—'}
         </span>
 
@@ -265,7 +272,7 @@ export default function ProductoRow({ barbershopId, product }: Props) {
 
           <p className={styles.mobileInfoRow}>
             <span className={styles.mobileInfoLabel}>Margen</span>
-            <span className={styles.mobileInfoValue}>{margin !== null ? `${margin}%` : '—'}</span>
+            <span className={`${styles.mobileInfoValue} ${marginTone(margin)}`}>{margin !== null ? `${margin}%` : '—'}</span>
           </p>
 
           <p className={styles.mobileInfoRow}>

@@ -1,5 +1,11 @@
 .header { margin-bottom: 20px; }
 .title  { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
+.subtitle {
+  margin-top: 4px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.periodWrap { margin-bottom: 14px; }
 
 .btnPrimary { background: var(--gold); color: var(--bg); border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: .88rem; cursor: pointer; transition: background .15s; white-space: nowrap; }
 .btnPrimary:hover:not(:disabled) { background: var(--gold-soft); }
@@ -39,12 +45,64 @@
   border-color: rgba(224,112,112,.4);
 }
 
-.alertLow { background: rgba(201,168,76,.08); border: 1px solid rgba(201,168,76,.25); border-radius: 10px; padding: 12px 16px; font-size: .85rem; color: var(--gold); }
+.sectionGap { margin-top: 16px; }
+.criticalStockAlert {
+  background: linear-gradient(180deg, rgba(201,168,76,.11), rgba(224,112,112,.08));
+  border: 1px solid rgba(201,168,76,.28);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.criticalStockTitle {
+  margin: 0 0 8px;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: var(--gold);
+  font-weight: 800;
+}
+.criticalStockList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.criticalStockItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.12);
+}
+.criticalStockName {
+  color: var(--cream);
+  font-size: .84rem;
+  font-weight: 600;
+}
+.criticalStockLow {
+  color: var(--gold);
+  font-size: .8rem;
+  font-weight: 800;
+}
+.criticalStockZero {
+  color: var(--red);
+  font-size: .8rem;
+  font-weight: 800;
+}
 
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 600px; }
 .kpiCard { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--gold); border-radius: 10px; padding: 14px 18px; }
 .kpiLabel { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
 .kpiValue { font-size: 1.3rem; font-weight: 700; color: var(--cream); }
+.kpiValuePositive { color: var(--green); }
+.kpiValueGold { color: var(--gold); }
+.kpiLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
 /* Form */
 .formCard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 8px; }
@@ -72,11 +130,15 @@
 .productName { font-weight: 700; color: var(--cream); }
 .priceValue { color: var(--green); font-weight: 600; }
 .marginValue { color: var(--muted); font-weight: 600; }
+.marginNeutral { color: var(--muted); }
+.marginLow { color: var(--red); font-weight: 800; }
+.marginMid { color: var(--gold); font-weight: 700; }
+.marginHigh { color: var(--green); font-weight: 700; }
 .actionGroup { display: flex; justify-content: flex-end; gap: 8px; }
 
 .stockOk  { color: var(--green); font-weight: 600; }
 .stockMid { color: var(--gold);  font-weight: 700; }
-.stockLow { color: var(--red);   font-weight: 700; }
+.stockLow { color: var(--red);   font-weight: 800; }
 
 .badgeActive {
   display: inline-flex;
@@ -113,10 +175,80 @@
 /* History */
 .histSection { margin-top: 20px; }
 .histTitle { font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
+.histGroups { display: grid; gap: 10px; }
+.histDayGroup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.histDaySummary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(201,168,76,.04);
+}
+.histDaySummary::-webkit-details-marker { display: none; }
+.histDayDate {
+  margin: 0;
+  color: var(--cream);
+  font-size: .86rem;
+  font-weight: 700;
+}
+.histDayMeta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: .76rem;
+}
+.histDaySummaryRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.histDayTotal {
+  color: var(--green);
+  font-size: .9rem;
+  font-weight: 700;
+}
+.histDayChevron {
+  color: var(--muted);
+  transition: transform .2s ease;
+}
+.histDayGroup[open] .histDayChevron { transform: rotate(180deg); }
+.histDayBody {
+  padding: 10px 16px 14px;
+}
+.histDayTableHead {
+  display: grid;
+  grid-template-columns: 1.4fr .8fr 1fr 1fr;
+  gap: 8px;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hover);
+}
+.histDayRow {
+  display: grid;
+  grid-template-columns: 1.4fr .8fr 1fr 1fr;
+  gap: 8px;
+  font-size: .86rem;
+  color: var(--text);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hover);
+}
+.histDayRow:last-child { border-bottom: none; }
 .histTable { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .histRow { display: grid; grid-template-columns: 0.7fr 1.5fr 0.5fr 1fr; padding: 11px 18px; font-size: .88rem; color: var(--text); border-bottom: 1px solid var(--hover); }
 .histRow:last-child { border-bottom: none; }
 .muted { color: var(--muted); }
+.histAmount { color: var(--green); font-weight: 600; }
 
 .empty { padding: 40px; text-align: center; color: var(--muted); font-size: .9rem; }
 
@@ -203,6 +335,20 @@
   }
   .histTable { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .histRow { min-width: 400px; padding: 10px 14px; font-size: .82rem; }
+  .histDaySummary {
+    padding: 12px 14px;
+  }
+  .histDayBody {
+    padding: 10px 14px 12px;
+  }
+  .histDayTableHead {
+    display: none;
+  }
+  .histDayRow {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 8px 0;
+  }
   .kpis { grid-template-columns: 1fr; max-width: none; }
   .reponerFields { gap: 8px; }
 }

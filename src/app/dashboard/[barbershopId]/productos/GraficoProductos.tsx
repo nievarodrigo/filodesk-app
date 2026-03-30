@@ -11,7 +11,11 @@ interface ProductoData {
   ingresos: number
 }
 
-interface Props { data: ProductoData[] }
+interface Props {
+  data: ProductoData[]
+  title?: string
+  emptyMessage?: string
+}
 
 const COLORS = ['var(--gold)', '#5ecf87', '#7eb8f7', '#e07070', '#a78bfa', '#fb923c', '#34d399', '#f472b6']
 
@@ -39,9 +43,11 @@ const renderLabel = (props: { percent?: number }) => {
   return percent && percent > 0.07 ? `${Math.round(percent * 100)}%` : ''
 }
 
-export default function GraficoProductos({ data }: Props) {
-  if (data.length === 0) return null
-
+export default function GraficoProductos({
+  data,
+  title,
+  emptyMessage = 'Sin datos para este rango.',
+}: Props) {
   return (
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
@@ -51,33 +57,37 @@ export default function GraficoProductos({ data }: Props) {
         fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px',
         color: 'var(--muted)', fontWeight: 600, marginBottom: 12,
       }}>
-        Más vendidos (últimos 90 días)
+        {title ?? 'Más vendidos'}
       </p>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="ingresos"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={85}
-            innerRadius={45}
-            paddingAngle={2}
-            label={renderLabel}
-            labelLine={false}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend
-            formatter={(v) => v}
-            wrapperStyle={{ fontSize: '.78rem', color: 'var(--muted)' }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      {data.length === 0 ? (
+        <p style={{ color: 'var(--muted)', fontSize: '.86rem' }}>{emptyMessage}</p>
+      ) : (
+        <ResponsiveContainer width="100%" height={220}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="ingresos"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={85}
+              innerRadius={45}
+              paddingAngle={2}
+              label={renderLabel}
+              labelLine={false}
+            >
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              formatter={(v) => v}
+              wrapperStyle={{ fontSize: '.78rem', color: 'var(--muted)' }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
     </div>
   )
 }
