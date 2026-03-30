@@ -51,7 +51,7 @@ export default async function ProductosPage({
 
   const activeProducts = (products ?? []).filter(p => p.active)
   const totalStock     = activeProducts.length
-  const lowStock       = activeProducts.filter(p => p.stock <= 2)
+  const lowStock       = activeProducts.filter(p => p.stock < 5)
   const totalVentas    = (recentSales ?? []).reduce((s, r) => s + (r.sale_price * r.quantity), 0)
   const valorInventario = activeProducts.reduce((s, p) => s + (p.cost_price * p.stock), 0)
 

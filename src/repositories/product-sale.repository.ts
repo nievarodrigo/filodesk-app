@@ -16,3 +16,16 @@ export async function insert(supabase: SupabaseClient, data: ProductSaleRow) {
 export async function insertMany(supabase: SupabaseClient, rows: ProductSaleRow[]) {
   return supabase.from('product_sales').insert(rows)
 }
+
+export async function countByProductId(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  productId: string
+) {
+  const { count } = await supabase
+    .from('product_sales')
+    .select('id', { count: 'exact', head: true })
+    .eq('barbershop_id', barbershopId)
+    .eq('product_id', productId)
+  return count ?? 0
+}
