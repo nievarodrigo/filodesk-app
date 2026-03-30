@@ -53,6 +53,62 @@
   margin-bottom: 32px;
 }
 
+.oauthForm {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.googleButton {
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+
+.googleButton:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+  background: var(--card);
+}
+
+.googleIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.separator {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 20px;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.separator span {
+  padding: 0 10px;
+}
+
 .note {
   font-size: .82rem;
   color: var(--muted);
