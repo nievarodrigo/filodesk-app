@@ -42,6 +42,34 @@ style-src 'self' 'unsafe-inline';
 
 ---
 
+## CAMBIOS #2 — Rate Limiting
+
+### Archivo: `src/proxy.ts`
+
+**Limits implementados:**
+
+| Endpoint | Max requests | Window | Propósito |
+|----------|--------------|--------|-----------|
+| `/auth/login` | 20 | 1 min | Brute force protection |
+| `/auth/register` | 20 | 1 min | Bot registration |
+| `/api/*` | 100 | 1 min | General API protection |
+| `/auth/*` (other) | 100 | 1 min | Auth routes protection |
+
+**Implementación:**
+- Usa `x-forwarded-for` header para tracking de IP
+- Logs blocked requests para monitoreo
+- Retorna 429 con header `Retry-After: 60`
+
+**Test de rate limiting:**
+```bash
+# Con Apache Bench (20+ requests a /auth/login)
+ab -n 25 -c 1 -p login_data.txt https://filodesk.com/auth/login
+
+# Esperado: requests 1-20 OK, 21+ retorna 429
+```
+
+---
+
 ## CHECKLIST DE VALIDACIÓN
 
 ### Funcionalidad

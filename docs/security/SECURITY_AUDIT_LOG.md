@@ -13,7 +13,7 @@
 | # | Change | Severity | Status | Evidence |
 |---|--------|----------|--------|----------|
 | SEC-001 | Security headers (HSTS, CSP, X-Frame-Options, etc.) | HIGH | ✅ APPLIED | `next.config.ts` |
-| SEC-002 | Rate limiting middleware | MEDIUM | 🔲 PENDING | `src/middleware.ts` (to create) |
+| SEC-002 | Rate limiting middleware | MEDIUM | ✅ APPLIED | `src/proxy.ts` |
 | SEC-003 | Turnstile CAPTCHA re-activation | HIGH | 🔲 PENDING | `src/app/actions/auth.ts` |
 | SEC-004 | Password policy hardening (Supabase) | HIGH | 🔲 PENDING | Dashboard Supabase |
 | SEC-005 | 2FA enforcement (GitHub, Supabase, Vercel) | HIGH | 🔲 PENDING | Manual |
@@ -61,17 +61,31 @@ curl -I https://filodesk.com | grep -E '(Strict-Transport|X-Frame|Content-Securi
 
 ---
 
-## PENDING CHANGES
+### SEC-002: Rate Limiting ✅
 
-### SEC-002: Rate Limiting Middleware (MEDIUM)
+**Fecha:** 2026-03-30  
+**Archivo:** `src/proxy.ts`  
+**Commit:** `6c94207`
 
-**Archivo a crear:** `src/middleware.ts`
+**Limits implementados:**
 
-**Propósito:** Limitar requests a `/api/*` y `/auth/*` para prevenir brute force y DoS.
+| Endpoint | Max requests | Window |
+|----------|--------------|--------|
+| `/auth/login` | 20 | 1 min |
+| `/auth/register` | 20 | 1 min |
+| `/api/*` | 100 | 1 min |
+| `/auth/*` (other) | 100 | 1 min |
 
-**Código:** Ver `docs/security/RATE_LIMITING_PLAN.md`
+**Validación post-deploy:**
+```bash
+# 21 requests a /auth/login deberían retornar 429
+curl -X POST https://filodesk.com/auth/login -d "email=test@test.com&password=test" -w "\n%{http_code}\n"
+# Repetir 20+ veces
+```
 
 ---
+
+## PENDING CHANGES
 
 ### SEC-003: Turnstile CAPTCHA (HIGH)
 
