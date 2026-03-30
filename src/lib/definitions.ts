@@ -49,6 +49,7 @@ export interface Sale {
   id: string
   barber_id?: string
   amount: number
+  status?: 'pending' | 'approved'
   date: string
   created_at?: string
   notes: string | null

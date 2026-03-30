@@ -11,6 +11,7 @@ interface ServiceSale {
   barber: string
   service: string
   amount: number
+  status: 'pending' | 'approved'
   created_at: string
   notes: string | null
 }
@@ -110,6 +111,7 @@ interface GroupedBarber {
     id: string
     service: string
     amount: number
+    status: 'pending' | 'approved'
     created_at: string
     notes: string | null
   }>
@@ -127,6 +129,7 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
         id: s.id,
         service: s.service,
         amount: s.amount,
+        status: s.status,
         created_at: s.created_at,
         notes: s.notes,
       })
@@ -140,6 +143,7 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
           id: s.id,
           service: s.service,
           amount: s.amount,
+          status: s.status,
           created_at: s.created_at,
           notes: s.notes,
         }],
@@ -294,7 +298,10 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
                           <span className={styles.detailTime}>{extractTime(svc.created_at)}</span>
                           <span className={styles.detailService}>{svc.service}</span>
                           <span className={styles.detailQty}>1</span>
-                          <span className={styles.detailAmount}>{formatARS(svc.amount)}</span>
+                          <span className={styles.detailAmount}>
+                            {formatARS(svc.amount)}
+                            {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
+                          </span>
                         </div>
                       ))}
                       {totalServicePages > 1 && (

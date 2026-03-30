@@ -17,6 +17,8 @@ export async function createBarber(
 ): Promise<CreateBarberState> {
   const validated = CreateBarberSchema.safeParse({
     name: formData.get('name'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
     commission_pct: Number(formData.get('commission_pct')),
   })
   if (!validated.success) return { errors: validated.error.flatten().fieldErrors }

@@ -30,6 +30,18 @@ export default function NuevoBarberoForm({ barbershopId }: Props) {
                 {state?.errors?.name && <p className={styles.error}>{state.errors.name[0]}</p>}
               </div>
               <div className={styles.field}>
+                <label className={styles.label} htmlFor="email">Email *</label>
+                <input id="email" name="email" type="email" className={styles.input} placeholder="martin@barberia.com" />
+                {state?.errors?.email && <p className={styles.error}>{state.errors.email[0]}</p>}
+              </div>
+            </div>
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="phone">Teléfono *</label>
+                <input id="phone" name="phone" type="tel" className={styles.input} placeholder="+54 11 1234 5678" />
+                {state?.errors?.phone && <p className={styles.error}>{state.errors.phone[0]}</p>}
+              </div>
+              <div className={styles.field}>
                 <label className={styles.label} htmlFor="commission_pct">Comisión (%)</label>
                 <input id="commission_pct" name="commission_pct" type="number" min="0" max="100" defaultValue="50" className={styles.input} />
                 {state?.errors?.commission_pct && <p className={styles.error}>{state.errors.commission_pct[0]}</p>}

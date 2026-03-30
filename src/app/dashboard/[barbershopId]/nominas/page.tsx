@@ -20,6 +20,8 @@ function formatPeriod(start: string, end: string) {
   return `${start} al ${end}`
 }
 
+type PayrollBarberRelation = Array<{ name: string; phone: string | null }> | { name: string; phone: string | null }
+
 export default async function NominasPage({
   params,
 }: {
@@ -38,7 +40,7 @@ export default async function NominasPage({
   const [{ data: barbers }, { data: payrolls }] = await Promise.all([
     supabase.from('barbers').select('id, name, commission_pct').eq('barbershop_id', barbershopId).eq('active', true).order('name'),
     supabase.from('payrolls')
-      .select('id, period_start, period_end, total_sales, commission_pct, commission_amount, status, paid_at, barbers(name)')
+      .select('id, period_start, period_end, total_sales, commission_pct, commission_amount, status, paid_at, barbers(name, phone)')
       .eq('barbershop_id', barbershopId)
       .order('created_at', { ascending: false }),
   ])
@@ -46,7 +48,7 @@ export default async function NominasPage({
   const pendingTotal = (payrolls ?? []).filter(p => p.status === 'pending').reduce((s, p) => s + (p.commission_amount ?? 0), 0)
   const canExportData = isFeatureEnabled(context.plan, 'export_data')
   const payrollExportRows = (payrolls ?? []).map((payroll) => {
-    const b = payroll.barbers as any
+    const b = payroll.barbers as PayrollBarberRelation | undefined
     const barbero = (Array.isArray(b) ? b[0]?.name : b?.name) ?? '—'
     return {
       barbero,
@@ -96,10 +98,12 @@ export default async function NominasPage({
             <span>Compartir</span>
             <span></span>
           </div>
-          {(payrolls as Array<{ id: string; period_start: string; period_end: string; total_sales: number; commission_pct: number; commission_amount: number; status: string; barbers?: Array<{ name: string }> | { name: string } }>).map(p => {
+          {(payrolls as Array<{ id: string; period_start: string; period_end: string; total_sales: number; commission_pct: number; commission_amount: number; status: string; barbers?: Array<{ name: string; phone: string | null }> | { name: string; phone: string | null } }>).map(p => {
             const barberName = (Array.isArray(p.barbers) ? p.barbers?.[0]?.name : p.barbers?.name) ?? 'Barbero'
+            const barberPhone = (Array.isArray(p.barbers) ? p.barbers?.[0]?.phone : p.barbers?.phone) ?? null
             const periodLabel = formatPeriod(p.period_start, p.period_end)
             const whatsappLink = generatePayrollWhatsAppLink(
+              barberPhone,
               barberName,
               periodLabel,
               formatARS(p.commission_amount),
@@ -128,6 +132,7 @@ export default async function NominasPage({
                   rel="noreferrer"
                   className={styles.btnWhatsapp}
                   aria-label={`Compartir nómina de ${barberName} por WhatsApp`}
+                  title={barberPhone ? `Abrir chat con ${barberName}` : 'Abrir WhatsApp para elegir contacto manualmente'}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.whatsappIcon}>
                     <path

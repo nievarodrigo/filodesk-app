@@ -55,6 +55,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.cellIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cellMeta {
+  font-size: .76rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .cellCommission { text-align: center; display: flex; justify-content: center; align-items: center; }
 .cellStatus { text-align: center; display: flex; justify-content: center; align-items: center; }
 .cellActions { display: flex; justify-content: flex-end; gap: 8px; }

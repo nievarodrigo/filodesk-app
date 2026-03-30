@@ -110,20 +110,20 @@ export default async function FinanzasPage({
     { data: prodSalesMonth },
     { data: serviceCountMonth },
   ] = await Promise.all([
-    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
-    supabase.from('sales').select('amount, barbers(commission_pct)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
-    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, barbers(commission_pct)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
     supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
     supabase.from('expenses').select('amount, category').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
-    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
+    supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', prevFrom).lte('date', prevTo),
     supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
     supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
-    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
+    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', sixMonthsAgo),
     supabase.from('product_sales').select('sale_price, quantity, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
     supabase.from('expenses').select('amount, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
-    supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
     supabase.from('product_sales').select('quantity, sale_price, products(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
-    supabase.from('sales').select('amount, service_types(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('sales').select('amount, service_types(name)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
   ])
 
   const ingServicios = (salesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)

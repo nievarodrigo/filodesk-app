@@ -11,8 +11,13 @@ export async function createBarber(
   const { error } = await barberRepo.insert(supabase, {
     barbershop_id: barbershopId,
     name: input.name,
+    email: input.email.trim().toLowerCase(),
+    phone: input.phone.trim(),
     commission_pct: input.commission_pct,
   })
+  if (error?.code === '23505') {
+    return { error: 'Ya existe un barbero con ese email en esta barbería.' }
+  }
   if (error) return { error: 'No se pudo agregar el barbero. Intentá de nuevo.' }
   return {}
 }

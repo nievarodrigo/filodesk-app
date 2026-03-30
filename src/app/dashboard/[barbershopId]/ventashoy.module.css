@@ -122,7 +122,25 @@
   text-overflow: ellipsis;
 }
 .detailQty { text-align: center; }
-.detailAmount { color: var(--green); font-weight: 500; }
+.detailAmount {
+  color: var(--green);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pendingBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  background: rgba(212, 168, 42, 0.14);
+  border: 1px solid rgba(212, 168, 42, 0.28);
+  color: var(--gold);
+}
 
 @media (max-width: 768px) {
   .section { padding: 16px; }

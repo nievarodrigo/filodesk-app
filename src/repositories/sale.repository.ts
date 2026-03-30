@@ -29,6 +29,7 @@ export async function sumByBarberAndRange(
     .select('amount')
     .eq('barbershop_id', barbershopId)
     .eq('barber_id', barberId)
+    .eq('status', 'approved')
     .gte('date', periodStart)
     .lte('date', periodEnd)
   return (data ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)

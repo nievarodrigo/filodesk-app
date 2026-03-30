@@ -7,6 +7,8 @@ import styles from './barberos.module.css'
 interface Barber {
   id: string
   name: string
+  email: string | null
+  phone: string | null
   commission_pct: number | null
   active: boolean
 }
@@ -70,7 +72,7 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
 
       <div className={styles.table}>
         <div className={styles.tableHead}>
-          <span>Nombre</span>
+          <span>Ficha</span>
           <span style={{ textAlign: 'center' }}>Comisión</span>
           <span style={{ textAlign: 'center' }}>Estado</span>
           <span style={{ textAlign: 'right' }}>Acciones</span>
@@ -81,7 +83,11 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
         ) : (
           barbers.map(barber => (
             <div key={barber.id} className={styles.tableRow}>
-              <span className={styles.cellName}>{barber.name}</span>
+              <div className={styles.cellIdentity}>
+                <span className={styles.cellName}>{barber.name}</span>
+                <span className={styles.cellMeta}>{barber.email}</span>
+                <span className={styles.cellMeta}>{barber.phone}</span>
+              </div>
 
               <span className={styles.cellCommission}>
                 {isEditing ? (

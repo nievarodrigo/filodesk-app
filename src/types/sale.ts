@@ -4,6 +4,7 @@ export type Sale = {
   barber_id: string
   service_type_id: string
   amount: number
+  status: 'pending' | 'approved'
   date: string
   notes: string | null
   created_at: string
@@ -14,6 +15,7 @@ export type SaleRow = {
   barber_id: string
   service_type_id: string
   amount: number
+  status: 'pending' | 'approved'
   date: string
   notes: string | null
 }

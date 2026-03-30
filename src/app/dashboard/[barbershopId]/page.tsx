@@ -7,6 +7,7 @@ import { getServerAuthContext } from '@/services/auth.service'
 import NuevaVentaForm from './ventas/NuevaVentaForm'
 import VenderProductoWidget from './VenderProductoWidget'
 import VentasHoySection from './VentasHoySection'
+import VentasPendientesWidget from './VentasPendientesWidget'
 import BarberosCard from './BarberosCard'
 import CollapsibleCard from './CollapsibleCard'
 import styles from './page.module.css'
@@ -31,9 +32,18 @@ function normalizeIdentity(value: string) {
 }
 
 function resolveCurrentBarber(
-  user: { email?: string; user_metadata?: { first_name?: string; last_name?: string } },
-  barbers: Array<{ id: string; name: string; commission_pct: number; active: boolean }>
+  user: { id: string; email?: string; user_metadata?: { first_name?: string; last_name?: string } },
+  barbers: Array<{ id: string; name: string; email?: string | null; user_id?: string | null; commission_pct: number; active: boolean }>
 ) {
+  const userIdMatch = barbers.find((barber) => barber.user_id === user.id)
+  if (userIdMatch) return userIdMatch
+
+  const normalizedEmail = user.email?.trim().toLowerCase()
+  if (normalizedEmail) {
+    const emailMatch = barbers.find((barber) => barber.email?.trim().toLowerCase() === normalizedEmail)
+    if (emailMatch) return emailMatch
+  }
+
   const candidates = new Set<string>()
   const firstName = user.user_metadata?.first_name?.trim() ?? ''
   const lastName = user.user_metadata?.last_name?.trim() ?? ''
@@ -73,7 +83,7 @@ export default async function DashboardPage({
     { data: products },
   ] = await Promise.all([
     supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
-    supabase.from('barbers').select('id, name, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
+    supabase.from('barbers').select('id, name, email, user_id, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('products')
       .select('id, name, sale_price, stock')
@@ -89,7 +99,7 @@ export default async function DashboardPage({
 
   const salesBaseQuery = supabase
     .from('sales')
-    .select('id, barber_id, amount, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
+    .select('id, barber_id, amount, status, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
     .eq('barbershop_id', barbershopId)
     .eq('date', todayDate)
 
@@ -225,6 +235,11 @@ export default async function DashboardPage({
         <BarberosCard barbershopId={barbershopId} barbers={barbers ?? []} />
       )}
 
+      <VentasPendientesWidget
+        barbershopId={barbershopId}
+        role={context.role as BarbershopRole}
+      />
+
       <div style={{ marginTop: 16 }}>
         <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
           {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
@@ -275,6 +290,7 @@ export default async function DashboardPage({
               barber: barberName ?? '—',
               service: serviceName ?? '—',
               amount: s.amount ?? 0,
+              status: s.status ?? 'approved',
               created_at: s.created_at ?? '',
               notes: s.notes ?? null,
             }

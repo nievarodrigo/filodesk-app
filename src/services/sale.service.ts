@@ -11,11 +11,12 @@ type ServiceItem = {
 export async function createSale(
   supabase: SupabaseClient,
   barbershopId: string,
-  { barber_id, date, notes, services }: {
+  { barber_id, date, notes, services, status }: {
     barber_id: string
     date: string
     notes: string | null
     services: ServiceItem[]
+    status: 'pending' | 'approved'
   }
 ) {
   const rows: SaleRow[] = services.flatMap(r =>
@@ -24,6 +25,7 @@ export async function createSale(
       barber_id,
       service_type_id: r.service_type_id,
       amount: r.amount,
+      status,
       date,
       notes,
     }))
