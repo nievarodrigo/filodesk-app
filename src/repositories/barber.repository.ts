@@ -80,10 +80,40 @@ export async function updateActive(supabase: SupabaseClient, id: string, active:
   return supabase.from('barbers').update({ active }).eq('id', id)
 }
 
-export async function deleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
+export async function updateData(
+  supabase: SupabaseClient,
+  id: string,
+  barbershopId: string,
+  data: {
+    name: string
+    last_name: string
+    email: string
+    phone: string
+  }
+) {
+  return supabase
+    .from('barbers')
+    .update(data)
+    .eq('id', id)
+    .eq('barbershop_id', barbershopId)
+}
+
+export async function softDeleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
   return supabase
     .from('barbers')
     .update({ active: false })
     .eq('id', id)
     .eq('barbershop_id', barbershopId)
+}
+
+export async function hardDeleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
+  return supabase
+    .from('barbers')
+    .delete()
+    .eq('id', id)
+    .eq('barbershop_id', barbershopId)
+}
+
+export async function deleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
+  return softDeleteById(supabase, id, barbershopId)
 }

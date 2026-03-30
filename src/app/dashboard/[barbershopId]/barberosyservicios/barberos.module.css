@@ -66,6 +66,22 @@
   gap: 2px;
   min-width: 0;
 }
+.identityEditGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.identityInput {
+  width: 100%;
+  min-height: 40px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: .86rem;
+}
 .cellMeta {
   font-size: .76rem;
   color: var(--muted);
@@ -151,6 +167,23 @@
   border: 1px solid rgba(37, 211, 102, 0.3);
   color: #25d366;
   text-decoration: none;
+}
+.btnDelete {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(224,112,112,.3);
+  color: var(--red);
+}
+.btnDelete:hover {
+  background: rgba(224,112,112,.1);
 }
 .btnEditInline {
   min-height: 44px;
@@ -298,6 +331,13 @@
     justify-content: space-between;
     gap: 10px;
   }
+  .identityEditGrid {
+    grid-template-columns: 1fr;
+  }
+  .identityInput {
+    min-height: 44px;
+    font-size: .92rem;
+  }
   .mobileCommissionBox {
     display: flex;
     justify-content: center;
@@ -317,7 +357,8 @@
 
   .mobileAccordionBody .btnToggleOff,
   .mobileAccordionBody .btnToggleOn,
-  .mobileAccordionBody .btnEditInline {
+  .mobileAccordionBody .btnEditInline,
+  .mobileAccordionBody .btnDelete {
     width: 100%;
   }
   .mobileEditActions {

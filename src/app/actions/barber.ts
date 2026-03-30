@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { canAccess } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
-import { CreateBarberSchema, type CreateBarberState } from '@/lib/validations/barber'
+import { CreateBarberSchema, UpdateBarberDataSchema, type CreateBarberState } from '@/lib/validations/barber'
 import * as barberRepo from '@/repositories/barber.repository'
 import { getServerAuthContext } from '@/services/auth.service'
 import * as barberService from '@/services/barber.service'
@@ -76,11 +76,15 @@ export async function deleteBarber(barbershopId: string, barberId: string) {
   const auth = await requireManageBarbersAccess(barbershopId)
   if ('error' in auth) return { error: auth.error }
 
-  const { supabase } = auth
+  const { supabase, context } = auth
+  if (context.role !== 'owner' && context.role !== 'manager') {
+    return { error: 'Solo owner o manager pueden eliminar barberos.' }
+  }
+
   const result = await barberService.deleteBarber(supabase, barbershopId, barberId)
   if ('error' in result) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
-  return { success: true }
+  return { success: true, mode: result.mode }
 }
 
 export async function updateBarberCommission(barbershopId: string, barberId: string, commission: number) {
@@ -99,6 +103,33 @@ export async function updateBarberCommission(barbershopId: string, barberId: str
     .eq('barbershop_id', barbershopId)
 
   if (error) return { error: error.message }
+  revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
+  return { success: true }
+}
+
+export async function updateBarberData(
+  barbershopId: string,
+  barberId: string,
+  payload: {
+    name: string
+    lastName: string
+    email: string
+    phone: string
+  }
+) {
+  const validated = UpdateBarberDataSchema.safeParse(payload)
+  if (!validated.success) {
+    const firstError = Object.values(validated.error.flatten().fieldErrors).find(Boolean)?.[0]
+    return { error: firstError ?? 'Datos inválidos.' }
+  }
+
+  const auth = await requireManageBarbersAccess(barbershopId)
+  if ('error' in auth) return { error: auth.error }
+
+  const { supabase } = auth
+  const result = await barberService.updateBarberData(supabase, barbershopId, barberId, validated.data)
+  if (result.error) return { error: result.error }
+
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
   return { success: true }
 }

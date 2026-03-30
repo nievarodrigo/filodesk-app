@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check, Pencil, X } from 'lucide-react'
-import { toggleBarberActive, updateBarberCommission } from '@/app/actions/barber'
+import { Check, Pencil, Trash2, X } from 'lucide-react'
+import { deleteBarber, toggleBarberActive, updateBarberCommission, updateBarberData } from '@/app/actions/barber'
 import { generateInviteWhatsAppLink } from '@/lib/whatsapp'
 import styles from './barberos.module.css'
 
@@ -24,6 +24,22 @@ interface Props {
 
 export default function BarberosTable({ barbershopId, barbershopName, barbers }: Props) {
   const [editingBarberId, setEditingBarberId] = useState<string | null>(null)
+  const [profileDrafts, setProfileDrafts] = useState<Record<string, {
+    name: string
+    lastName: string
+    email: string
+    phone: string
+  }>>(
+    Object.fromEntries(barbers.map(b => [
+      b.id,
+      {
+        name: b.name,
+        lastName: b.last_name ?? '',
+        email: b.email ?? '',
+        phone: b.phone ?? '',
+      },
+    ]))
+  )
   const [commissions, setCommissions] = useState<Record<string, string>>(
     Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')]))
   )
@@ -33,17 +49,46 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
     setCommissions(prev => ({ ...prev, [id]: value }))
   }
 
+  function handleProfileChange(id: string, field: 'name' | 'lastName' | 'email' | 'phone', value: string) {
+    setProfileDrafts(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      },
+    }))
+  }
+
   function handleStartEdit(barber: Barber) {
+    setProfileDrafts(prev => ({
+      ...prev,
+      [barber.id]: {
+        name: barber.name,
+        lastName: barber.last_name ?? '',
+        email: barber.email ?? '',
+        phone: barber.phone ?? '',
+      },
+    }))
     setCommissions(prev => ({ ...prev, [barber.id]: String(barber.commission_pct ?? '') }))
     setEditingBarberId(barber.id)
   }
 
   function handleCancelEdit(barber: Barber) {
+    setProfileDrafts(prev => ({
+      ...prev,
+      [barber.id]: {
+        name: barber.name,
+        lastName: barber.last_name ?? '',
+        email: barber.email ?? '',
+        phone: barber.phone ?? '',
+      },
+    }))
     setCommissions(prev => ({ ...prev, [barber.id]: String(barber.commission_pct ?? '') }))
     setEditingBarberId(null)
   }
 
   function handleSaveBarber(barber: Barber) {
+    const draft = profileDrafts[barber.id]
     const rawCommission = commissions[barber.id]
     const parsedCommission = Number(rawCommission)
     if (!Number.isFinite(parsedCommission) || parsedCommission < 0 || parsedCommission > 100) {
@@ -52,6 +97,17 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
     }
 
     startTransition(async () => {
+      const profileResult = await updateBarberData(barbershopId, barber.id, {
+        name: draft?.name ?? '',
+        lastName: draft?.lastName ?? '',
+        email: draft?.email ?? '',
+        phone: draft?.phone ?? '',
+      })
+      if (profileResult && 'error' in profileResult) {
+        alert(profileResult.error)
+        return
+      }
+
       const result = await updateBarberCommission(barbershopId, barber.id, parsedCommission)
       if (result && 'error' in result) {
         alert(result.error)
@@ -63,6 +119,29 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
 
   function handleToggle(barberId: string, newActive: boolean) {
     startTransition(() => { toggleBarberActive(barbershopId, barberId, newActive) })
+  }
+
+  function handleDeleteBarber(barber: Barber) {
+    const fullName = `${barber.name} ${barber.last_name ?? ''}`.trim()
+    const confirmed = confirm(`¿Eliminar a "${fullName}"?`)
+    if (!confirmed) return
+
+    const confirmedTwice = confirm('Confirmación final: esta acción puede ser irreversible si no tiene ventas asociadas.')
+    if (!confirmedTwice) return
+
+    startTransition(async () => {
+      const result = await deleteBarber(barbershopId, barber.id)
+      if (result && 'error' in result) {
+        alert(result.error)
+        return
+      }
+
+      if (result?.mode === 'hard') {
+        alert('Barbero eliminado definitivamente.')
+      } else {
+        alert('Barbero dado de baja (historial conservado).')
+      }
+    })
   }
 
   return (
@@ -85,9 +164,52 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
               return (
                 <div key={barber.id} className={`${styles.tableRow} ${styles.desktopRow}`}>
                   <div className={styles.cellIdentity} data-label="Ficha">
-                    <span className={styles.cellName}>{fullName}</span>
-                    <span className={styles.cellMeta}>{barber.email}</span>
-                    <span className={styles.cellMeta}>{barber.phone}</span>
+                    {isEditingBarber ? (
+                      <div className={styles.identityEditGrid}>
+                        <input
+                          type="text"
+                          className={styles.identityInput}
+                          value={profileDrafts[barber.id]?.name ?? ''}
+                          onChange={e => handleProfileChange(barber.id, 'name', e.target.value)}
+                          placeholder="Nombre"
+                          aria-label={`Nombre de ${fullName}`}
+                          disabled={pending}
+                        />
+                        <input
+                          type="text"
+                          className={styles.identityInput}
+                          value={profileDrafts[barber.id]?.lastName ?? ''}
+                          onChange={e => handleProfileChange(barber.id, 'lastName', e.target.value)}
+                          placeholder="Apellido"
+                          aria-label={`Apellido de ${fullName}`}
+                          disabled={pending}
+                        />
+                        <input
+                          type="email"
+                          className={styles.identityInput}
+                          value={profileDrafts[barber.id]?.email ?? ''}
+                          onChange={e => handleProfileChange(barber.id, 'email', e.target.value)}
+                          placeholder="Email"
+                          aria-label={`Email de ${fullName}`}
+                          disabled={pending}
+                        />
+                        <input
+                          type="tel"
+                          className={styles.identityInput}
+                          value={profileDrafts[barber.id]?.phone ?? ''}
+                          onChange={e => handleProfileChange(barber.id, 'phone', e.target.value)}
+                          placeholder="Teléfono"
+                          aria-label={`Teléfono de ${fullName}`}
+                          disabled={pending}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <span className={styles.cellName}>{fullName}</span>
+                        <span className={styles.cellMeta}>{barber.email}</span>
+                        <span className={styles.cellMeta}>{barber.phone}</span>
+                      </>
+                    )}
                   </div>
 
                   <span className={styles.cellCommission} data-label="Comisión">
@@ -172,6 +294,16 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                         >
                           {barber.active ? 'Dar de baja' : 'Reactivar'}
                         </button>
+                        <button
+                          type="button"
+                          className={styles.btnDelete}
+                          disabled={pending}
+                          onClick={() => handleDeleteBarber(barber)}
+                          aria-label={`Eliminar ${fullName}`}
+                          title="Eliminar barbero"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </>
                     )}
                   </div>
@@ -198,13 +330,71 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                     <div className={styles.mobileAccordionBody}>
                       <p className={styles.mobileInfoRow}>
                         <span className={styles.mobileInfoLabel}>Email</span>
-                        <span className={styles.mobileInfoValue}>{barber.email || '—'}</span>
+                        {isEditingBarber ? (
+                          <input
+                            type="email"
+                            className={styles.identityInput}
+                            value={profileDrafts[barber.id]?.email ?? ''}
+                            onChange={e => handleProfileChange(barber.id, 'email', e.target.value)}
+                            placeholder="Email"
+                            aria-label={`Email de ${fullName}`}
+                            disabled={pending}
+                          />
+                        ) : (
+                          <span className={styles.mobileInfoValue}>{barber.email || '—'}</span>
+                        )}
                       </p>
+
+                      <div className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Nombre</span>
+                        {isEditingBarber ? (
+                          <input
+                            type="text"
+                            className={styles.identityInput}
+                            value={profileDrafts[barber.id]?.name ?? ''}
+                            onChange={e => handleProfileChange(barber.id, 'name', e.target.value)}
+                            placeholder="Nombre"
+                            aria-label={`Nombre de ${fullName}`}
+                            disabled={pending}
+                          />
+                        ) : (
+                          <span className={styles.mobileInfoValue}>{barber.name}</span>
+                        )}
+                      </div>
+
+                      <div className={styles.mobileInfoRow}>
+                        <span className={styles.mobileInfoLabel}>Apellido</span>
+                        {isEditingBarber ? (
+                          <input
+                            type="text"
+                            className={styles.identityInput}
+                            value={profileDrafts[barber.id]?.lastName ?? ''}
+                            onChange={e => handleProfileChange(barber.id, 'lastName', e.target.value)}
+                            placeholder="Apellido"
+                            aria-label={`Apellido de ${fullName}`}
+                            disabled={pending}
+                          />
+                        ) : (
+                          <span className={styles.mobileInfoValue}>{barber.last_name || '—'}</span>
+                        )}
+                      </div>
 
                       <div className={styles.mobileInfoRow}>
                         <span className={styles.mobileInfoLabel}>Teléfono</span>
                         <div className={styles.mobilePhoneRow}>
-                          <span className={styles.mobileInfoValue}>{barber.phone || '—'}</span>
+                          {isEditingBarber ? (
+                            <input
+                              type="tel"
+                              className={styles.identityInput}
+                              value={profileDrafts[barber.id]?.phone ?? ''}
+                              onChange={e => handleProfileChange(barber.id, 'phone', e.target.value)}
+                              placeholder="Teléfono"
+                              aria-label={`Teléfono de ${fullName}`}
+                              disabled={pending}
+                            />
+                          ) : (
+                            <span className={styles.mobileInfoValue}>{barber.phone || '—'}</span>
+                          )}
                           {!isEditingBarber && barber.phone && (
                             <a
                               href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
@@ -285,6 +475,16 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                             onClick={() => handleToggle(barber.id, !barber.active)}
                           >
                             {barber.active ? 'Dar de baja' : 'Reactivar'}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.btnDelete}
+                            disabled={pending}
+                            onClick={() => handleDeleteBarber(barber)}
+                            aria-label={`Eliminar ${fullName}`}
+                            title="Eliminar barbero"
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </>
                       )}
