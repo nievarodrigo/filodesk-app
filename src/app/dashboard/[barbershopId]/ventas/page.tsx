@@ -9,7 +9,8 @@ import styles from './ventas.module.css'
 
 export const metadata: Metadata = { title: 'Ventas — FiloDesk' }
 
-const PAGE_SIZE = 10
+const PAGE_SIZE_DESKTOP = 10
+const PAGE_SIZE_PRODUCTS_MOBILE = 5
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -50,14 +51,17 @@ export default async function VentasPage({
   const from = desde ?? defaultDesde
   const to   = hasta ?? defaultHasta
   const page = Math.max(1, Number(p) || 1)
-  const rangeFrom = (page - 1) * PAGE_SIZE
-  const rangeTo   = page * PAGE_SIZE - 1
+  const desktopRangeFrom = (page - 1) * PAGE_SIZE_DESKTOP
+  const desktopRangeTo   = page * PAGE_SIZE_DESKTOP - 1
+  const mobileProductRangeFrom = (page - 1) * PAGE_SIZE_PRODUCTS_MOBILE
+  const mobileProductRangeTo   = page * PAGE_SIZE_PRODUCTS_MOBILE - 1
 
   const supabase = await createClient()
 
   const [
     { data: sales,        count: salesCount },
     { data: productSales, count: productCount },
+    { data: productSalesMobile },
     { data: barbershopPlan },
   ] = await Promise.all([
     supabase
@@ -68,7 +72,7 @@ export default async function VentasPage({
       .lte('date', to)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(rangeFrom, rangeTo),
+      .range(desktopRangeFrom, desktopRangeTo),
     supabase
       .from('product_sales')
       .select('id, sale_price, date, quantity, products(name)', { count: 'exact' })
@@ -77,7 +81,16 @@ export default async function VentasPage({
       .lte('date', to)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(rangeFrom, rangeTo),
+      .range(desktopRangeFrom, desktopRangeTo),
+    supabase
+      .from('product_sales')
+      .select('id, sale_price, date, quantity, products(name)')
+      .eq('barbershop_id', barbershopId)
+      .gte('date', from)
+      .lte('date', to)
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(mobileProductRangeFrom, mobileProductRangeTo),
     supabase.from('barbershops').select('plan_name').eq('id', barbershopId).single(),
   ])
 
@@ -126,8 +139,9 @@ export default async function VentasPage({
       .map(([fecha, v]) => ({ fecha, ...v }))
   })()
 
-  const totalSalesPages   = Math.ceil(countServicios / PAGE_SIZE)
-  const totalProductPages = Math.ceil(countProductos / PAGE_SIZE)
+  const totalSalesPages = Math.ceil(countServicios / PAGE_SIZE_DESKTOP)
+  const totalProductPagesDesktop = Math.ceil(countProductos / PAGE_SIZE_DESKTOP)
+  const totalProductPagesMobile = Math.ceil(countProductos / PAGE_SIZE_PRODUCTS_MOBILE)
 
   // Últimos 6 meses para accesos rápidos
   const [curY, curM] = defaultDesde.split('-').map(Number)
@@ -356,37 +370,78 @@ export default async function VentasPage({
         {(tipo === 'todos' || tipo === 'producto') && (
           <>
             {tipo === 'todos' && (productSales ?? []).length > 0 && (
-              <p className={styles.tableGroupLabel}>Productos</p>
+              <p className={styles.tableGroupLabel}>Productos vendidos</p>
             )}
             {(productSales ?? []).length === 0 ? (
               tipo === 'producto' && <div className={styles.empty}>No hay ventas de productos en este período.</div>
             ) : (
               <>
-                <div className={styles.table}>
-                  <div className={styles.tableHeadProduct}>
-                    <span>Fecha</span>
-                    <span>Producto</span>
-                    <span>Cant.</span>
-                    <span>Monto</span>
-                  </div>
-                  {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => (
-                    <div key={ps.id} className={styles.tableRowProduct}>
-                      {(() => {
-                        const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name) ?? ''
-                        return (
-                          <>
-                      <span className={styles.muted} data-label="Fecha">{formatShortDate(ps.date)}</span>
-                      <span data-label="Producto">{productName.trim() || 'Producto eliminado'}</span>
-                      <span className={styles.muted} data-label="Cant.">{ps.quantity} u.</span>
-                      <span className={styles.amount} data-label="Monto">{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
-                          </>
-                        )
-                      })()}
+                <div className={styles.desktopProductTable}>
+                  <div className={styles.table}>
+                    <div className={styles.tableHeadProduct}>
+                      <span>Fecha</span>
+                      <span>Producto</span>
+                      <span>Cant.</span>
+                      <span>Monto</span>
                     </div>
-                  ))}
+                    {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => (
+                      <div key={ps.id} className={styles.tableRowProduct}>
+                        {(() => {
+                          const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name) ?? ''
+                          return (
+                            <>
+                              <span className={styles.muted} data-label="Fecha">{formatShortDate(ps.date)}</span>
+                              <span data-label="Producto">{productName.trim() || 'Producto eliminado'}</span>
+                              <span className={styles.muted} data-label="Cant.">{ps.quantity} u.</span>
+                              <span className={styles.amount} data-label="Monto">{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
+                            </>
+                          )
+                        })()}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                <div className={styles.productAccordion}>
+                  {(productSalesMobile as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => {
+                    const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name)?.trim() || 'Producto eliminado'
+                    const unitPrice = ps.sale_price ?? 0
+                    const quantity = ps.quantity ?? 1
+                    const total = unitPrice * quantity
+                    return (
+                      <details key={ps.id} className={styles.productAccordionItem}>
+                        <summary className={styles.productAccordionHeader}>
+                          <span className={styles.productAccordionDate}>{formatShortDate(ps.date)}</span>
+                          <span className={styles.productAccordionTotal}>{formatARS(total)}</span>
+                        </summary>
+                        <div className={styles.productAccordionBody}>
+                          <p className={styles.productLine}>
+                            <span className={styles.productLabel}>Producto</span>
+                            <span>{productName}</span>
+                          </p>
+                          <p className={styles.productLine}>
+                            <span className={styles.productLabel}>Cantidad</span>
+                            <span>{quantity} u.</span>
+                          </p>
+                          <p className={styles.productLine}>
+                            <span className={styles.productLabel}>Precio</span>
+                            <span>{formatARS(unitPrice)}</span>
+                          </p>
+                        </div>
+                      </details>
+                    )
+                  })}
+                </div>
+
                 {tipo === 'producto' && (
-                  <Paginacion current={page} total={totalProductPages} baseHref={baseHref} />
+                  <>
+                    <div className={styles.desktopPagination}>
+                      <Paginacion current={page} total={totalProductPagesDesktop} baseHref={baseHref} />
+                    </div>
+                    <div className={styles.mobilePagination}>
+                      <Paginacion current={page} total={totalProductPagesMobile} baseHref={baseHref} />
+                    </div>
+                  </>
                 )}
               </>
             )}
@@ -394,10 +449,10 @@ export default async function VentasPage({
         )}
 
         {/* Paginación para "todos" */}
-        {tipo === 'todos' && (countServicios > PAGE_SIZE || countProductos > PAGE_SIZE) && (
+        {tipo === 'todos' && (countServicios > PAGE_SIZE_DESKTOP || countProductos > PAGE_SIZE_DESKTOP) && (
           <Paginacion
             current={page}
-            total={Math.max(totalSalesPages, totalProductPages)}
+            total={Math.max(totalSalesPages, totalProductPagesDesktop)}
             baseHref={baseHref}
           />
         )}

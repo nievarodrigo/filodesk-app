@@ -448,7 +448,11 @@
 .tableSection { }
 .amount { color: var(--green); font-weight: 600; }
 .desktopServiceTable { display: block; }
+.desktopProductTable { display: block; }
 .byBarberMobileAccordion { display: none; }
+.productAccordion { display: none; }
+.desktopPagination { display: block; }
+.mobilePagination { display: none; }
 
 /* Filter row */
 .filterRow {
@@ -600,6 +604,56 @@
   font-weight: 600;
 }
 
+/* Mobile product accordion */
+.productAccordionItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.productAccordionHeader {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.productAccordionHeader::-webkit-details-marker { display: none; }
+.productAccordionDate {
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 600;
+}
+.productAccordionTotal {
+  color: var(--green);
+  font-size: .92rem;
+  font-weight: 700;
+}
+.productAccordionBody {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: grid;
+  gap: 12px;
+  line-height: 1.6;
+}
+.productLine {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.productLabel {
+  color: var(--muted);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 600;
+}
+
 /* Product table (4 cols) */
 .tableHeadProduct {
   display: grid;
@@ -681,11 +735,16 @@
 /* ── Mobile tables (Ticket #001) ── */
 @media (max-width: 768px) {
   .desktopServiceTable { display: none; }
+  .desktopProductTable { display: none; }
   .byBarberMobileAccordion { display: grid; gap: 14px; margin-bottom: 16px; }
+  .productAccordion { display: block; }
   .barberGrid { display: none; }
+  .desktopPagination { display: none; }
+  .mobilePagination { display: block; }
 
   .table { border: none; background: transparent; }
   .tableHeadService, .tableHeadProduct { display: none; }
+  .filterTabs { display: none; }
 
   /* Servicios Card */
   .tableRowService {
