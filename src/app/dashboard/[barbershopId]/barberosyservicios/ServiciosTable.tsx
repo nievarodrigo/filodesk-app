@@ -47,11 +47,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
     }
 
     startTransition(async () => {
-      const result = await updateServicioPrice(barbershopId, service.id, parsedPrice)
-      if ((result as { error?: string } | undefined)?.error) {
-        alert((result as { error?: string }).error)
-        return
-      }
+      await updateServicioPrice(barbershopId, service.id, parsedPrice)
       setEditingServiceId(null)
     })
   }
