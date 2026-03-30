@@ -610,6 +610,34 @@
   letter-spacing: .8px;
   font-weight: 600;
 }
+.accordionPager {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+.accordionPagerInfo {
+  font-size: .78rem;
+  color: var(--muted);
+}
+.accordionPagerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.accordionPagerBtn {
+  border: 1px solid rgba(201,168,76,.28);
+  background: rgba(201,168,76,.08);
+  color: var(--gold);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.accordionPagerBtn:hover {
+  background: rgba(201,168,76,.14);
+}
 .moreServices {
   border-top: 1px dashed var(--border);
   padding-top: 10px;
@@ -755,6 +783,7 @@
 }
 
 .pagNota { font-size: .72rem; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.desktopRecordsHint { display: block; }
 
 /* ── Mobile tables (Ticket #001) ── */
 @media (max-width: 768px) {
@@ -769,6 +798,7 @@
   .table { border: none; background: transparent; }
   .tableHeadService, .tableHeadProduct { display: none; }
   .filterTabs { display: none; }
+  .desktopRecordsHint { display: none; }
 
   /* Servicios Card */
   .tableRowService {

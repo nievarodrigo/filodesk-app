@@ -4,6 +4,7 @@ import { today, startOfMonth as som } from '@/lib/date'
 import DeleteVentaButton from './DeleteVentaButton'
 import FiltroFechas from './FiltroFechas'
 import GraficoIngresos from './GraficoIngresos'
+import BarberMobileAccordion from './BarberMobileAccordion'
 import Paginacion from '@/components/dashboard/Paginacion'
 import styles from './ventas.module.css'
 
@@ -12,7 +13,6 @@ export const metadata: Metadata = { title: 'Ventas — FiloDesk' }
 const PAGE_SIZE_DESKTOP = 10
 const PAGE_SIZE_PRODUCTS_MOBILE = 5
 const PAGE_SIZE_BARBERS = 5
-const PAGE_SIZE_BARBER_SERVICES = 5
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -22,13 +22,6 @@ function formatShortDate(date: string) {
   const [yyyy, mm, dd] = date.slice(0, 10).split('-')
   if (!yyyy || !mm || !dd) return date
   return `${dd}-${mm}-${yyyy.slice(-2)}`
-}
-
-function formatShortTime(dateTime?: string | null) {
-  if (!dateTime) return '—'
-  const parsed = new Date(dateTime)
-  if (Number.isNaN(parsed.getTime())) return '—'
-  return parsed.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 function monthLabel(ym: string) {
@@ -264,98 +257,7 @@ export default async function VentasPage({
             ))}
           </div>
 
-          <div className={styles.byBarberMobileAccordion}>
-            {salesGroupedByBarber.map(group => (
-              <details key={group.barberName} className={styles.accordionGroup}>
-                <summary className={styles.accordionHeader}>
-                  <div className={styles.accordionHeaderTop}>
-                    <span className={styles.accordionBarber}>{group.barberName}</span>
-                    <span className={styles.accordionMeta}>{group.count} servicios · {formatARS(group.total)}</span>
-                  </div>
-                  <p className={styles.accordionCommission}>Comisión: {formatARS(group.commission)}</p>
-                </summary>
-                <div className={styles.accordionBody}>
-                  {group.sales.slice(0, PAGE_SIZE_BARBER_SERVICES).map(sale => {
-                    const isPending = sale.status === 'pending'
-                    return (
-                      <div key={sale.id} className={styles.accordionItem}>
-                        <p className={styles.accordionLine}>
-                          <span className={styles.accordionLabel}>Fecha</span>
-                          <span>{formatShortDate(sale.date)}</span>
-                        </p>
-                        <p className={styles.accordionLine}>
-                          <span className={styles.accordionLabel}>Hora</span>
-                          <span>{formatShortTime(sale.created_at)}</span>
-                        </p>
-                        <p className={styles.accordionLine}>
-                          <span className={styles.accordionLabel}>Servicio</span>
-                          <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                        </p>
-                        <p className={styles.accordionLine}>
-                          <span className={styles.accordionLabel}>Monto</span>
-                          <span className={styles.amount}>{formatARS(sale.amount)}</span>
-                        </p>
-                        <p className={styles.accordionLine}>
-                          <span className={styles.accordionLabel}>Notas</span>
-                          <span className={styles.muted}>{sale.notes ?? '—'}</span>
-                        </p>
-                        {showStatus && (
-                          <p className={styles.accordionLine}>
-                            <span className={styles.accordionLabel}>Estado</span>
-                            <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
-                              {isPending ? 'Pendiente' : 'Confirmado'}
-                            </span>
-                          </p>
-                        )}
-                      </div>
-                    )
-                  })}
-                  {group.sales.length > PAGE_SIZE_BARBER_SERVICES && (
-                    <details className={styles.moreServices}>
-                      <summary className={styles.moreServicesToggle}>Ver más servicios</summary>
-                      <div className={styles.moreServicesBody}>
-                        {group.sales.slice(PAGE_SIZE_BARBER_SERVICES).map(sale => {
-                          const isPending = sale.status === 'pending'
-                          return (
-                            <div key={`${sale.id}-extra`} className={styles.accordionItem}>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Fecha</span>
-                                <span>{formatShortDate(sale.date)}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Hora</span>
-                                <span>{formatShortTime(sale.created_at)}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Servicio</span>
-                                <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Monto</span>
-                                <span className={styles.amount}>{formatARS(sale.amount)}</span>
-                              </p>
-                              <p className={styles.accordionLine}>
-                                <span className={styles.accordionLabel}>Notas</span>
-                                <span className={styles.muted}>{sale.notes ?? '—'}</span>
-                              </p>
-                              {showStatus && (
-                                <p className={styles.accordionLine}>
-                                  <span className={styles.accordionLabel}>Estado</span>
-                                  <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
-                                    {isPending ? 'Pendiente' : 'Confirmado'}
-                                  </span>
-                                </p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </details>
-                  )}
-                </div>
-              </details>
-            ))}
-          </div>
+          <BarberMobileAccordion groups={salesGroupedByBarber} showStatus={showStatus} />
           <Paginacion current={barberPage} total={totalBarberPages} baseHref={barbersBaseHref} paramKey="pb" />
         </div>
       )}
@@ -376,7 +278,7 @@ export default async function VentasPage({
             ))}
           </div>
         </div>
-        <p className={styles.pagNota}>Se muestran hasta 10 registros por tipo y por página.</p>
+        <p className={`${styles.pagNota} ${styles.desktopRecordsHint}`}>Se muestran hasta 10 registros por tipo y por página.</p>
 
         {/* Servicios */}
         {(tipo === 'todos' || tipo === 'servicio') && (
@@ -501,10 +403,14 @@ export default async function VentasPage({
                 {tipo === 'producto' && (
                   <>
                     <div className={styles.desktopPagination}>
+                      {countProductos > PAGE_SIZE_DESKTOP && (
                       <Paginacion current={productPage} total={totalProductPagesDesktop} baseHref={productsBaseHref} paramKey="pp" />
+                      )}
                     </div>
                     <div className={styles.mobilePagination}>
+                      {countProductos > PAGE_SIZE_PRODUCTS_MOBILE && (
                       <Paginacion current={productPage} total={totalProductPagesMobile} baseHref={productsBaseHref} paramKey="pp" />
+                      )}
                     </div>
                   </>
                 )}
