@@ -45,16 +45,20 @@ export default async function NominasPage({
 
   const pendingTotal = (payrolls ?? []).filter(p => p.status === 'pending').reduce((s, p) => s + (p.commission_amount ?? 0), 0)
   const canExportData = isFeatureEnabled(context.plan, 'export_data')
-  const payrollExportRows = (payrolls ?? []).map((payroll) => ({
-    barbero: (Array.isArray(payroll.barbers) ? payroll.barbers?.[0]?.name : payroll.barbers?.name) ?? '—',
-    periodo_inicio: payroll.period_start,
-    periodo_fin: payroll.period_end,
-    ventas_totales: payroll.total_sales,
-    porcentaje_comision: payroll.commission_pct,
-    comision_total: payroll.commission_amount,
-    estado: payroll.status,
-    pagada_en: payroll.paid_at ?? '',
-  }))
+  const payrollExportRows = (payrolls ?? []).map((payroll) => {
+    const b = payroll.barbers as any
+    const barbero = (Array.isArray(b) ? b[0]?.name : b?.name) ?? '—'
+    return {
+      barbero,
+      periodo_inicio: payroll.period_start,
+      periodo_fin: payroll.period_end,
+      ventas_totales: payroll.total_sales,
+      porcentaje_comision: payroll.commission_pct,
+      comision_total: payroll.commission_amount,
+      estado: payroll.status,
+      pagada_en: payroll.paid_at ?? '',
+    }
+  })
 
   return (
     <div>
