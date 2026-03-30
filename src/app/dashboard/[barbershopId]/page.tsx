@@ -318,8 +318,9 @@ export default async function DashboardPage({
               type: 'producto' as const,
               product: productName ?? '—',
               quantity: s.quantity ?? 1,
+              unit_price: s.sale_price ?? 0,
               amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
-              transaction_id: s.transaction_id ?? s.id,
+              transaction_id: s.transaction_id ?? '',
               created_at: s.created_at ?? '',
             }
           })}

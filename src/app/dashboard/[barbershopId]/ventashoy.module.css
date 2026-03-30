@@ -129,6 +129,10 @@
   align-items: center;
   gap: 8px;
 }
+.detailAmountMuted {
+  color: var(--muted);
+  font-weight: 500;
+}
 .pendingBadge {
   display: inline-flex;
   align-items: center;
@@ -140,6 +144,63 @@
   background: rgba(212, 168, 42, 0.14);
   border: 1px solid rgba(212, 168, 42, 0.28);
   color: var(--gold);
+}
+
+.productTransaction {
+  border-bottom: 1px solid var(--border);
+}
+.productTransaction:last-child {
+  border-bottom: none;
+}
+.productTransactionSummary {
+  list-style: none;
+  cursor: pointer;
+}
+.productTransactionSummary::-webkit-details-marker { display: none; }
+.transactionIcon {
+  font-size: 15px;
+}
+.transactionLabel {
+  font-weight: 600;
+  color: var(--cream);
+}
+.transactionTotal {
+  color: var(--green);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.transactionChevron {
+  color: var(--muted);
+  line-height: 1;
+  transition: transform .2s ease;
+}
+.productTransaction[open] .transactionChevron {
+  transform: rotate(180deg);
+}
+.productDetailHead {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  padding: 10px 12px 8px;
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.productDetailRow {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: .85rem;
+  color: var(--text);
+  border-top: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {
@@ -161,4 +222,17 @@
     font-size: .78rem;
   }
   .detailTime { font-size: .68rem; }
+
+  .productDetailHead {
+    grid-template-columns: minmax(110px, 1fr) 48px 82px 82px;
+    column-gap: 6px;
+    padding: 8px 8px 6px;
+    font-size: .64rem;
+  }
+  .productDetailRow {
+    grid-template-columns: minmax(110px, 1fr) 48px 82px 82px;
+    column-gap: 6px;
+    padding: 7px 8px;
+    font-size: .78rem;
+  }
 }

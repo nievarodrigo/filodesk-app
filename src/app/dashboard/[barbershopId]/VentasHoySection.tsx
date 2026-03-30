@@ -18,6 +18,7 @@ interface ServiceSale {
 interface ProductSale {
   id: string; type: 'producto'
   product: string; quantity: number
+  unit_price: number
   amount: number
   transaction_id: string
   created_at: string
@@ -32,26 +33,40 @@ interface GroupedTransaction {
     id: string
     product: string
     quantity: number
+    unit_price: number
     amount: number
   }>
+}
+
+function transactionGroupKey(s: ProductSale): string {
+  if (s.transaction_id && s.transaction_id.trim().length > 0) return s.transaction_id
+  const dt = s.created_at ? new Date(s.created_at) : null
+  if (!dt || Number.isNaN(dt.getTime())) return s.id
+  const yyyy = dt.getUTCFullYear()
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dt.getUTCDate()).padStart(2, '0')
+  const hh = String(dt.getUTCHours()).padStart(2, '0')
+  const mi = String(dt.getUTCMinutes()).padStart(2, '0')
+  return `ts-${yyyy}-${mm}-${dd}-${hh}-${mi}`
 }
 
 function groupProductsByTransaction(sales: ProductSale[]): GroupedTransaction[] {
   const map = new Map<string, GroupedTransaction>()
 
   for (const s of sales) {
-    const existing = map.get(s.transaction_id)
+    const key = transactionGroupKey(s)
+    const existing = map.get(key)
     if (existing) {
       existing.itemCount++
       existing.total += s.amount
-      existing.items.push({ id: s.id, product: s.product, quantity: s.quantity, amount: s.amount })
+      existing.items.push({ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, amount: s.amount })
     } else {
-      map.set(s.transaction_id, {
-        transaction_id: s.transaction_id,
+      map.set(key, {
+        transaction_id: key,
         created_at: s.created_at,
         itemCount: 1,
         total: s.amount,
-        items: [{ id: s.id, product: s.product, quantity: s.quantity, amount: s.amount }],
+        items: [{ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, amount: s.amount }],
       })
     }
   }
@@ -166,7 +181,6 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
   const [barberPage, setBarberPage] = useState(1)
   const [servicePagesPerBarber, setServicePagesPerBarber] = useState<Record<string, number>>({})
-  const [expandedTransactionIds, setExpandedTransactionIds] = useState<Set<string>>(new Set())
   const [transactionPage, setTransactionPage] = useState(1)
 
   const ITEMS_PER_PAGE = 10
@@ -338,57 +352,38 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
             <>
               <div className={styles.tableHead}>
                 <span></span>
-                <span>Venta</span>
+                <span>Transacción</span>
                 <span>Productos</span>
                 <span>Total</span>
               </div>
               {paginatedTransactions.map(tx => (
-                <div key={tx.transaction_id}>
-                  <div
-                    className={`${styles.tableRow} ${styles.tableRowProduct}`}
-                    onClick={() => {
-                      const newSet = new Set(expandedTransactionIds)
-                      if (newSet.has(tx.transaction_id)) {
-                        newSet.delete(tx.transaction_id)
-                      } else {
-                        newSet.add(tx.transaction_id)
-                      }
-                      setExpandedTransactionIds(newSet)
-                    }}
-                    style={{ cursor: tx.itemCount > 1 ? 'pointer' : 'default' }}
-                  >
-                    <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
-                      {tx.itemCount > 1
-                        ? (expandedTransactionIds.has(tx.transaction_id) ? '▼' : '▶')
-                        : ''}
-                    </span>
-                    <span style={{ fontWeight: 500, color: 'var(--cream)' }}>
-                      {tx.itemCount === 1 ? tx.items[0].product : `Venta ${extractTime(tx.created_at)}`}
-                    </span>
+                <details key={tx.transaction_id} className={styles.productTransaction}>
+                  <summary className={`${styles.tableRow} ${styles.tableRowProduct} ${styles.productTransactionSummary}`}>
+                    <span className={styles.transactionIcon} aria-hidden>📦</span>
+                    <span className={styles.transactionLabel}>Venta {extractTime(tx.created_at)}</span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
-                    <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(tx.total)}</span>
-                  </div>
-
-                  {/* ── Detalle expandible de ítems ── */}
-                  {tx.itemCount > 1 && expandedTransactionIds.has(tx.transaction_id) && (
-                    <div className={styles.detailBlock}>
-                      <div className={styles.detailHead}>
-                        <span></span>
-                        <span>Producto</span>
-                        <span>Cant.</span>
-                        <span>Monto</span>
-                      </div>
-                      {tx.items.map(item => (
-                        <div key={item.id} className={styles.detailRow}>
-                          <span></span>
-                          <span className={styles.detailService}>{item.product}</span>
-                          <span className={styles.detailQty}>×{item.quantity}</span>
-                          <span className={styles.detailAmount}>{formatARS(item.amount)}</span>
-                        </div>
-                      ))}
+                    <span className={styles.transactionTotal}>
+                      <span>{formatARS(tx.total)}</span>
+                      <span className={styles.transactionChevron} aria-hidden>▾</span>
+                    </span>
+                  </summary>
+                  <div className={styles.detailBlock}>
+                    <div className={styles.productDetailHead}>
+                      <span>Producto</span>
+                      <span>Cant.</span>
+                      <span>Precio Unit.</span>
+                      <span>Subtotal</span>
                     </div>
-                  )}
-                </div>
+                    {tx.items.map(item => (
+                      <div key={item.id} className={styles.productDetailRow}>
+                        <span className={styles.detailService}>{item.product}</span>
+                        <span className={styles.detailQty}>×{item.quantity}</span>
+                        <span className={styles.detailAmountMuted}>{formatARS(item.unit_price)}</span>
+                        <span className={styles.detailAmount}>{formatARS(item.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               ))}
               {totalTransactionPages > 1 && (
                 <PaginationControls
