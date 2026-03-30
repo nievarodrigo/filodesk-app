@@ -31,6 +31,7 @@ export async function deleteBarber(
   barbershopId: string,
   barberId: string
 ) {
-  await barberRepo.deleteById(supabase, barberId, barbershopId)
+  const { error } = await barberRepo.deleteById(supabase, barberId, barbershopId)
+  if (error) return { error: 'No se pudo dar de baja al barbero. Intentá de nuevo.' }
   return {}
 }

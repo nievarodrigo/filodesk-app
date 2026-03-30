@@ -78,7 +78,7 @@ export async function deleteBarber(barbershopId: string, barberId: string) {
 
   const { supabase } = auth
   const result = await barberService.deleteBarber(supabase, barbershopId, barberId)
-  if (result.error) return { error: result.error }
+  if ('error' in result) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
   return { success: true }
 }
