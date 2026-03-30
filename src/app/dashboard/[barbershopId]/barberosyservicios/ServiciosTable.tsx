@@ -61,7 +61,7 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
     if (!confirm('¿Estás seguro de eliminar este servicio?')) return
     startTransition(async () => {
       const result = await deleteServicio(barbershopId, serviceId)
-      if ('error' in result) alert(result.error)
+      if (result && 'error' in result) alert(result.error)
     })
   }
 

@@ -53,7 +53,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
 
     startTransition(async () => {
       const result = await updateBarberCommission(barbershopId, barber.id, parsedCommission)
-      if (result?.error) {
+      if (result && 'error' in result) {
         alert(result.error)
         return
       }
