@@ -13,6 +13,7 @@ import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
 import DailyQuickView from './DailyQuickView'
 import InfoTooltip from './InfoTooltip'
+import CustomRangePicker from './CustomRangePicker'
 import { buildFinanceKpiConfigs, type KpiTone } from './kpi-config'
 import styles from './finanzas.module.css'
 
@@ -84,7 +85,6 @@ function formatShortDate(date: string) {
 }
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 function kpiToneClass(tone: KpiTone) {
   if (tone === 'positive') return styles.kpiValuePositive
@@ -167,13 +167,12 @@ export default async function FinanzasPage({
   const isCurrentMonth = periodMode === 'mes' && ym === currentYM()
   const daysInMonth = new Date(selY, selM, 0).getDate()
   const dayOfMonth = isCurrentMonth ? now.getDate() : daysInMonth
-  const periodDescription = periodMode === 'ultima-semana'
-    ? `Última semana (${formatShortDate(from)} al ${formatShortDate(to)})`
+  const periodDescription = `Mostrando datos del ${formatShortDate(from)} al ${formatShortDate(to)}`
+  const trendTitle = periodMode === 'ultima-semana'
+    ? 'Ingresos vs Gastos — Última Semana'
     : periodMode === 'custom'
-      ? `Rango personalizado (${formatShortDate(from)} al ${formatShortDate(to)})`
-      : `Resumen y exportación de ${monthLabel(ym)}`
-
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10)
+      ? `Ingresos vs Gastos — ${formatShortDate(from)} al ${formatShortDate(to)}`
+      : `Ingresos vs Gastos — ${monthLabel(ym)}`
 
   const [curY, curM] = currentYM().split('-').map(Number)
   const months: string[] = []
@@ -191,9 +190,9 @@ export default async function FinanzasPage({
     { data: salesPrev },
     { data: productSalesPrev },
     { data: expensesPrev },
-    { data: salesAll6m },
-    { data: productSalesAll6m },
-    { data: expensesAll6m },
+    { data: salesTrendRange },
+    { data: productSalesTrendRange },
+    { data: expensesTrendRange },
     { data: barberSalesMonth },
     { data: prodSalesMonth },
     { data: serviceCountMonth },
@@ -208,9 +207,9 @@ export default async function FinanzasPage({
     supabase.from('sales').select('amount').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', prevFrom).lte('date', prevTo),
     supabase.from('product_sales').select('sale_price, quantity').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
     supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).gte('date', prevFrom).lte('date', prevTo),
-    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', sixMonthsAgo),
-    supabase.from('product_sales').select('sale_price, quantity, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
-    supabase.from('expenses').select('amount, date').eq('barbershop_id', barbershopId).gte('date', sixMonthsAgo),
+    supabase.from('sales').select('amount, date').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
+    supabase.from('product_sales').select('sale_price, quantity, date').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
+    supabase.from('expenses').select('amount, date').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
     supabase.from('sales').select('amount, barber_id, barbers(name, commission_pct)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
     supabase.from('product_sales').select('quantity, sale_price, products(name)').eq('barbershop_id', barbershopId).gte('date', from).lte('date', to),
     supabase.from('sales').select('amount, service_types(name)').eq('barbershop_id', barbershopId).eq('status', 'approved').gte('date', from).lte('date', to),
@@ -257,26 +256,36 @@ export default async function FinanzasPage({
   const avgDailyProjection = dayOfMonth > 0 ? Math.round(ingresosMes / dayOfMonth) : 0
 
   const trendMap: Record<string, { ingresos: number; gastos: number }> = {}
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  for (let cursor = new Date(fromDate); cursor <= toDate; cursor = addDays(cursor, 1)) {
+    const key = toISODate(cursor)
     trendMap[key] = { ingresos: 0, gastos: 0 }
   }
-  for (const s of salesAll6m ?? []) {
-    const key = s.date.slice(0, 7)
+  for (const s of salesTrendRange ?? []) {
+    const key = s.date.slice(0, 10)
     if (trendMap[key]) trendMap[key].ingresos += s.amount ?? 0
   }
-  for (const s of productSalesAll6m ?? []) {
-    const key = s.date.slice(0, 7)
+  for (const s of productSalesTrendRange ?? []) {
+    const key = s.date.slice(0, 10)
     if (trendMap[key]) trendMap[key].ingresos += (s.sale_price ?? 0) * (s.quantity ?? 1)
   }
-  for (const e of expensesAll6m ?? []) {
-    const key = e.date.slice(0, 7)
+  for (const e of expensesTrendRange ?? []) {
+    const key = e.date.slice(0, 10)
     if (trendMap[key]) trendMap[key].gastos += e.amount ?? 0
   }
   const trendData = Object.entries(trendMap)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([ymk, v]) => ({ mes: MESES[Number(ymk.split('-')[1]) - 1], ingresos: Math.round(v.ingresos), gastos: Math.round(v.gastos) }))
+    .map(([isoDate, v]) => {
+      const d = parseISODate(isoDate) ?? new Date(isoDate + 'T12:00:00')
+      const isWeekMode = periodMode === 'ultima-semana'
+      const label = isWeekMode
+        ? DIAS[d.getDay()].slice(0, 3)
+        : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+      return {
+        mes: label,
+        ingresos: Math.round(v.ingresos),
+        gastos: Math.round(v.gastos),
+      }
+    })
 
   const barberMap: Record<string, { name: string; total: number; pct: number }> = {}
   for (const s of barberSalesMonth ?? [] as SaleWithBarber[]) {
@@ -429,31 +438,15 @@ export default async function FinanzasPage({
             </a>
           ))}
         </div>
-        <details className={styles.customRangePicker}>
-          <summary className={`${styles.customRangeTrigger} ${periodMode === 'custom' ? styles.customRangeTriggerActive : ''}`} aria-label="Rango personalizado">
-            <svg viewBox="0 0 24 24" className={styles.calendarIcon} aria-hidden>
-              <path d="M7 2v3M17 2v3M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </summary>
-          <form className={styles.customRangeForm} method="get">
-            <input type="hidden" name="periodo" value="custom" />
-            <label className={styles.customRangeField}>
-              <span>Desde</span>
-              <input type="date" name="desde" defaultValue={from} max={toISODate(todayDate)} min={isBasePlan ? toISODate(basePlanMinDate) : undefined} />
-            </label>
-            <label className={styles.customRangeField}>
-              <span>Hasta</span>
-              <input type="date" name="hasta" defaultValue={to} max={toISODate(todayDate)} min={isBasePlan ? toISODate(basePlanMinDate) : undefined} />
-            </label>
-            <button type="submit" className={styles.customRangeSubmit}>Aplicar</button>
-            {isBasePlan && (
-              <p className={styles.customRangeHint}>Plan Base: máximo 6 meses de historial.</p>
-            )}
-            {rangeAdjustedForPlan && (
-              <p className={styles.customRangeWarning}>Rango ajustado automáticamente al límite de 6 meses.</p>
-            )}
-          </form>
-        </details>
+        <CustomRangePicker
+          periodMode={periodMode}
+          isBasePlan={isBasePlan}
+          rangeAdjustedForPlan={rangeAdjustedForPlan}
+          from={from}
+          to={to}
+          todayISO={todayISO}
+          basePlanMinISO={isBasePlan ? toISODate(basePlanMinDate) : undefined}
+        />
       </div>
       <DailyQuickView
         salesToday={ventasHoy}
@@ -671,7 +664,7 @@ export default async function FinanzasPage({
         </div>
       </details>
       <div className={styles.section}>
-        <ResumenMensual data={trendData} />
+        <ResumenMensual data={trendData} title={trendTitle} />
       </div>
       <div className={styles.twoCol}>
         <div>

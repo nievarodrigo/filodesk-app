@@ -11,7 +11,10 @@ interface MesData {
   gastos: number
 }
 
-interface Props { data: MesData[] }
+interface Props {
+  data: MesData[]
+  title?: string
+}
 
 function fmtFull(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -38,12 +41,12 @@ const CustomTooltip = ({ active, payload, label }: TooltipContent) => {
   )
 }
 
-export default function ResumenMensual({ data }: Props) {
+export default function ResumenMensual({ data, title }: Props) {
   if (data.length === 0) return null
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
       <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-        Ingresos vs Gastos — últimos 6 meses
+        {title ?? 'Ingresos vs Gastos'}
       </p>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={data} barGap={4} barSize={24}>
