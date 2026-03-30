@@ -25,6 +25,7 @@ interface Plan {
 interface Props {
   barbershopId:       string
   barbershopName:     string
+  currentPlan:        string
   subscriptionStatus: string
   trialEnd:           string | null
   plans:              Plan[]
@@ -34,9 +35,11 @@ function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
 }
 
-export default function SuscripcionClient({ barbershopId, barbershopName, subscriptionStatus, trialEnd, plans }: Props) {
+export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
   const [screen, setScreen] = useState<Screen>('plans')
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('base')
+  const normalizedCurrentPlan = currentPlan || 'Base'
+  const initialSelectedPlanId = plans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(initialSelectedPlanId)
   const [months, setMonths] = useState(1)
   const [method, setMethod] = useState<Method>('checkout')
   const [pending, start] = useTransition()
@@ -54,14 +57,27 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
     )
   }
 
+  const currentPlanData = plans.find((plan) => plan.name === normalizedCurrentPlan) ?? plans[0]
+  const currentPlanPrice = currentPlanData?.price ?? 0
+
   const uiPlans = plans.map(p => ({
     ...p,
-    badge: p.id === 'base' ? 'BASE' : 'PRÓXIMAMENTE',
-    badgeColor: p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
+    badge: p.name === normalizedCurrentPlan ? 'TU PLAN ACTUAL' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
+    badgeColor: p.name === normalizedCurrentPlan ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
     accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
-    available: p.id === 'base',
-    sub: p.id === 'base' ? '14 días gratis · Cancelás cuando querés' : 'En desarrollo — disponible pronto',
-    note: p.id === 'base' ? 'Sin compromiso, cancelás cuando querés' : 'En desarrollo — disponible pronto',
+    available: true,
+    isCurrent: p.name === normalizedCurrentPlan,
+    isUpgrade: p.price > currentPlanPrice,
+    sub: p.name === normalizedCurrentPlan
+      ? 'Este es el plan activo de tu barbería'
+      : p.price > currentPlanPrice
+        ? 'Desbloqueá funciones adicionales para tu equipo'
+        : 'Disponible para elegir',
+    note: p.name === normalizedCurrentPlan
+      ? 'Podés conservarlo o mejorar cuando quieras'
+      : p.price > currentPlanPrice
+        ? 'Upgrade disponible'
+        : 'También podés elegir este plan',
   }))
 
   const plan = uiPlans.find(p => p.id === selectedPlanId) || uiPlans[0]
@@ -138,10 +154,18 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                 <Image src="/logo-dark.png"  alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
                 <div>
                   <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
-                    {subscriptionStatus === 'trial' ? 'Tu período de prueba terminó' : 'Suscripción vencida'}
+                    {subscriptionStatus === 'active'
+                      ? 'Gestioná tu suscripción'
+                      : subscriptionStatus === 'trial'
+                        ? 'Tu período de prueba terminó'
+                        : 'Suscripción vencida'}
                   </h1>
                   <p style={{ fontSize: '.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                    {trialEnd ? `Tu prueba venció el ${trialEnd}.` : 'Tu suscripción está vencida.'}{' '}
+                    {subscriptionStatus === 'active'
+                      ? `Tu plan actual es ${normalizedCurrentPlan}. Podés mantenerlo o mejorar a un plan superior.`
+                      : trialEnd
+                        ? `Tu prueba venció el ${trialEnd}.`
+                        : 'Tu suscripción está vencida.'}{' '}
                     Elegí un plan para seguir con{' '}
                     <strong style={{ color: 'var(--text)' }}>{barbershopName}</strong>.
                   </p>
@@ -161,10 +185,10 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                       background: 'var(--surface)',
                       border: `1.5px solid ${p.available ? p.accent === 'var(--gold)' ? 'var(--gold)' : 'var(--border)' : 'var(--border)'}`,
                       borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16,
-                      position: 'relative', cursor: p.available ? 'pointer' : 'default',
+                      position: 'relative', cursor: p.available && !p.isCurrent ? 'pointer' : 'default',
                       transition: 'all 0.15s ease', opacity: p.available ? 1 : 0.75,
                     }}
-                    onClick={() => p.available && selectPlan(p.id)}
+                    onClick={() => p.available && !p.isCurrent && selectPlan(p.id)}
                   >
                     <div style={{ position: 'absolute', top: -1, left: -1, right: -1, height: 3, background: p.accent, borderRadius: '14px 14px 0 0' }} />
                     <div style={{
@@ -187,11 +211,27 @@ export default function SuscripcionClient({ barbershopId, barbershopName, subscr
                         </li>
                       ))}
                     </ul>
-                    {p.available ? (
-                      <button style={{ width: '100%', background: 'var(--gold)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '11px 20px', fontSize: '.9rem', fontWeight: 700, cursor: 'pointer', marginTop: 'auto' }}>Elegir plan →</button>
-                    ) : (
-                      <button disabled style={{ width: '100%', background: 'var(--border)', color: 'var(--muted)', border: 'none', borderRadius: 8, padding: '11px 20px', fontSize: '.9rem', fontWeight: 600, cursor: 'not-allowed', marginTop: 'auto' }}>Próximamente</button>
-                    )}
+                    <button
+                      disabled={p.isCurrent}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        if (!p.isCurrent) selectPlan(p.id)
+                      }}
+                      style={{
+                        width: '100%',
+                        background: p.isCurrent ? 'var(--border)' : 'var(--gold)',
+                        color: p.isCurrent ? 'var(--muted)' : 'var(--bg)',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '11px 20px',
+                        fontSize: '.9rem',
+                        fontWeight: 700,
+                        cursor: p.isCurrent ? 'not-allowed' : 'pointer',
+                        marginTop: 'auto'
+                      }}
+                    >
+                      {p.isCurrent ? 'Activo' : p.isUpgrade ? 'Mejorar a este plan →' : 'Elegir plan →'}
+                    </button>
                     <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>{p.note}</p>
                   </div>
                 ))}

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { today } from '@/lib/date'
 import { type ServiceType, type Sale, type ProductSale, type BarbershopRole } from '@/lib/definitions'
@@ -194,9 +193,9 @@ export default async function DashboardPage({
           <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontWeight: 600, color: 'var(--gold)' }}>Plan {subscriptionMessage.planName}</span>
             {context.role === 'owner' && context.plan === 'Base' && (
-              <Link href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>
+              <a href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>
                 Mejorar plan
-              </Link>
+              </a>
             )}
             {subscriptionMessage.renewalText && (
               <>

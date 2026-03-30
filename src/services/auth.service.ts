@@ -1,3 +1,4 @@
+// Build Version: 2026-03-29.01 (Force clean build)
 import { SupabaseClient } from '@supabase/supabase-js'
 import { BarbershopRole } from '@/lib/definitions'
 import { PERMISSIONS_BY_ROLE } from '@/lib/permissions'

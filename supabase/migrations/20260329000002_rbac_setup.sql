@@ -11,11 +11,16 @@ create table if not exists barbershop_members (
 
 alter table barbershop_members enable row level security;
 
-create policy "members_view_own" on barbershop_members
-  for select
-  using (
-    barbershop_id in (
-      select id from barbershops where owner_id = auth.uid()
-    )
-    or user_id = auth.uid()
-  );
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'members_view_own') THEN
+        create policy "members_view_own" on barbershop_members
+          for select
+          using (
+            barbershop_id in (
+              select id from barbershops where owner_id = auth.uid()
+            )
+            or user_id = auth.uid()
+          );
+    END IF;
+END $$;

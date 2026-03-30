@@ -45,14 +45,24 @@ alter table plans enable row level security;
 alter table subscriptions enable row level security;
 
 -- Los planes son legibles por todos los usuarios autenticados
-create policy "plans_view_all" on plans for select using (true);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'plans_view_all') THEN
+        create policy "plans_view_all" on plans for select using (true);
+    END IF;
+END $$;
 
 -- Las suscripciones solo las ve el dueño de la barbería o el admin
-create policy "subs_view_own" on subscriptions
-  for select using (
-    barbershop_id in (select id from barbershops where owner_id = auth.uid())
-    or auth.uid() in (select id from admin_users)
-  );
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'subs_view_own') THEN
+        create policy "subs_view_own" on subscriptions
+          for select using (
+            barbershop_id in (select id from barbershops where owner_id = auth.uid())
+            or auth.uid() in (select id from admin_users)
+          );
+    END IF;
+END $$;
 
 -- Comentario explicativo
 comment on table subscriptions is 'Orquestación de pagos FiloDesk (MP y Transferencia)';
