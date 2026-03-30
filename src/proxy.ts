@@ -1,7 +1,56 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+const rateLimit = new Map<string, { count: number; timestamp: number }>()
+const WINDOW_MS = 60 * 1000
+const MAX_REQUESTS_AUTH = 20
+const MAX_REQUESTS_API = 100
+
+function getRateLimitKey(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for')
+  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown'
+  return ip
+}
+
+function checkRateLimit(req: NextRequest): NextResponse | null {
+  const path = req.nextUrl.pathname
+  const key = getRateLimitKey(req)
+  const now = Date.now()
+
+  let maxRequests = MAX_REQUESTS_API
+  if (path.startsWith('/auth/login') || path.startsWith('/auth/register')) {
+    maxRequests = MAX_REQUESTS_AUTH
+  }
+
+  if (path.startsWith('/api/') || path.startsWith('/auth/')) {
+    const record = rateLimit.get(key)
+
+    if (record) {
+      if (now - record.timestamp < WINDOW_MS) {
+        if (record.count >= maxRequests) {
+          console.warn(`[RateLimit] Blocked ${key} on ${path}`)
+          return NextResponse.json(
+            { error: 'Too many requests. Please try again later.' },
+            { status: 429, headers: { 'Retry-After': '60' } }
+          )
+        }
+        record.count++
+      } else {
+        record.count = 1
+        record.timestamp = now
+      }
+    } else {
+      rateLimit.set(key, { count: 1, timestamp: now })
+    }
+  }
+
+  return null
+}
+
 export default async function proxy(request: NextRequest) {
+  const rateLimitResponse = checkRateLimit(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -41,5 +90,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/auth/:path*'],
+  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/onboarding', '/auth/:path*', '/api/:path*'],
 }
