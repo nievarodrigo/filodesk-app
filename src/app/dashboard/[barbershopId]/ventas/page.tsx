@@ -54,7 +54,7 @@ export default async function VentasPage({
   ] = await Promise.all([
     supabase
       .from('sales')
-      .select('id, amount, date, notes, barbers(name, commission_pct), service_types(name)', { count: 'exact' })
+      .select('id, amount, status, date, notes, barbers(name, commission_pct), service_types(name)', { count: 'exact' })
       .eq('barbershop_id', barbershopId)
       .gte('date', from)
       .lte('date', to)
@@ -229,20 +229,27 @@ export default async function VentasPage({
                     <span>Servicio</span>
                     <span>Monto</span>
                     <span>Com.</span>
+                    <span>Estado</span>
                     <span>Obs.</span>
                     <span></span>
                   </div>
-                  {(sales as Array<{ id: string; amount: number; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }; service_types?: Array<{ name: string }> | { name: string } }>).map(sale => {
+                  {(sales as Array<{ id: string; amount: number; status: string; date: string; notes?: string; barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }; service_types?: Array<{ name: string }> | { name: string } }>).map(sale => {
                     const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
                     const commission = barber ? Math.round(sale.amount * barber.commission_pct / 100) : null
+                    const isPending = sale.status === 'pending'
                     return (
                       <div key={sale.id} className={styles.tableRowService}>
-                        <span className={styles.muted}>{formatShortDate(sale.date)}</span>
-                        <span>{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
-                        <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
-                        <span className={styles.amount}>{formatARS(sale.amount)}</span>
-                        <span className={styles.muted}>{commission !== null ? formatARS(commission) : '—'}</span>
-                        <span className={styles.muted}>{sale.notes ?? '—'}</span>
+                        <span className={styles.muted} data-label="Fecha">{formatShortDate(sale.date)}</span>
+                        <span data-label="Barbero">{(Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? '—'}</span>
+                        <span data-label="Servicio">{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
+                        <span className={styles.amount} data-label="Monto">{formatARS(sale.amount)}</span>
+                        <span className={styles.muted} data-label="Com.">{commission !== null ? formatARS(commission) : '—'}</span>
+                        <span data-label="Estado">
+                          <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
+                            {isPending ? 'Pendiente' : 'Confirmado'}
+                          </span>
+                        </span>
+                        <span className={styles.muted} data-label="Obs.">{sale.notes ?? '—'}</span>
                         <DeleteVentaButton barbershopId={barbershopId} saleId={sale.id} />
                       </div>
                     )
@@ -279,10 +286,10 @@ export default async function VentasPage({
                         const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name) ?? ''
                         return (
                           <>
-                      <span className={styles.muted}>{formatShortDate(ps.date)}</span>
-                      <span>{productName.trim() || 'Producto eliminado'}</span>
-                      <span className={styles.muted}>{ps.quantity} u.</span>
-                      <span className={styles.amount}>{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
+                      <span className={styles.muted} data-label="Fecha">{formatShortDate(ps.date)}</span>
+                      <span data-label="Producto">{productName.trim() || 'Producto eliminado'}</span>
+                      <span className={styles.muted} data-label="Cant.">{ps.quantity} u.</span>
+                      <span className={styles.amount} data-label="Monto">{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
                           </>
                         )
                       })()}

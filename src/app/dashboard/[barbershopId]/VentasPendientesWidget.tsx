@@ -54,8 +54,8 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {(pendingSales ?? []).map((sale) => {
-          const b = sale.barbers as any
-          const st = sale.service_types as any
+          const b = sale.barbers as { name: string } | { name: string }[] | null
+          const st = sale.service_types as { name: string } | { name: string }[] | null
           const barberName = (Array.isArray(b) ? b[0]?.name : b?.name) ?? 'Barbero'
           const serviceName = (Array.isArray(st) ? st[0]?.name : st?.name) ?? 'Servicio'
 

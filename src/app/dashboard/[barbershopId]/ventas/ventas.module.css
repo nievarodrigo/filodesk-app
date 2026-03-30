@@ -479,10 +479,31 @@
 /* Summary breakdown */
 .summaryBreak { font-size: .72rem; color: var(--muted); margin-top: 4px; }
 
-/* Service table (7 cols) */
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.statusPending {
+  background: rgba(201,168,76,.12);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,.25);
+}
+.statusApproved {
+  background: rgba(94, 207, 135, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(94, 207, 135, 0.2);
+}
+
+/* Service table (8 cols with Status) */
 .tableHeadService {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1.1fr 1fr auto;
   padding: 10px 16px;
   font-size: .7rem; text-transform: uppercase; letter-spacing: .7px;
   color: var(--muted); font-weight: 600;
@@ -491,7 +512,7 @@
 }
 .tableRowService {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1fr auto;
+  grid-template-columns: 0.8fr 1fr 1fr 0.9fr 0.9fr 1.1fr 1fr auto;
   padding: 11px 16px;
   font-size: .88rem; color: var(--text);
   border-bottom: 1px solid var(--hover);
@@ -578,44 +599,130 @@
 
 .pagNota { font-size: .72rem; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
 
-/* ── Mobile tables ── */
+/* ── Mobile tables (Ticket #001) ── */
 @media (max-width: 768px) {
-  .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead,
-  .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
-  .tableHeadService,
-  .tableRowService { min-width: 700px; padding: 10px 14px; font-size: .82rem; }
-  .tableHeadService,
+  .table { border: none; background: transparent; }
+  .tableHeadService, .tableHeadProduct { display: none; }
+
+  /* Servicios Card */
   .tableRowService {
-    grid-template-columns: 74px minmax(96px, 1fr) minmax(120px, 1.1fr) 88px 88px minmax(120px, 1fr) 40px;
-    column-gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    min-width: 0 !important;
   }
-  .tableHeadService > span:nth-child(2),
-  .tableRowService > span:nth-child(2),
-  .tableHeadService > span:nth-child(3),
-  .tableRowService > span:nth-child(3),
-  .tableHeadService > span:nth-child(6),
-  .tableRowService > span:nth-child(6) {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+  .tableRowService > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
   }
-  .tableHeadProduct,
-  .tableRowProduct { min-width: 420px; padding: 10px 14px; font-size: .82rem; }
-  .tableHeadProduct,
-  .tableRowProduct { grid-template-columns: 80px minmax(140px, 1.6fr) 64px minmax(96px, 1fr); }
-  .tableHeadProduct > span:nth-child(3),
-  .tableRowProduct > span:nth-child(3) { text-align: center; }
-  .tableHeadProduct > span:nth-child(2),
-  .tableRowProduct > span:nth-child(2) {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+  .tableRowService > span::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    font-weight: 600;
   }
-  .servicesHead,
-  .serviceRow { grid-template-columns: 1fr 48px 1fr 28px; }
+
+  .tableRowService .amount { font-size: 1.1rem; }
+
+  /* Ajuste para el botón de eliminar en mobile */
+  .tableRowService > button {
+    align-self: flex-end;
+    margin-top: 8px;
+    background: rgba(224,112,112,.08);
+    color: var(--red);
+    border: 1px solid rgba(224,112,112,.2);
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border-radius: 8px;
+  }
+  .tableRowService > button::after { content: " Eliminar registro"; font-size: 0.85rem; }
+
+  /* Productos Card */
+  .tableRowProduct {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    min-width: 0 !important;
+  }
+  .tableRowProduct > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
+  }
+  .tableRowProduct > span::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+}
+
+/* ── Mobile Form Táctil (Ticket #002) ── */
+@media (max-width: 600px) {
+  .serviceRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 14px;
+    background: var(--hover);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .serviceRow > select {
+    grid-column: span 2; /* Servicio arriba a ancho completo */
+  }
+
+  .serviceRow > input {
+    width: 100% !important; /* Cantidad y Monto abajo */
+  }
+
+  .serviceRow > .btnRemoveRow {
+    grid-column: span 2;
+    width: 100%;
+    margin-top: 4px;
+    border: 1px solid rgba(224,112,112,.2);
+    background: rgba(224,112,112,.05);
+  }
+
+  .btnAddRow {
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: var(--surface);
+    border-style: solid;
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .input, .select {
+    min-height: 46px; /* Touch friendly */
+    font-size: 1rem; /* Evita zoom automático en iOS */
+  }
+
+  .servicesHead { display: none; } /* Ocultar labels de tabla en mobile form */
 }
 
 .noBarbers {
