@@ -58,6 +58,8 @@ export default async function ConfiguracionPage({
             <h2 className={styles.blockTitle}>Barberos</h2>
             <p className={styles.blockSub}>Gestioná tu equipo y sus comisiones</p>
           </div>
+        </div>
+        <div className={styles.blockActionArea}>
           <NuevoBarberoForm barbershopId={barbershopId} />
         </div>
 
@@ -75,6 +77,8 @@ export default async function ConfiguracionPage({
             <h2 className={styles.blockTitle}>Servicios</h2>
             <p className={styles.blockSub}>Gestioná tus servicios y sus precios</p>
           </div>
+        </div>
+        <div className={styles.blockActionArea}>
           <NuevoServicioForm barbershopId={barbershopId} />
         </div>
 

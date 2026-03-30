@@ -1,16 +1,62 @@
 'use client'
 
-import { useActionState } from 'react'
-// import Script from 'next/script' // TODO: reactivar Turnstile
+import { useActionState, useEffect, useRef } from 'react'
+import Script from 'next/script'
 import { register } from '@/app/actions/auth'
 import styles from '../auth.module.css'
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: string | HTMLElement, options: {
+        sitekey: string
+        callback: (token: string) => void
+        'error-callback'?: () => void
+        'expired-callback'?: () => void
+        theme?: 'light' | 'dark' | 'auto'
+      }) => string
+      reset: (widgetId: string) => void
+      remove: (widgetId: string) => void
+    }
+  }
+}
+
 export default function RegisterForm() {
   const [state, action, pending] = useActionState(register, undefined)
+  const turnstileRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && window.turnstile && turnstileRef.current && !widgetIdRef.current) {
+      widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+        callback: (token: string) => {
+          const input = document.createElement('input')
+          input.type = 'hidden'
+          input.name = 'cf-turnstile-response'
+          input.value = token
+          turnstileRef.current?.parentElement?.querySelector('form')?.appendChild(input)
+        },
+        'error-callback': () => {
+          console.error('Turnstile error')
+        },
+        'expired-callback': () => {
+          if (widgetIdRef.current) {
+            window.turnstile?.reset(widgetIdRef.current)
+          }
+        },
+        theme: 'light',
+      })
+    }
+  }, [])
 
   return (
     <>
-      {/* TODO: reactivar Turnstile cuando se configure el dominio en Cloudflare */}
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        async
+        defer
+      />
 
       <form action={action} className={styles.form}>
         <div className={styles.fieldRow}>
@@ -92,6 +138,10 @@ export default function RegisterForm() {
 
         {state?.message && (
           <div className={styles.errorBox}>{state.message}</div>
+        )}
+
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <div ref={turnstileRef} className={styles.turnstile} />
         )}
 
         <button type="submit" className={styles.btn} disabled={pending}>

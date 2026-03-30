@@ -29,10 +29,9 @@ export async function register(
   _state: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  // TODO: reactivar Turnstile cuando se configure el dominio en Cloudflare
-  // const turnstileToken = formData.get('cf-turnstile-response') as string
-  // const captchaOk = await authService.verifyTurnstile(turnstileToken || '')
-  // if (!captchaOk) return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
+  const turnstileToken = formData.get('cf-turnstile-response') as string
+  const captchaOk = await authService.verifyTurnstile(turnstileToken || '')
+  if (!captchaOk) return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
 
   const validated = RegisterSchema.safeParse({
     firstName: formData.get('firstName'),

@@ -202,3 +202,11 @@
   transition: color .2s;
 }
 .link:hover { color: var(--gold-soft); }
+
+/* ── TURNSTILE CAPTCHA ── */
+.turnstile {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  min-height: 65px;
+}
