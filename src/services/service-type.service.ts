@@ -94,6 +94,13 @@ export async function deleteServiceType(
     if (!hardDelete.error) return { mode: 'hard' as const }
   }
 
+  // Global services with sales must not be disabled platform-wide.
+  // Create/update a local override set as inactive for this barbershop.
+  if (service.barbershop_id === null) {
+    await upsertOverride(supabase, barbershopId, service, { active: false })
+    return { mode: 'override' as const }
+  }
+
   const softDelete = await serviceTypeRepo.softDeleteById(supabase, serviceId)
   if (softDelete.error) return { error: 'No se pudo dar de baja el servicio.' }
 

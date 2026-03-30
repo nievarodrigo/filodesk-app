@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { canAccess } from '@/lib/permissions'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { getServerAuthContext } from '@/services/auth.service'
 import { z } from 'zod'
 import * as serviceTypeService from '@/services/service-type.service'
 
@@ -46,9 +48,36 @@ export async function updateServicioPrice(barbershopId: string, serviceId: strin
 
 export async function deleteServicio(barbershopId: string, serviceId: string) {
   const supabase = await createClient()
-  const result = await serviceTypeService.deleteServiceType(supabase, barbershopId, serviceId)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || !canAccess(context.role, 'manage_services')) {
+    return { error: 'No tenés permisos para eliminar servicios.' }
+  }
+
+  const adminClient = createServiceClient()
+  const { data: serviceMeta } = await adminClient
+    .from('service_types')
+    .select('id, barbershop_id')
+    .eq('id', serviceId)
+    .maybeSingle()
+
+  if (!serviceMeta) return { error: 'El servicio no existe.' }
+  if (serviceMeta.barbershop_id !== null && serviceMeta.barbershop_id !== barbershopId) {
+    return { error: 'No tenés permisos para eliminar este servicio.' }
+  }
+
+  const isGlobal = serviceMeta.barbershop_id === null
+  if (isGlobal && context.role !== 'owner' && context.role !== 'manager') {
+    return { error: 'Solo owner o manager pueden eliminar servicios globales.' }
+  }
+
+  const clientForDelete = isGlobal ? adminClient : supabase
+  const result = await serviceTypeService.deleteServiceType(clientForDelete, barbershopId, serviceId)
   if (result && 'error' in result) return { error: result.error }
   revalidatePath(`/dashboard/${barbershopId}/barberosyservicios`)
+  revalidatePath(`/dashboard/${barbershopId}`)
   return { success: true, mode: result?.mode }
 }
 
