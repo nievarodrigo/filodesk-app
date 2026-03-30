@@ -1,0 +1,443 @@
+.page {
+  display: grid;
+  gap: 16px;
+}
+
+.header {
+  display: grid;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--cream);
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.monthCard,
+.dayCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.monthTitle {
+  margin: 0;
+  color: var(--cream);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.monthNavBtn {
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.weekday {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  text-align: center;
+}
+
+.dayCell,
+.dayCellEmpty {
+  min-height: 72px;
+  border-radius: 10px;
+}
+
+.dayCell {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.dayCell:hover {
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+.dayCellEmpty {
+  border: 1px dashed color-mix(in srgb, var(--border) 55%, transparent);
+  background: transparent;
+}
+
+.dayNumber {
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.dayBadge {
+  background: rgba(201,168,76,.18);
+  border: 1px solid rgba(201,168,76,.35);
+  color: var(--gold);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.backBtn {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.dayTitle {
+  margin: 0;
+  color: var(--cream);
+  font-size: .96rem;
+  font-weight: 700;
+}
+
+.shiftFilters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.shiftBtn,
+.shiftBtnActive {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shiftBtnActive {
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+  color: var(--gold);
+}
+
+.mobileBarberPicker {
+  display: none;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.barberPill,
+.barberPillActive {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.barberPillActive {
+  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--gold);
+}
+
+.dayGridWrap {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 10px;
+}
+
+.timeCol {
+  position: relative;
+  min-height: calc((21 * 60 - 9 * 60) * 1.25px);
+  border-right: 1px solid var(--border);
+}
+
+.timeMark {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: .72rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.barberCols {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.barberColWrap {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 6px;
+}
+
+.barberColHeader {
+  text-align: center;
+  font-size: .82rem;
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.barberCol {
+  position: relative;
+  min-height: calc((21 * 60 - 9 * 60) * 1.25px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: crosshair;
+  overflow: hidden;
+}
+
+.halfHourLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 75%, transparent);
+}
+
+.apptCard {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(94,207,135,.35);
+  background: rgba(94,207,135,.14);
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.apptCardConflict {
+  border-color: rgba(224,112,112,.5);
+  background: rgba(224,112,112,.15);
+}
+
+.apptTime {
+  margin: 0;
+  font-size: .66rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.apptService {
+  margin: 0;
+  font-size: .74rem;
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.apptClient {
+  margin: 0;
+  font-size: .68rem;
+  color: var(--text);
+}
+
+.apptWarn {
+  margin: 0;
+  font-size: .64rem;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0,0,0,.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.modalTitle {
+  margin: 0;
+  color: var(--cream);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.modalHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > span {
+  color: var(--muted);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: .9rem;
+}
+
+.calcLine {
+  margin: 0;
+  color: var(--muted);
+  font-size: .84rem;
+}
+
+.error {
+  margin: 0;
+  border: 1px solid rgba(224,112,112,.35);
+  background: rgba(224,112,112,.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--red);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btnGhost,
+.btnPrimary {
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: .84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btnGhost {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+}
+
+.btnPrimary {
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.btnPrimary:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .barberCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-inline: 16px;
+  }
+
+  .monthCard,
+  .dayCard {
+    padding: 16px;
+  }
+
+  .shiftFilters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobileBarberPicker {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .dayGridWrap {
+    grid-template-columns: 62px 1fr;
+    padding: 8px;
+  }
+
+  .barberCols {
+    grid-template-columns: 1fr;
+  }
+
+  .apptCard {
+    left: 4px;
+    right: 4px;
+  }
+}
