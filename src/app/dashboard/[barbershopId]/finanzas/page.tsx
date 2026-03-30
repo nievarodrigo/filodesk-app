@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { canAccess } from '@/lib/permissions'
 import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
+import { headers } from 'next/headers'
 import { getServerAuthContext } from '@/services/auth.service'
 import { isFeatureEnabled } from '@/services/plan.service'
 import { redirect } from 'next/navigation'
@@ -56,6 +57,9 @@ export default async function FinanzasPage({
 }) {
   const { barbershopId } = await params
   const { mes } = await searchParams
+  const hdrs = await headers()
+  const userAgent = hdrs.get('user-agent') || ''
+  const isMobile = /mobile/i.test(userAgent)
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
@@ -227,6 +231,13 @@ export default async function FinanzasPage({
 
   const ingDelta = pctChange(ingresosMes, ingPrev)
   const gasDelta = pctChange(gastosMes, gasPrev)
+  const marginPct = ingresosMes > 0 ? Math.round((netoMes / ingresosMes) * 100) : 0
+  const topExpenseCategories = Object.entries(catMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+  const topCommissionBarbers = [...barberData]
+    .sort((a, b) => b.comision - a.comision)
+    .slice(0, 2)
   const canExportData = isFeatureEnabled(context.plan, 'export_data')
   const financeExportRows = [
     { tipo: 'Resumen', metrica: 'Mes', valor: monthLabel(ym) },
@@ -234,6 +245,7 @@ export default async function FinanzasPage({
     { tipo: 'Resumen', metrica: 'Gastos', valor: gastosMes },
     { tipo: 'Resumen', metrica: 'Comisiones', valor: comisionesMes },
     { tipo: 'Resumen', metrica: 'Neto', valor: netoMes },
+    { tipo: 'Resumen', metrica: 'Margen de ganancia', valor: `${marginPct}%` },
     { tipo: 'Resumen', metrica: 'Ticket promedio', valor: ticketPromedio },
     ...barberData.map((barber) => ({
       tipo: 'Barbero',
@@ -255,11 +267,48 @@ export default async function FinanzasPage({
     })),
   ]
 
-  const kpis = [
+  const interactiveKpis = [
     { label: 'Ingresos', value: formatARS(ingresosMes), delta: ingDelta },
     { label: 'Gastos',   value: formatARS(gastosMes),   delta: gasDelta },
     { label: 'Comisiones', value: formatARS(comisionesMes), delta: null },
     { label: 'Neto',     value: formatARS(netoMes),     delta: null },
+  ]
+
+  const operationalKpis = [
+    {
+      label: 'Ticket Promedio',
+      value: formatARS(ticketPromedio),
+      valueClass: styles.kpiValueGold,
+      detail: `${totalServicios} servicios realizados`,
+      cardClass: '',
+    },
+    {
+      label: 'Mejor Día',
+      value: bestDay ? DIAS[bestDay.dow] : '—',
+      valueClass: bestDay ? styles.kpiValuePositive : styles.kpiValueMuted,
+      detail: bestDay
+        ? `${formatARS(bestDay.avg)} promedio por ${DIAS[bestDay.dow].toLowerCase()}`
+        : 'Sin datos suficientes',
+      cardClass: '',
+    },
+    {
+      label: 'Proyección',
+      value: proyeccion !== null ? formatARS(proyeccion) : '—',
+      valueClass: proyeccion !== null ? styles.kpiValueGold : styles.kpiValueMuted,
+      detail: proyeccion !== null
+        ? `Día ${dayOfMonth} de ${daysInMonth} al ritmo actual`
+        : 'No disponible fuera del mes actual',
+      cardClass: styles.kpiCardForecast,
+    },
+    {
+      label: 'Margen de Ganancia',
+      value: `${marginPct}%`,
+      valueClass: marginPct > 30 ? styles.kpiValuePositive : (marginPct >= 15 ? styles.kpiValueGold : styles.kpiValueNegative),
+      detail: ingresosMes > 0
+        ? `${formatARS(netoMes)} neto sobre ${formatARS(ingresosMes)} ingresados`
+        : 'Sin ingresos para calcular',
+      cardClass: '',
+    },
   ]
 
   return (
@@ -283,19 +332,25 @@ export default async function FinanzasPage({
           </a>
         ))}
       </div>
+      <div className={styles.kpiBlock}>
       <div className={styles.kpis}>
-        {kpis.map(k => (
-          <div key={k.label} className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={`${styles.kpiValue} ${
-              k.label === 'Ingresos'
-                ? styles.kpiValuePositive
-                : k.label === 'Gastos'
-                  ? styles.kpiValueNegative
-                  : k.label === 'Comisiones'
-                    ? styles.kpiValueMuted
-                    : (netoMes >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative)
-            }`}>{k.value}</p>
+        {interactiveKpis.map(k => (
+          <details key={k.label} className={`${styles.kpiCard} ${styles.kpiInteractive}`} open={isMobile && k.label === 'Ingresos'}>
+            <summary className={styles.kpiSummary}>
+              <div>
+                <p className={styles.kpiLabel}>{k.label}</p>
+                <p className={`${styles.kpiValue} ${
+                  k.label === 'Ingresos'
+                    ? styles.kpiValuePositive
+                    : k.label === 'Gastos'
+                      ? styles.kpiValueNegative
+                      : k.label === 'Comisiones'
+                        ? styles.kpiValueMuted
+                        : (netoMes >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative)
+                }`}>{k.value}</p>
+              </div>
+              <span className={styles.kpiChevron} aria-hidden>▾</span>
+            </summary>
             {k.delta !== null && (
               <p className={`${styles.kpiDelta} ${
                 k.label === 'Gastos'
@@ -308,29 +363,78 @@ export default async function FinanzasPage({
                 <span className={styles.kpiDeltaShort}>vs mes ant.</span>
               </p>
             )}
-          </div>
+            <div className={styles.kpiExpand}>
+              <div className={styles.kpiExpandInner}>
+                {k.label === 'Ingresos' && (
+                  <ul className={styles.kpiDrillList}>
+                    <li className={styles.kpiDrillRow}>
+                      <span className={styles.kpiDrillKey}>Servicios</span>
+                      <span className={styles.kpiDrillValue}>{formatARS(ingServicios)}</span>
+                    </li>
+                    <li className={styles.kpiDrillRow}>
+                      <span className={styles.kpiDrillKey}>Productos</span>
+                      <span className={styles.kpiDrillValue}>{formatARS(ingProductos)}</span>
+                    </li>
+                  </ul>
+                )}
+                {k.label === 'Gastos' && (
+                  <ul className={styles.kpiDrillList}>
+                    {topExpenseCategories.length > 0 ? topExpenseCategories.map(([cat, amt]) => (
+                      <li key={cat} className={styles.kpiDrillRow}>
+                        <span className={styles.kpiDrillKey}>{cat}</span>
+                        <span className={styles.kpiDrillValue}>{formatARS(amt)}</span>
+                      </li>
+                    )) : (
+                      <li className={styles.kpiDrillRow}>
+                        <span className={styles.kpiDrillKey}>Sin gastos</span>
+                        <span className={styles.kpiDrillValue}>—</span>
+                      </li>
+                    )}
+                  </ul>
+                )}
+                {k.label === 'Comisiones' && (
+                  <ul className={styles.kpiDrillList}>
+                    {topCommissionBarbers.length > 0 ? topCommissionBarbers.map((barber) => (
+                      <li key={barber.name} className={styles.kpiDrillRow}>
+                        <span className={styles.kpiDrillKey}>{barber.name}</span>
+                        <span className={styles.kpiDrillValue}>{formatARS(barber.comision)}</span>
+                      </li>
+                    )) : (
+                      <li className={styles.kpiDrillRow}>
+                        <span className={styles.kpiDrillKey}>Sin comisiones</span>
+                        <span className={styles.kpiDrillValue}>—</span>
+                      </li>
+                    )}
+                  </ul>
+                )}
+                {k.label === 'Neto' && (
+                  <ul className={styles.kpiDrillList}>
+                    <li className={styles.kpiDrillRow}>
+                      <span className={styles.kpiDrillKey}>Fórmula</span>
+                      <span className={styles.kpiDrillValue}>Ingresos - (Gastos + Comisiones)</span>
+                    </li>
+                    <li className={styles.kpiDrillRow}>
+                      <span className={styles.kpiDrillKey}>Cálculo</span>
+                      <span className={styles.kpiDrillValue}>{formatARS(ingresosMes)} - ({formatARS(gastosMes)} + {formatARS(comisionesMes)})</span>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </div>
+          </details>
         ))}
       </div>
-      <div className={styles.statsRow}>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Ticket promedio</p>
-          <p className={styles.statValue}>{formatARS(ticketPromedio)}</p>
-          <p className={styles.statDetail}>{totalServicios} servicios realizados</p>
+      </div>
+      <div className={styles.kpiBlock}>
+        <div className={styles.kpis}>
+          {operationalKpis.map(k => (
+            <div key={k.label} className={`${styles.kpiCard} ${k.cardClass}`}>
+              <p className={styles.kpiLabel}>{k.label}</p>
+              <p className={`${styles.kpiValue} ${k.valueClass}`}>{k.value}</p>
+              <p className={styles.kpiMeta}>{k.detail}</p>
+            </div>
+          ))}
         </div>
-        {bestDay && (
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Mejor día</p>
-            <p className={styles.statValue}>{DIAS[bestDay.dow]}</p>
-            <p className={styles.statDetail}>{formatARS(bestDay.avg)} promedio por {DIAS[bestDay.dow].toLowerCase()}</p>
-          </div>
-        )}
-        {proyeccion !== null && (
-          <div className={`${styles.statCard} ${styles.statCardHighlight}`}>
-            <p className={styles.statLabel}>Proyección del mes</p>
-            <p className={`${styles.statValue} ${styles.statValueHighlight}`}>{formatARS(proyeccion)}</p>
-            <p className={styles.statDetail}>Día {dayOfMonth} de {daysInMonth} — al ritmo actual</p>
-          </div>
-        )}
       </div>
       <div className={styles.section}>
         <ResumenMensual data={trendData} />
