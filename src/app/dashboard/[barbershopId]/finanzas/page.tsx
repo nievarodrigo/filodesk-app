@@ -47,10 +47,6 @@ function monthLabel(ym: string) {
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Alquiler: 'var(--gold)', Productos: '#5ecf87', Servicios: '#7eb8f7', Sueldos: '#e07070', Otros: 'var(--muted)',
-}
-
 export default async function FinanzasPage({
   params,
   searchParams,
@@ -260,10 +256,10 @@ export default async function FinanzasPage({
   ]
 
   const kpis = [
-    { label: 'Ingresos', value: formatARS(ingresosMes), color: 'var(--green)', delta: ingDelta },
-    { label: 'Gastos',   value: formatARS(gastosMes),   color: 'var(--red)',   delta: gasDelta },
-    { label: 'Comisiones', value: formatARS(comisionesMes), color: 'var(--muted)', delta: null },
-    { label: 'Neto',     value: formatARS(netoMes),     color: netoMes >= 0 ? 'var(--green)' : 'var(--red)', delta: null },
+    { label: 'Ingresos', value: formatARS(ingresosMes), delta: ingDelta },
+    { label: 'Gastos',   value: formatARS(gastosMes),   delta: gasDelta },
+    { label: 'Comisiones', value: formatARS(comisionesMes), delta: null },
+    { label: 'Neto',     value: formatARS(netoMes),     delta: null },
   ]
 
   return (
@@ -291,10 +287,25 @@ export default async function FinanzasPage({
         {kpis.map(k => (
           <div key={k.label} className={styles.kpiCard}>
             <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+            <p className={`${styles.kpiValue} ${
+              k.label === 'Ingresos'
+                ? styles.kpiValuePositive
+                : k.label === 'Gastos'
+                  ? styles.kpiValueNegative
+                  : k.label === 'Comisiones'
+                    ? styles.kpiValueMuted
+                    : (netoMes >= 0 ? styles.kpiValuePositive : styles.kpiValueNegative)
+            }`}>{k.value}</p>
             {k.delta !== null && (
-              <p className={styles.kpiDelta} style={{ color: k.label === 'Gastos' ? (k.delta > 0 ? 'var(--red)' : 'var(--green)') : (k.delta >= 0 ? 'var(--green)' : 'var(--red)') }}>
-                {k.delta >= 0 ? '▲' : '▼'} {Math.abs(k.delta)}% vs mes anterior
+              <p className={`${styles.kpiDelta} ${
+                k.label === 'Gastos'
+                  ? (k.delta > 0 ? styles.kpiDeltaNegative : styles.kpiDeltaPositive)
+                  : (k.delta >= 0 ? styles.kpiDeltaPositive : styles.kpiDeltaNegative)
+              }`}>
+                <span>{k.delta >= 0 ? '▲' : '▼'}</span>
+                <span>{Math.abs(k.delta)}%</span>
+                <span className={styles.kpiDeltaLong}>vs mes anterior</span>
+                <span className={styles.kpiDeltaShort}>vs mes ant.</span>
               </p>
             )}
           </div>
@@ -314,9 +325,9 @@ export default async function FinanzasPage({
           </div>
         )}
         {proyeccion !== null && (
-          <div className={styles.statCard}>
+          <div className={`${styles.statCard} ${styles.statCardHighlight}`}>
             <p className={styles.statLabel}>Proyección del mes</p>
-            <p className={styles.statValue} style={{ color: 'var(--gold)' }}>{formatARS(proyeccion)}</p>
+            <p className={`${styles.statValue} ${styles.statValueHighlight}`}>{formatARS(proyeccion)}</p>
             <p className={styles.statDetail}>Día {dayOfMonth} de {daysInMonth} — al ritmo actual</p>
           </div>
         )}
@@ -328,22 +339,35 @@ export default async function FinanzasPage({
         <div>
           <VentasPorBarbero data={barberData} />
         </div>
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-          <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-            Gastos por categoría
-          </p>
+        <div className={styles.panelCard}>
+          <p className={styles.panelTitle}>Gastos por categoría</p>
           {Object.keys(catMap).length === 0 ? (
-            <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Sin gastos este mes.</p>
+            <p className={styles.panelEmpty}>Sin gastos este mes.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className={styles.categoryList}>
               {Object.entries(catMap).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => (
-                <div key={cat}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: '.85rem', color: CATEGORY_COLORS[cat] ?? 'var(--muted)', fontWeight: 600 }}>{cat}</span>
-                    <span style={{ fontSize: '.85rem', color: 'var(--text)', fontWeight: 600 }}>{formatARS(amt)}</span>
+                <div key={cat} className={styles.categoryRow}>
+                  <div className={styles.categoryHeader}>
+                    <span className={styles.categoryName}>{cat}</span>
+                    <span className={styles.categoryAmount}>{formatARS(amt)}</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 3, background: 'var(--hover)', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round(amt / (gastosMes || 1) * 100)}%`, height: '100%', borderRadius: 3, background: CATEGORY_COLORS[cat] ?? 'var(--muted)' }} />
+                  <div className={styles.categoryBarContainer}>
+                    <progress
+                      className={`${styles.categoryBarFill} ${
+                        cat === 'Alquiler'
+                          ? styles.categoryFillAlquiler
+                          : cat === 'Productos'
+                            ? styles.categoryFillProductos
+                            : cat === 'Servicios'
+                              ? styles.categoryFillServicios
+                              : cat === 'Sueldos'
+                                ? styles.categoryFillSueldos
+                                : styles.categoryFillOtros
+                      }`}
+                      value={Math.min(100, Math.round((amt / (gastosMes || 1)) * 100))}
+                      max={100}
+                      aria-label={`Participación de ${cat} en gastos`}
+                    />
                   </div>
                 </div>
               ))}
@@ -353,20 +377,18 @@ export default async function FinanzasPage({
       </div>
       <div className={styles.twoCol}>
         {svcRanking.length > 0 && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-            <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-              Top servicios
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={styles.panelCard}>
+            <p className={styles.panelTitle}>Top servicios</p>
+            <div className={styles.rankingList}>
               {svcRanking.map((svc, i) => (
-                <div key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid var(--hover)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
-                    <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{svc.name}</span>
+                <div key={svc.name} className={styles.rankingRow}>
+                  <div className={styles.rankingLeft}>
+                    <span className={styles.rankingPos}>#{i + 1}</span>
+                    <span className={styles.rankingName}>{svc.name}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-                    <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{svc.count} servicios</span>
-                    <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, minWidth: 70, textAlign: 'right' }}>{formatARS(svc.total)}</span>
+                  <div className={styles.rankingMetrics}>
+                    <span className={styles.rankingQty}>{svc.count} servicios</span>
+                    <span className={styles.rankingAmount}>{formatARS(svc.total)}</span>
                   </div>
                 </div>
               ))}
@@ -374,20 +396,18 @@ export default async function FinanzasPage({
           </div>
         )}
         {prodRanking.length > 0 && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-            <p style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
-              Top productos
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={styles.panelCard}>
+            <p className={styles.panelTitle}>Top productos</p>
+            <div className={styles.rankingList}>
               {prodRanking.map((prod, i) => (
-                <div key={prod.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '6px 0', borderBottom: '1px solid var(--hover)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 700, width: 18 }}>#{i + 1}</span>
-                    <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{prod.name}</span>
+                <div key={prod.name} className={styles.rankingRow}>
+                  <div className={styles.rankingLeft}>
+                    <span className={styles.rankingPos}>#{i + 1}</span>
+                    <span className={styles.rankingName}>{prod.name}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-                    <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>×{prod.cantidad} unidades</span>
-                    <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, minWidth: 70, textAlign: 'right' }}>{formatARS(prod.ingresos)}</span>
+                  <div className={styles.rankingMetrics}>
+                    <span className={styles.rankingQty}>{prod.cantidad} unidades</span>
+                    <span className={styles.rankingAmount}>{formatARS(prod.ingresos)}</span>
                   </div>
                 </div>
               ))}
