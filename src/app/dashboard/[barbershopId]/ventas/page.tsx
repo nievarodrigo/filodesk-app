@@ -11,6 +11,8 @@ export const metadata: Metadata = { title: 'Ventas — FiloDesk' }
 
 const PAGE_SIZE_DESKTOP = 10
 const PAGE_SIZE_PRODUCTS_MOBILE = 5
+const PAGE_SIZE_BARBERS = 5
+const PAGE_SIZE_BARBER_SERVICES = 5
 
 function formatARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -40,26 +42,30 @@ export default async function VentasPage({
   searchParams,
 }: {
   params: Promise<{ barbershopId: string }>
-  searchParams: Promise<{ desde?: string; hasta?: string; tipo?: string; p?: string }>
+  searchParams: Promise<{ desde?: string; hasta?: string; tipo?: string; pb?: string; pp?: string; p?: string }>
 }) {
   const { barbershopId } = await params
-  const { desde, hasta, tipo = 'todos', p = '1' } = await searchParams
+  const { desde, hasta, tipo = 'todos', pb, pp, p } = await searchParams
 
   const defaultDesde = som()
   const defaultHasta = today()
 
   const from = desde ?? defaultDesde
   const to   = hasta ?? defaultHasta
-  const page = Math.max(1, Number(p) || 1)
-  const desktopRangeFrom = (page - 1) * PAGE_SIZE_DESKTOP
-  const desktopRangeTo   = page * PAGE_SIZE_DESKTOP - 1
-  const mobileProductRangeFrom = (page - 1) * PAGE_SIZE_PRODUCTS_MOBILE
-  const mobileProductRangeTo   = page * PAGE_SIZE_PRODUCTS_MOBILE - 1
+  const barberPage = Math.max(1, Number(pb ?? p ?? '1') || 1)
+  const productPage = Math.max(1, Number(pp ?? p ?? '1') || 1)
+  const salesDesktopRangeFrom = (barberPage - 1) * PAGE_SIZE_DESKTOP
+  const salesDesktopRangeTo   = barberPage * PAGE_SIZE_DESKTOP - 1
+  const productDesktopRangeFrom = (productPage - 1) * PAGE_SIZE_DESKTOP
+  const productDesktopRangeTo   = productPage * PAGE_SIZE_DESKTOP - 1
+  const mobileProductRangeFrom = (productPage - 1) * PAGE_SIZE_PRODUCTS_MOBILE
+  const mobileProductRangeTo   = productPage * PAGE_SIZE_PRODUCTS_MOBILE - 1
 
   const supabase = await createClient()
 
   const [
     { data: sales,        count: salesCount },
+    { data: salesForBarbers },
     { data: productSales, count: productCount },
     { data: productSalesMobile },
     { data: barbershopPlan },
@@ -72,7 +78,15 @@ export default async function VentasPage({
       .lte('date', to)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(desktopRangeFrom, desktopRangeTo),
+      .range(salesDesktopRangeFrom, salesDesktopRangeTo),
+    supabase
+      .from('sales')
+      .select('id, amount, status, date, created_at, notes, barbers(name, commission_pct), service_types(name)')
+      .eq('barbershop_id', barbershopId)
+      .gte('date', from)
+      .lte('date', to)
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false }),
     supabase
       .from('product_sales')
       .select('id, sale_price, date, quantity, products(name)', { count: 'exact' })
@@ -81,7 +95,7 @@ export default async function VentasPage({
       .lte('date', to)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(desktopRangeFrom, desktopRangeTo),
+      .range(productDesktopRangeFrom, productDesktopRangeTo),
     supabase
       .from('product_sales')
       .select('id, sale_price, date, quantity, products(name)')
@@ -97,6 +111,17 @@ export default async function VentasPage({
   const showStatus = (barbershopPlan?.plan_name ?? 'Base').toLowerCase() !== 'base'
 
   const salesRows = (sales as Array<{
+    id: string
+    amount: number
+    status: string
+    date: string
+    created_at?: string
+    notes?: string
+    barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number }
+    service_types?: Array<{ name: string }> | { name: string }
+  }>) ?? []
+
+  const salesForBarbersRows = (salesForBarbers as Array<{
     id: string
     amount: number
     status: string
@@ -139,7 +164,6 @@ export default async function VentasPage({
       .map(([fecha, v]) => ({ fecha, ...v }))
   })()
 
-  const totalSalesPages = Math.ceil(countServicios / PAGE_SIZE_DESKTOP)
   const totalProductPagesDesktop = Math.ceil(countProductos / PAGE_SIZE_DESKTOP)
   const totalProductPagesMobile = Math.ceil((productCount ?? 0) / PAGE_SIZE_PRODUCTS_MOBILE)
   const hasProductRowsDesktop = (productSales?.length ?? 0) > 0
@@ -153,19 +177,6 @@ export default async function VentasPage({
     return { ym, label: monthLabel(ym) }
   })
 
-  // Resumen por barbero (todos, sin paginar)
-  const byBarber: Record<string, { name: string; count: number; total: number; commission: number }> = {}
-  // Use paginated sales for byBarber (approximate, but good enough for UX)
-  for (const sale of salesRows) {
-    const barbers = (sale as { barbers?: Array<{ name: string; commission_pct: number }> | { name: string; commission_pct: number } }).barbers
-    const name    = (Array.isArray(barbers) ? barbers?.[0]?.name : barbers?.name) ?? 'Sin asignar'
-    const commPct = (Array.isArray(barbers) ? barbers?.[0]?.commission_pct : barbers?.commission_pct) ?? 0
-    if (!byBarber[name]) byBarber[name] = { name, count: 0, total: 0, commission: 0 }
-    byBarber[name].count++
-    byBarber[name].total      += sale.amount ?? 0
-    byBarber[name].commission += Math.round((sale.amount ?? 0) * commPct / 100)
-  }
-
   const tipoTabs = [
     { key: 'todos',    label: `Todos (${countTotal})` },
     { key: 'servicio', label: `Servicios (${countServicios})` },
@@ -173,10 +184,12 @@ export default async function VentasPage({
   ]
 
   const baseHref = `?desde=${from}&hasta=${to}&tipo=${tipo}`
+  const barbersBaseHref = `${baseHref}&pp=${productPage}`
+  const productsBaseHref = `${baseHref}&pb=${barberPage}`
 
-  const salesGroupedByBarber = (() => {
+  const salesGroupedByBarberAll = (() => {
     const grouped: Record<string, { barberName: string; count: number; total: number; commission: number; sales: typeof salesRows }> = {}
-    for (const sale of salesRows) {
+    for (const sale of salesForBarbersRows) {
       const barberName = (Array.isArray(sale.barbers) ? sale.barbers?.[0]?.name : sale.barbers?.name) ?? 'Sin asignar'
       const barber = Array.isArray(sale.barbers) ? sale.barbers?.[0] : sale.barbers
       const commission = barber ? Math.round((sale.amount ?? 0) * (barber.commission_pct ?? 0) / 100) : 0
@@ -188,6 +201,12 @@ export default async function VentasPage({
     }
     return Object.values(grouped).sort((a, b) => b.total - a.total)
   })()
+
+  const totalBarberPages = Math.ceil(salesGroupedByBarberAll.length / PAGE_SIZE_BARBERS)
+  const salesGroupedByBarber = salesGroupedByBarberAll.slice(
+    (barberPage - 1) * PAGE_SIZE_BARBERS,
+    barberPage * PAGE_SIZE_BARBERS
+  )
 
   return (
     <div>
@@ -232,15 +251,15 @@ export default async function VentasPage({
       {chartData.length > 0 && <GraficoIngresos data={chartData} />}
 
       {/* Resumen por barbero */}
-      {Object.keys(byBarber).length > 0 && (tipo === 'todos' || tipo === 'servicio') && (
+      {salesGroupedByBarberAll.length > 0 && (tipo === 'todos' || tipo === 'servicio') && (
         <div className={styles.byBarber}>
-          <h2 className={styles.subTitle}>Actividad por Barbero {page > 1 && <span className={styles.pagNota}>(pág. {page})</span>}</h2>
+          <h2 className={styles.subTitle}>Actividad por Barbero {barberPage > 1 && <span className={styles.pagNota}>(pág. {barberPage})</span>}</h2>
           <div className={styles.barberGrid}>
-            {Object.values(byBarber).map(b => (
-              <div key={b.name} className={styles.barberCard}>
-                <p className={styles.barberName}>{b.name}</p>
-                <p className={styles.barberStat}>{b.count} servicios · {formatARS(b.total)}</p>
-                <p className={styles.barberComm}>Comisión: {formatARS(b.commission)}</p>
+            {salesGroupedByBarber.map(group => (
+              <div key={group.barberName} className={styles.barberCard}>
+                <p className={styles.barberName}>{group.barberName}</p>
+                <p className={styles.barberStat}>{group.count} servicios · {formatARS(group.total)}</p>
+                <p className={styles.barberComm}>Comisión: {formatARS(group.commission)}</p>
               </div>
             ))}
           </div>
@@ -256,10 +275,14 @@ export default async function VentasPage({
                   <p className={styles.accordionCommission}>Comisión: {formatARS(group.commission)}</p>
                 </summary>
                 <div className={styles.accordionBody}>
-                  {group.sales.map(sale => {
+                  {group.sales.slice(0, PAGE_SIZE_BARBER_SERVICES).map(sale => {
                     const isPending = sale.status === 'pending'
                     return (
                       <div key={sale.id} className={styles.accordionItem}>
+                        <p className={styles.accordionLine}>
+                          <span className={styles.accordionLabel}>Fecha</span>
+                          <span>{formatShortDate(sale.date)}</span>
+                        </p>
                         <p className={styles.accordionLine}>
                           <span className={styles.accordionLabel}>Hora</span>
                           <span>{formatShortTime(sale.created_at)}</span>
@@ -287,10 +310,53 @@ export default async function VentasPage({
                       </div>
                     )
                   })}
+                  {group.sales.length > PAGE_SIZE_BARBER_SERVICES && (
+                    <details className={styles.moreServices}>
+                      <summary className={styles.moreServicesToggle}>Ver más servicios</summary>
+                      <div className={styles.moreServicesBody}>
+                        {group.sales.slice(PAGE_SIZE_BARBER_SERVICES).map(sale => {
+                          const isPending = sale.status === 'pending'
+                          return (
+                            <div key={`${sale.id}-extra`} className={styles.accordionItem}>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Fecha</span>
+                                <span>{formatShortDate(sale.date)}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Hora</span>
+                                <span>{formatShortTime(sale.created_at)}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Servicio</span>
+                                <span>{(Array.isArray(sale.service_types) ? sale.service_types?.[0]?.name : sale.service_types?.name) ?? '—'}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Monto</span>
+                                <span className={styles.amount}>{formatARS(sale.amount)}</span>
+                              </p>
+                              <p className={styles.accordionLine}>
+                                <span className={styles.accordionLabel}>Notas</span>
+                                <span className={styles.muted}>{sale.notes ?? '—'}</span>
+                              </p>
+                              {showStatus && (
+                                <p className={styles.accordionLine}>
+                                  <span className={styles.accordionLabel}>Estado</span>
+                                  <span className={`${styles.statusBadge} ${isPending ? styles.statusPending : styles.statusApproved}`}>
+                                    {isPending ? 'Pendiente' : 'Confirmado'}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </details>
+                  )}
                 </div>
               </details>
             ))}
           </div>
+          <Paginacion current={barberPage} total={totalBarberPages} baseHref={barbersBaseHref} paramKey="pb" />
         </div>
       )}
 
@@ -360,9 +426,6 @@ export default async function VentasPage({
                   </div>
                 </div>
 
-                {tipo === 'servicio' && (
-                  <Paginacion current={page} total={totalSalesPages} baseHref={baseHref} />
-                )}
               </>
             )}
           </>
@@ -438,25 +501,16 @@ export default async function VentasPage({
                 {tipo === 'producto' && (
                   <>
                     <div className={styles.desktopPagination}>
-                      <Paginacion current={page} total={totalProductPagesDesktop} baseHref={baseHref} />
+                      <Paginacion current={productPage} total={totalProductPagesDesktop} baseHref={productsBaseHref} paramKey="pp" />
                     </div>
                     <div className={styles.mobilePagination}>
-                      <Paginacion current={page} total={totalProductPagesMobile} baseHref={baseHref} />
+                      <Paginacion current={productPage} total={totalProductPagesMobile} baseHref={productsBaseHref} paramKey="pp" />
                     </div>
                   </>
                 )}
               </>
             )}
           </>
-        )}
-
-        {/* Paginación para "todos" */}
-        {tipo === 'todos' && (countServicios > PAGE_SIZE_DESKTOP || countProductos > PAGE_SIZE_DESKTOP) && (
-          <Paginacion
-            current={page}
-            total={Math.max(totalSalesPages, totalProductPagesDesktop)}
-            baseHref={baseHref}
-          />
         )}
 
         {tipo === 'todos' && (sales ?? []).length === 0 && !hasProductRowsDesktop && !hasProductRowsMobile && (
