@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
 
+const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
+
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
   { months: 3,  label: '3 meses', discount: 0.08 },
@@ -63,20 +65,23 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   const uiPlans = plans.map(p => {
     const isCurrent = p.name === normalizedCurrentPlan
     const isPremiumLocked = p.id === 'expert'
+    const isProLocked = p.id === 'pro' && barbershopId !== TESTING_BARBERSHOP_ID && !isCurrent
     const isUpgrade = p.price > currentPlanPrice
 
     return {
       ...p,
-      badge: isCurrent ? 'TU PLAN ACTUAL' : isPremiumLocked ? 'PRÓXIMAMENTE' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
+      badge: isCurrent ? 'TU PLAN ACTUAL' : isPremiumLocked ? 'PRÓXIMAMENTE' : isProLocked ? 'EN DESARROLLO' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
       badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
       accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
-      available: !isPremiumLocked,
+      available: !isPremiumLocked && !isProLocked,
       isCurrent,
       isUpgrade,
       sub: isCurrent
         ? 'Este es el plan activo de tu barbería'
         : isPremiumLocked
           ? 'Estamos preparando la experiencia avanzada con IA'
+          : isProLocked
+            ? 'Estamos terminando los detalles del plan Pro'
           : isUpgrade
             ? 'Desbloqueá funciones adicionales para tu equipo'
             : 'Disponible para elegir',
@@ -84,6 +89,8 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
         ? 'Podés conservarlo o mejorar cuando quieras'
         : isPremiumLocked
           ? 'Disponible próximamente'
+          : isProLocked
+            ? 'Acceso beta privado'
           : isUpgrade
             ? 'Upgrade disponible'
             : 'También podés elegir este plan',

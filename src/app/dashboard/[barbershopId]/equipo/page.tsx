@@ -5,6 +5,7 @@ import { canAccess } from '@/lib/permissions'
 import { getServerAuthContext } from '@/services/auth.service'
 import { isFeatureEnabled } from '@/services/plan.service'
 import InviteMemberModal from './InviteMemberModal'
+import InviteMemberActions from './InviteMemberActions'
 import styles from './equipo.module.css'
 
 export const metadata: Metadata = { title: 'Equipo — FiloDesk' }
@@ -14,6 +15,9 @@ interface TeamMemberCard {
   role: 'owner' | 'manager' | 'barber'
   email: string
   displayName: string
+  phone: string | null
+  linkedToBarber: boolean
+  invitationStatus: 'pending' | 'active'
   createdAt: string | null
 }
 
@@ -21,6 +25,10 @@ function formatRole(role: TeamMemberCard['role']) {
   if (role === 'owner') return 'Dueño'
   if (role === 'manager') return 'Encargado'
   return 'Barbero'
+}
+
+function formatInvitationStatus(status: TeamMemberCard['invitationStatus']) {
+  return status === 'active' ? 'Activo' : 'Pendiente'
 }
 
 function formatDate(date: string | null) {
@@ -129,22 +137,49 @@ export default async function EquipoPage({
     getUserById(barbershop.owner_id),
   ])
 
+  const { data: barberProfiles } = await serviceClient
+    .from('barbers')
+    .select('id, name, email, phone, user_id, created_at')
+    .eq('barbershop_id', barbershopId)
+
   const memberCards = (
     await Promise.all(
       (members ?? []).map(async (member) => {
         const authUser = await getUserById(member.user_id)
         if (!authUser) return null
 
+        const barberProfile = (barberProfiles ?? []).find((barber) =>
+          barber.user_id === member.user_id ||
+          barber.email?.toLowerCase() === authUser.email.toLowerCase()
+        )
+
         return {
           id: member.id,
           role: member.role,
           email: authUser.email,
           displayName: authUser.displayName,
+          phone: barberProfile?.phone ?? null,
+          linkedToBarber: Boolean(barberProfile?.user_id),
+          invitationStatus: member.role === 'barber' && !barberProfile?.user_id ? 'pending' : 'active',
           createdAt: member.created_at,
         } satisfies TeamMemberCard
       })
     )
   ).filter((member): member is TeamMemberCard => member !== null)
+
+  const trackedEmails = new Set(memberCards.map((member) => member.email.toLowerCase()))
+  const pendingBarberCards: TeamMemberCard[] = (barberProfiles ?? [])
+    .filter((barber) => !barber.user_id && barber.email && !trackedEmails.has(barber.email.toLowerCase()))
+    .map((barber) => ({
+      id: `pending-${barber.id}`,
+      role: 'barber',
+      email: barber.email ?? 'sin-email@filodesk.app',
+      displayName: barber.name,
+      phone: barber.phone ?? null,
+      linkedToBarber: false,
+      invitationStatus: 'pending',
+      createdAt: barber.created_at ?? null,
+    }))
 
   const cards: TeamMemberCard[] = [
     {
@@ -152,9 +187,13 @@ export default async function EquipoPage({
       role: 'owner',
       email: owner?.email ?? 'owner@filodesk.app',
       displayName: owner?.displayName ?? 'Owner',
+      phone: null,
+      linkedToBarber: true,
+      invitationStatus: 'active',
       createdAt: barbershop.created_at ?? null,
     },
     ...memberCards,
+    ...pendingBarberCards,
   ]
 
   const managerCount = cards.filter((member) => member.role === 'manager').length
@@ -231,7 +270,25 @@ export default async function EquipoPage({
                   <span className={styles.metaLabel}>Alta</span>
                   <span className={styles.metaValue}>{formatDate(member.createdAt)}</span>
                 </div>
+                {member.role === 'barber' && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Estado</span>
+                    <span className={member.invitationStatus === 'active' ? styles.statusActive : styles.statusPending}>
+                      {formatInvitationStatus(member.invitationStatus)}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {member.role === 'barber' && member.invitationStatus === 'pending' && (
+                <div style={{ marginTop: '14px' }}>
+                  <InviteMemberActions
+                    phone={member.phone}
+                    email={member.email}
+                    barbershopName={barbershop.name}
+                  />
+                </div>
+              )}
             </article>
           ))}
         </section>

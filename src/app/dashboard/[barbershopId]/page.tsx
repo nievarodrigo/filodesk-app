@@ -82,7 +82,7 @@ export default async function DashboardPage({
     { data: rawServiceTypes },
     { data: products },
   ] = await Promise.all([
-    supabase.from('barbershops').select('subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
+    supabase.from('barbershops').select('name, subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
     supabase.from('barbers').select('id, name, email, user_id, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('products')
@@ -161,6 +161,7 @@ export default async function DashboardPage({
   const visibleBarbers = context.role === 'barber' && currentBarber ? [currentBarber] : activeBarbers
 
   const barberAverageTicket = countHoy > 0 ? Math.round(totalServiciosHoy / countHoy) : 0
+  const showBarberWelcome = context.role === 'barber' && !!currentBarber && countHoy === 0
   const kpis = context.role === 'barber'
     ? [
         { label: 'Tus servicios de hoy', value: countHoy.toString(), color: 'var(--cream)' },
@@ -240,6 +241,18 @@ export default async function DashboardPage({
         role={context.role as BarbershopRole}
       />
 
+      {showBarberWelcome && (
+        <section className={styles.welcomeBanner}>
+          <p className={styles.welcomeEyebrow}>Primer ingreso</p>
+          <h2 className={styles.welcomeTitle}>
+            ¡Bienvenido al equipo de {barbershop?.name ?? 'tu barbería'}!
+          </h2>
+          <p className={styles.welcomeText}>
+            Ya podés empezar a registrar tus ventas aquí mismo. Tu historial y tus comisiones se irán actualizando a medida que cargues tu actividad.
+          </p>
+        </section>
+      )}
+
       <div style={{ marginTop: 16 }}>
         <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
           {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
@@ -260,6 +273,7 @@ export default async function DashboardPage({
               barbers={visibleBarbers}
               serviceTypes={serviceTypes ?? []}
               compact
+              showOnboardingHint={context.role === 'barber'}
             />
             <VenderProductoWidget
               barbershopId={barbershopId}

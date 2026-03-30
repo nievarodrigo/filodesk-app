@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toggleBarberActive, updateBarberCommission } from '@/app/actions/barber'
+import { generateInviteWhatsAppLink } from '@/lib/whatsapp'
 import styles from './barberos.module.css'
 
 interface Barber {
@@ -15,10 +16,11 @@ interface Barber {
 
 interface Props {
   barbershopId: string
+  barbershopName: string
   barbers: Barber[]
 }
 
-export default function BarberosTable({ barbershopId, barbers }: Props) {
+export default function BarberosTable({ barbershopId, barbershopName, barbers }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [commissions, setCommissions] = useState<Record<string, string>>(
     Object.fromEntries(barbers.map(b => [b.id, String(b.commission_pct ?? '')]))
@@ -117,6 +119,17 @@ export default function BarberosTable({ barbershopId, barbers }: Props) {
               </span>
 
               <div className={styles.cellActions}>
+                {!isEditing && barber.phone && (
+                  <a
+                    href={generateInviteWhatsAppLink(barber.phone, barbershopName)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.btnInvite}
+                    aria-label={`Invitar a ${barber.name} por WhatsApp`}
+                  >
+                    WhatsApp
+                  </a>
+                )}
                 {!isEditing && (
                   <button
                     className={barber.active ? styles.btnToggleOff : styles.btnToggleOn}

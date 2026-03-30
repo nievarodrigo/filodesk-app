@@ -246,6 +246,33 @@
   color: var(--red);
 }
 
+.onboardingHint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(201,168,76,.08);
+  border: 1px solid rgba(201,168,76,.2);
+  color: var(--gold);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.onboardingDot {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--bg);
+  font-size: .74rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
 /* Table */
 .table {
   background: var(--surface);

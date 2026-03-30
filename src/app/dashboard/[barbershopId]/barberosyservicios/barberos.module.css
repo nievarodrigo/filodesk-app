@@ -115,6 +115,20 @@
   background: transparent; border: 1px solid rgba(94,207,135,0.3); color: var(--green);
   padding: 6px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer;
 }
+.btnInvite {
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  color: #25d366;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .btnActions { display: flex; gap: 8px; align-items: center; }
 

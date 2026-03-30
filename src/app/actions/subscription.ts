@@ -5,10 +5,16 @@ import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
+const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
+
 export async function createMPSubscription(barbershopId: string, planId: string = 'base'): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  if (planId === 'pro' && barbershopId !== TESTING_BARBERSHOP_ID) {
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=${encodeURIComponent('El Plan Pro estará disponible muy pronto.')}`)
+  }
 
   let result: Awaited<ReturnType<typeof subscriptionService.createMPSubscription>>
   try {
@@ -31,6 +37,10 @@ export async function createMPCheckoutWithMonths(barbershopId: string, months: n
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  if (planId === 'pro' && barbershopId !== TESTING_BARBERSHOP_ID) {
+    redirect(`/suscripcion?barbershopId=${barbershopId}&error=${encodeURIComponent('El Plan Pro estará disponible muy pronto.')}`)
+  }
 
   let result: Awaited<ReturnType<typeof subscriptionService.createMPCheckout>>
   try {

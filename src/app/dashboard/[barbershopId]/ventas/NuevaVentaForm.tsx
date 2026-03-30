@@ -13,6 +13,7 @@ interface Props {
   barbers: Barber[]
   serviceTypes: ServiceType[]
   compact?: boolean          // para usar en la página de inicio
+  showOnboardingHint?: boolean
 }
 
 let _id = 1
@@ -20,7 +21,7 @@ function newRow(): ServiceRow { return { id: _id++, service_type_id: '', quantit
 
 function todayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }) }
 
-export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, compact }: Props) {
+export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, compact, showOnboardingHint }: Props) {
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null)
   const [rows, setRows] = useState<ServiceRow[]>([newRow()])
 
@@ -66,6 +67,13 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
       {!compact && <h3 className={styles.formTitle}>Registrar venta</h3>}
 
       {state?.message && <p className={styles.errorBox}>{state.message}</p>}
+
+      {showOnboardingHint && (
+        <div className={styles.onboardingHint}>
+          <span className={styles.onboardingDot}>1</span>
+          <p>Hacé clic acá para marcar tu primer corte del día.</p>
+        </div>
+      )}
 
       <input type="hidden" name="date" value={todayStr()} />
 

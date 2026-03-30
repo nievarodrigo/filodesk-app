@@ -26,6 +26,12 @@ export default async function ConfiguracionPage({
     redirect(`/dashboard/${barbershopId}`)
   }
 
+  const { data: barbershop } = await supabase
+    .from('barbershops')
+    .select('name')
+    .eq('id', barbershopId)
+    .single()
+
   const [{ data: barbers }, { data: allServices }] = await Promise.all([
     supabase.from('barbers').select('id, name, email, phone, commission_pct, active, created_at').eq('barbershop_id', barbershopId).order('created_at'),
     supabase.from('service_types').select('id, name, default_price, active, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).order('name'),
@@ -55,7 +61,11 @@ export default async function ConfiguracionPage({
           <NuevoBarberoForm barbershopId={barbershopId} />
         </div>
 
-        <BarberosTable barbershopId={barbershopId} barbers={barbers ?? []} />
+        <BarberosTable
+          barbershopId={barbershopId}
+          barbershopName={barbershop?.name ?? 'tu barbería'}
+          barbers={barbers ?? []}
+        />
       </section>
 
       {/* ── Servicios ── */}

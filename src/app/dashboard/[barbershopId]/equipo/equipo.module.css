@@ -199,6 +199,51 @@
   text-align: right;
 }
 
+.statusActive,
+.statusPending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.statusActive {
+  color: var(--green);
+  background: rgb(from var(--green) r g b / 0.14);
+  border: 1px solid rgb(from var(--green) r g b / 0.24);
+}
+
+.statusPending {
+  color: var(--gold);
+  background: rgb(from var(--gold) r g b / 0.14);
+  border: 1px solid rgb(from var(--gold) r g b / 0.24);
+}
+
+.quickActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quickActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--cream);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .lockedWrap {
   display: grid;
   place-items: center;
