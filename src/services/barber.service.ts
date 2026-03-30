@@ -10,7 +10,8 @@ export async function createBarber(
 ) {
   const { error } = await barberRepo.insert(supabase, {
     barbershop_id: barbershopId,
-    name: input.name,
+    name: input.name.trim(),
+    last_name: input.lastName.trim(),
     email: input.email.trim().toLowerCase(),
     phone: input.phone.trim(),
     commission_pct: input.commission_pct,

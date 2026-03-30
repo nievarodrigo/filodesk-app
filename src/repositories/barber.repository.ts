@@ -2,7 +2,15 @@ import { SupabaseClient } from '@supabase/supabase-js'
 
 export async function insert(
   supabase: SupabaseClient,
-  data: { barbershop_id: string; name: string; email: string; phone: string; commission_pct: number; user_id?: string | null }
+  data: {
+    barbershop_id: string
+    name: string
+    last_name: string
+    email: string
+    phone: string
+    commission_pct: number
+    user_id?: string | null
+  }
 ) {
   return supabase.from('barbers').insert(data)
 }
@@ -19,7 +27,7 @@ export async function countByBarbershopId(supabase: SupabaseClient, barbershopId
 export async function findById(supabase: SupabaseClient, id: string) {
   const { data } = await supabase
     .from('barbers')
-    .select('name, email, phone, user_id, commission_pct')
+    .select('name, last_name, email, phone, user_id, commission_pct')
     .eq('id', id)
     .single()
   return data
@@ -32,7 +40,7 @@ export async function findByUserId(
 ) {
   const { data } = await supabase
     .from('barbers')
-    .select('id, name, email, user_id, commission_pct, active')
+    .select('id, name, last_name, email, user_id, commission_pct, active')
     .eq('barbershop_id', barbershopId)
     .eq('user_id', userId)
     .maybeSingle()
@@ -47,7 +55,7 @@ export async function findByEmailWithoutUserId(
 ) {
   const { data } = await supabase
     .from('barbers')
-    .select('id, name, email, user_id, commission_pct, active')
+    .select('id, name, last_name, email, user_id, commission_pct, active')
     .eq('barbershop_id', barbershopId)
     .ilike('email', email)
     .is('user_id', null)

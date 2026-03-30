@@ -2,6 +2,7 @@ export type Barber = {
   id: string
   barbershop_id: string
   name: string
+  last_name: string | null
   email: string | null
   phone: string | null
   commission_pct: number
@@ -11,6 +12,7 @@ export type Barber = {
 
 export type CreateBarberInput = {
   name: string
+  lastName: string
   email: string
   phone: string
   commission_pct: number
