@@ -31,11 +31,40 @@
 
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
-.tableRow  { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto; padding: 16px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
+.tableHead { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto auto; padding: 12px 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--hover); }
+.tableRow  { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr auto auto; padding: 16px 20px; font-size: .9rem; color: var(--text); border-bottom: 1px solid var(--hover); align-items: center; transition: background .12s; gap: 8px; }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--hover); box-shadow: inset 3px 0 0 rgba(196,30,58,.3); }
 .muted { color: var(--muted); }
+
+.btnWhatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(37, 211, 102, 0.14);
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  color: #25d366;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.whatsappIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btnWhatsapp:hover {
+  background: rgba(37, 211, 102, 0.2);
+  border-color: rgba(37, 211, 102, 0.5);
+}
 
 .badgePaid    { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(94,207,135,.12);  color: var(--green); }
 .badgePending { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; background: rgba(201,168,76,.12); color: var(--gold); }
@@ -44,5 +73,5 @@
 
 @media (max-width: 768px) {
   .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  .tableHead, .tableRow { min-width: 540px; padding: 10px 14px; font-size: .82rem; }
+  .tableHead, .tableRow { min-width: 680px; padding: 10px 14px; font-size: .82rem; }
 }

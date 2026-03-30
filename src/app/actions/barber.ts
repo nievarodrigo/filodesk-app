@@ -2,9 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { canAccess } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
 import { CreateBarberSchema, type CreateBarberState } from '@/lib/validations/barber'
+import * as barberRepo from '@/repositories/barber.repository'
+import { getServerAuthContext } from '@/services/auth.service'
 import * as barberService from '@/services/barber.service'
+import { getPlanLimit } from '@/services/plan.service'
 
 export async function createBarber(
   barbershopId: string,
@@ -20,6 +24,21 @@ export async function createBarber(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || !canAccess(context.role, 'manage_barbers')) {
+    redirect(`/dashboard/${barbershopId}`)
+  }
+
+  const barberLimit = getPlanLimit(context.plan, 'barbers')
+  if (barberLimit !== null) {
+    const { count, error } = await barberRepo.countByBarbershopId(supabase, barbershopId)
+    if (error) return { message: 'No se pudo validar el límite de tu plan.' }
+
+    if (count >= barberLimit) {
+      return { message: `Tu plan ${context.plan} permite hasta ${barberLimit} barberos.` }
+    }
+  }
 
   const result = await barberService.createBarber(supabase, barbershopId, validated.data)
   if (result.error) return { message: result.error }

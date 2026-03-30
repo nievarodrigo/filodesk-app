@@ -7,6 +7,15 @@ export async function insert(
   return supabase.from('barbers').insert(data)
 }
 
+export async function countByBarbershopId(supabase: SupabaseClient, barbershopId: string) {
+  const { count, error } = await supabase
+    .from('barbers')
+    .select('*', { count: 'exact', head: true })
+    .eq('barbershop_id', barbershopId)
+
+  return { count: count ?? 0, error }
+}
+
 export async function findById(supabase: SupabaseClient, id: string) {
   const { data } = await supabase
     .from('barbers')

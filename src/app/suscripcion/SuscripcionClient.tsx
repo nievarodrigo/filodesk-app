@@ -60,25 +60,35 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   const currentPlanData = plans.find((plan) => plan.name === normalizedCurrentPlan) ?? plans[0]
   const currentPlanPrice = currentPlanData?.price ?? 0
 
-  const uiPlans = plans.map(p => ({
-    ...p,
-    badge: p.name === normalizedCurrentPlan ? 'TU PLAN ACTUAL' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
-    badgeColor: p.name === normalizedCurrentPlan ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
-    accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
-    available: true,
-    isCurrent: p.name === normalizedCurrentPlan,
-    isUpgrade: p.price > currentPlanPrice,
-    sub: p.name === normalizedCurrentPlan
-      ? 'Este es el plan activo de tu barbería'
-      : p.price > currentPlanPrice
-        ? 'Desbloqueá funciones adicionales para tu equipo'
-        : 'Disponible para elegir',
-    note: p.name === normalizedCurrentPlan
-      ? 'Podés conservarlo o mejorar cuando quieras'
-      : p.price > currentPlanPrice
-        ? 'Upgrade disponible'
-        : 'También podés elegir este plan',
-  }))
+  const uiPlans = plans.map(p => {
+    const isCurrent = p.name === normalizedCurrentPlan
+    const isPremiumLocked = p.id === 'expert'
+    const isUpgrade = p.price > currentPlanPrice
+
+    return {
+      ...p,
+      badge: isCurrent ? 'TU PLAN ACTUAL' : isPremiumLocked ? 'PRÓXIMAMENTE' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
+      badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
+      accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
+      available: !isPremiumLocked,
+      isCurrent,
+      isUpgrade,
+      sub: isCurrent
+        ? 'Este es el plan activo de tu barbería'
+        : isPremiumLocked
+          ? 'Estamos preparando la experiencia avanzada con IA'
+          : isUpgrade
+            ? 'Desbloqueá funciones adicionales para tu equipo'
+            : 'Disponible para elegir',
+      note: isCurrent
+        ? 'Podés conservarlo o mejorar cuando quieras'
+        : isPremiumLocked
+          ? 'Disponible próximamente'
+          : isUpgrade
+            ? 'Upgrade disponible'
+            : 'También podés elegir este plan',
+    }
+  })
 
   const plan = uiPlans.find(p => p.id === selectedPlanId) || uiPlans[0]
   const opt = MONTH_OPTIONS.find(o => o.months === months) || MONTH_OPTIONS[0]
@@ -186,7 +196,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                       border: `1.5px solid ${p.available ? p.accent === 'var(--gold)' ? 'var(--gold)' : 'var(--border)' : 'var(--border)'}`,
                       borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16,
                       position: 'relative', cursor: p.available && !p.isCurrent ? 'pointer' : 'default',
-                      transition: 'all 0.15s ease', opacity: p.available ? 1 : 0.75,
+                      transition: 'all 0.15s ease', opacity: p.available ? 1 : p.id === 'expert' ? 0.85 : 0.75,
                     }}
                     onClick={() => p.available && !p.isCurrent && selectPlan(p.id)}
                   >
@@ -212,25 +222,25 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                       ))}
                     </ul>
                     <button
-                      disabled={p.isCurrent}
+                      disabled={p.isCurrent || !p.available}
                       onClick={(event) => {
                         event.stopPropagation()
-                        if (!p.isCurrent) selectPlan(p.id)
+                        if (p.available && !p.isCurrent) selectPlan(p.id)
                       }}
                       style={{
                         width: '100%',
-                        background: p.isCurrent ? 'var(--border)' : 'var(--gold)',
-                        color: p.isCurrent ? 'var(--muted)' : 'var(--bg)',
+                        background: p.isCurrent || !p.available ? 'var(--border)' : 'var(--gold)',
+                        color: p.isCurrent || !p.available ? 'var(--muted)' : 'var(--bg)',
                         border: 'none',
                         borderRadius: 8,
                         padding: '11px 20px',
                         fontSize: '.9rem',
                         fontWeight: 700,
-                        cursor: p.isCurrent ? 'not-allowed' : 'pointer',
+                        cursor: p.isCurrent || !p.available ? 'not-allowed' : 'pointer',
                         marginTop: 'auto'
                       }}
                     >
-                      {p.isCurrent ? 'Activo' : p.isUpgrade ? 'Mejorar a este plan →' : 'Elegir plan →'}
+                      {p.isCurrent ? 'Activo' : !p.available ? 'Próximamente' : p.isUpgrade ? 'Mejorar a este plan →' : 'Elegir plan →'}
                     </button>
                     <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>{p.note}</p>
                   </div>

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import ExportCsvButton from '@/components/dashboard/ExportCsvButton'
 import { createClient } from '@/lib/supabase/server'
 import { canAccess } from '@/lib/permissions'
 import { currentYM } from '@/lib/date'
 import type { SaleWithCommission, SaleWithBarber, SaleWithServiceType, ProductSaleWithProduct } from '@/lib/definitions'
 import { getServerAuthContext } from '@/services/auth.service'
+import { isFeatureEnabled } from '@/services/plan.service'
 import { redirect } from 'next/navigation'
 import ResumenMensual from './ResumenMensual'
 import VentasPorBarbero from './VentasPorBarbero'
@@ -229,6 +231,33 @@ export default async function FinanzasPage({
 
   const ingDelta = pctChange(ingresosMes, ingPrev)
   const gasDelta = pctChange(gastosMes, gasPrev)
+  const canExportData = isFeatureEnabled(context.plan, 'export_data')
+  const financeExportRows = [
+    { tipo: 'Resumen', metrica: 'Mes', valor: monthLabel(ym) },
+    { tipo: 'Resumen', metrica: 'Ingresos', valor: ingresosMes },
+    { tipo: 'Resumen', metrica: 'Gastos', valor: gastosMes },
+    { tipo: 'Resumen', metrica: 'Comisiones', valor: comisionesMes },
+    { tipo: 'Resumen', metrica: 'Neto', valor: netoMes },
+    { tipo: 'Resumen', metrica: 'Ticket promedio', valor: ticketPromedio },
+    ...barberData.map((barber) => ({
+      tipo: 'Barbero',
+      nombre: barber.name,
+      ventas: barber.total,
+      comision: barber.comision,
+    })),
+    ...svcRanking.map((service) => ({
+      tipo: 'Servicio',
+      nombre: service.name,
+      cantidad: service.count,
+      ingresos: service.total,
+    })),
+    ...prodRanking.map((product) => ({
+      tipo: 'Producto',
+      nombre: product.name,
+      cantidad: product.cantidad,
+      ingresos: product.ingresos,
+    })),
+  ]
 
   const kpis = [
     { label: 'Ingresos', value: formatARS(ingresosMes), color: 'var(--green)', delta: ingDelta },
@@ -240,7 +269,16 @@ export default async function FinanzasPage({
   return (
     <div>
       <div className={styles.header}>
-        <h1 className={styles.title}>Finanzas</h1>
+        <div>
+          <h1 className={styles.title}>Finanzas</h1>
+          <p className={styles.subtitle}>Resumen y exportación del mes actual</p>
+        </div>
+        <ExportCsvButton
+          data={financeExportRows}
+          filename={`finanzas-${barbershopId}-${ym}.csv`}
+          enabled={canExportData}
+          barbershopId={barbershopId}
+        />
       </div>
       <div className={styles.monthNav}>
         {months.map(mo => (
