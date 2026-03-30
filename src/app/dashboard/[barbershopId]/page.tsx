@@ -127,7 +127,7 @@ export default async function DashboardPage({
     { data: productSalesToday },
     { data: expensesToday },
   ] = await Promise.all([
-    scopedSalesQuery.order('created_at', { ascending: false }),
+    scopedSalesQuery.order('created_at', { ascending: false }).limit(10),
     scopedSalesTotalsQuery,
     context.role === 'barber'
       ? Promise.resolve({ data: [] as ProductSale[] })
@@ -135,7 +135,8 @@ export default async function DashboardPage({
           .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
           .eq('barbershop_id', barbershopId)
           .eq('date', todayDate)
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .limit(10),
     context.role === 'barber'
       ? Promise.resolve({ data: [] as Array<{ amount: number }> })
       : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
@@ -150,7 +151,7 @@ export default async function DashboardPage({
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = (salesToday ?? []).length
 
-  const comisionesHoy = (recentSales ?? []).reduce((s, r: Sale) => {
+  const comisionesHoy = (salesToday ?? []).reduce((s, r) => {
     const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
     return s + Math.round((r.amount ?? 0) * (pct / 100))
   }, 0)

@@ -286,7 +286,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                           disabled={pending}
                           onClick={() => handleToggle(barber.id, !barber.active)}
                         >
-                          {barber.active ? 'Dar de baja' : 'Reactivar'}
+                          {barber.active ? 'DESACTIVAR' : 'ACTIVAR'}
                         </button>
                         <button
                           type="button"
@@ -468,7 +468,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
                             disabled={pending}
                             onClick={() => handleToggle(barber.id, !barber.active)}
                           >
-                            {barber.active ? 'Dar de baja' : 'Reactivar'}
+                            {barber.active ? 'DESACTIVAR' : 'ACTIVAR'}
                           </button>
                           <button
                             type="button"

@@ -97,19 +97,19 @@ function PaginationControls({
 }) {
   if (totalPages <= 1) return null
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', margin: '12px 0', fontSize: '.78rem', color: 'var(--muted)' }}>
+    <div className={styles.paginationControls}>
       <button
+        className={styles.paginationButton}
         onClick={onPrevious}
         disabled={currentPage === 1}
-        style={{ padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: currentPage === 1 ? 'transparent' : 'var(--surface)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
       >
         &lt;
       </button>
-      <span>{currentPage} / {totalPages}</span>
+      <span className={styles.paginationText}>{currentPage} / {totalPages}</span>
       <button
+        className={styles.paginationButton}
         onClick={onNext}
         disabled={currentPage === totalPages}
-        style={{ padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: currentPage === totalPages ? 'transparent' : 'var(--surface)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
       >
         &gt;
       </button>
@@ -230,7 +230,7 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
           </h2>
           {total > 0 && (
             <div className={styles.totals}>
-              <span style={{ color: 'var(--green)' }}>{formatARS(total)}</span>
+              <span className={styles.totalsValue}>{formatARS(total)}</span>
               {effectiveFilter === 'todos' && totalProductos > 0 && (
                 <span className={styles.totalBreak}>
                   ({formatARS(totalServicios)} servicios + {formatARS(totalProductos)} productos)
@@ -288,31 +288,30 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
                       }
                       setExpandedBarberIds(newSet)
                     }}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                    <span className={styles.rowChevron}>
                       {expandedBarberIds.has(g.barber_id) ? '▼' : '▶'}
                     </span>
-                    <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{g.barber}</span>
+                    <span className={styles.rowPrimaryText}>{g.barber}</span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
-                    <span style={{ color: 'var(--green)', fontWeight: 600 }}>{formatARS(g.total)}</span>
+                    <span className={styles.rowAmount}>{formatARS(g.total)}</span>
                   </div>
 
                   {/* ── Detalle expandible de servicios ── */}
                   {expandedBarberIds.has(g.barber_id) && (
                     <div className={styles.detailBlock}>
-                      <div className={styles.detailHead}>
+                      <div className={`${styles.detailHead} ${styles.innerHeadShared}`}>
                         <span>Hora</span>
                         <span>Servicio</span>
                         <span>Cant.</span>
                         <span>Monto</span>
                       </div>
                       {paginatedServices.map(svc => (
-                        <div key={svc.id} className={styles.detailRow}>
-                          <span className={styles.detailTime}>{extractTime(svc.created_at)}</span>
-                          <span className={styles.detailService}>{svc.service}</span>
-                          <span className={styles.detailQty}>1</span>
-                          <span className={styles.detailAmount}>
+                        <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
+                          <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
+                          <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
+                          <span className={styles.detailQty} data-label="Cant.">1</span>
+                          <span className={styles.detailAmount} data-label="Monto">
                             {formatARS(svc.amount)}
                             {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           </span>
@@ -368,18 +367,18 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
                     </span>
                   </summary>
                   <div className={styles.detailBlock}>
-                    <div className={styles.productDetailHead}>
+                    <div className={`${styles.productDetailHead} ${styles.innerHeadShared}`}>
                       <span>Producto</span>
                       <span>Cant.</span>
                       <span>Precio Unit.</span>
                       <span>Subtotal</span>
                     </div>
                     {tx.items.map(item => (
-                      <div key={item.id} className={styles.productDetailRow}>
-                        <span className={styles.detailService}>{item.product}</span>
-                        <span className={styles.detailQty}>×{item.quantity}</span>
-                        <span className={styles.detailAmountMuted}>{formatARS(item.unit_price)}</span>
-                        <span className={styles.detailAmount}>{formatARS(item.amount)}</span>
+                      <div key={item.id} className={`${styles.productDetailRow} ${styles.detailRowCard}`}>
+                        <span className={styles.detailService} data-label="Producto">{item.product}</span>
+                        <span className={styles.detailQty} data-label="Cant.">×{item.quantity}</span>
+                        <span className={styles.detailAmountMuted} data-label="Precio Unit.">{formatARS(item.unit_price)}</span>
+                        <span className={styles.detailAmount} data-label="Subtotal">{formatARS(item.amount)}</span>
                       </div>
                     ))}
                   </div>

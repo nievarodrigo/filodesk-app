@@ -179,7 +179,7 @@
 .histDayGroup {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
 }
 .histDaySummary {
@@ -190,7 +190,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(201,168,76,.04);
+  background: var(--surface);
 }
 .histDaySummary::-webkit-details-marker { display: none; }
 .histDayDate {

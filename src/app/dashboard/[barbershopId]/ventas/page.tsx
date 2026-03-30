@@ -30,6 +30,70 @@ function monthLabel(ym: string) {
     .toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
 }
 
+type ProductSaleRow = {
+  id: string
+  sale_price: number
+  date: string
+  quantity: number
+  created_at?: string
+  transaction_id?: string | null
+  products?: Array<{ name: string }> | { name: string }
+}
+
+type GroupedProductTransaction = {
+  key: string
+  date: string
+  createdAt: string
+  total: number
+  itemCount: number
+  items: Array<{
+    id: string
+    productName: string
+    quantity: number
+    unitPrice: number
+    subtotal: number
+  }>
+}
+
+function transactionGroupKey(sale: ProductSaleRow) {
+  if (sale.transaction_id && sale.transaction_id.trim().length > 0) return sale.transaction_id
+  const dt = sale.created_at ? new Date(sale.created_at) : null
+  if (!dt || Number.isNaN(dt.getTime())) return `fallback-${sale.id}`
+  const yyyy = dt.getUTCFullYear()
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dt.getUTCDate()).padStart(2, '0')
+  const hh = String(dt.getUTCHours()).padStart(2, '0')
+  const mi = String(dt.getUTCMinutes()).padStart(2, '0')
+  return `ts-${yyyy}-${mm}-${dd}-${hh}-${mi}`
+}
+
+function groupProductSales(rows: ProductSaleRow[]): GroupedProductTransaction[] {
+  const map = new Map<string, GroupedProductTransaction>()
+  for (const row of rows) {
+    const key = transactionGroupKey(row)
+    const productName = (Array.isArray(row.products) ? row.products?.[0]?.name : row.products?.name)?.trim() || 'Producto eliminado'
+    const quantity = row.quantity ?? 1
+    const unitPrice = row.sale_price ?? 0
+    const subtotal = unitPrice * quantity
+    const existing = map.get(key)
+    if (existing) {
+      existing.itemCount += 1
+      existing.total += subtotal
+      existing.items.push({ id: row.id, productName, quantity, unitPrice, subtotal })
+      continue
+    }
+    map.set(key, {
+      key,
+      date: row.date,
+      createdAt: row.created_at ?? row.date,
+      total: subtotal,
+      itemCount: 1,
+      items: [{ id: row.id, productName, quantity, unitPrice, subtotal }],
+    })
+  }
+  return [...map.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
 export default async function VentasPage({
   params,
   searchParams,
@@ -82,7 +146,7 @@ export default async function VentasPage({
       .order('created_at', { ascending: false }),
     supabase
       .from('product_sales')
-      .select('id, sale_price, date, quantity, products(name)', { count: 'exact' })
+      .select('id, sale_price, date, quantity, created_at, transaction_id, products(name)', { count: 'exact' })
       .eq('barbershop_id', barbershopId)
       .gte('date', from)
       .lte('date', to)
@@ -91,7 +155,7 @@ export default async function VentasPage({
       .range(productDesktopRangeFrom, productDesktopRangeTo),
     supabase
       .from('product_sales')
-      .select('id, sale_price, date, quantity, products(name)')
+      .select('id, sale_price, date, quantity, created_at, transaction_id, products(name)')
       .eq('barbershop_id', barbershopId)
       .gte('date', from)
       .lte('date', to)
@@ -159,6 +223,8 @@ export default async function VentasPage({
 
   const totalProductPagesDesktop = Math.ceil(countProductos / PAGE_SIZE_DESKTOP)
   const totalProductPagesMobile = Math.ceil((productCount ?? 0) / PAGE_SIZE_PRODUCTS_MOBILE)
+  const groupedProductSalesDesktop = groupProductSales((productSales ?? []) as ProductSaleRow[])
+  const groupedProductSalesMobile = groupProductSales((productSalesMobile ?? []) as ProductSaleRow[])
   const hasProductRowsDesktop = (productSales?.length ?? 0) > 0
   const hasProductRowsMobile = (productSalesMobile?.length ?? 0) > 0
 
@@ -219,7 +285,7 @@ export default async function VentasPage({
       <div className={styles.summary}>
         <div className={styles.summaryCard}>
           <p className={styles.summaryLabel}>Total del período</p>
-          <p className={styles.summaryValue} style={{ color: 'var(--green)' }}>{formatARS(totalPeriodo)}</p>
+          <p className={`${styles.summaryValue} ${styles.summaryValuePositive}`}>{formatARS(totalPeriodo)}</p>
           {totalServicios > 0 && totalProductos > 0 && (
             <p className={styles.summaryBreak}>{formatARS(totalServicios)} serv. + {formatARS(totalProductos)} prod.</p>
           )}
@@ -230,7 +296,7 @@ export default async function VentasPage({
         </div>
         <div className={styles.summaryCard}>
           <p className={styles.summaryLabel}>Ticket promedio</p>
-          <p className={styles.summaryValue} style={{ color: 'var(--gold)' }}>
+          <p className={`${styles.summaryValue} ${styles.summaryValueGold}`}>
             {ticketPromedio > 0 ? formatARS(ticketPromedio) : '—'}
           </p>
         </div>
@@ -291,7 +357,7 @@ export default async function VentasPage({
             ) : (
               <>
                 <div className={styles.desktopServiceTable}>
-                  <div className={styles.table} style={{ marginBottom: tipo === 'todos' && (productSales ?? []).length > 0 ? '16px' : undefined }}>
+                  <div className={`${styles.table} ${tipo === 'todos' && (productSales ?? []).length > 0 ? styles.serviceTableGap : ''}`}>
                     <div className={`${styles.tableHeadService} ${!showStatus ? styles.tableHeadServiceNoStatus : ''}`}>
                       <span>Fecha</span>
                       <span>Barbero</span>
@@ -345,59 +411,60 @@ export default async function VentasPage({
               <>
                 <div className={styles.desktopProductTable}>
                   <div className={styles.table}>
-                    <div className={styles.tableHeadProduct}>
-                      <span>Fecha</span>
-                      <span>Producto</span>
-                      <span>Cant.</span>
-                      <span>Monto</span>
-                    </div>
-                    {(productSales as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => (
-                      <div key={ps.id} className={styles.tableRowProduct}>
-                        {(() => {
-                          const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name) ?? ''
-                          return (
-                            <>
-                              <span className={styles.muted} data-label="Fecha">{formatShortDate(ps.date)}</span>
-                              <span data-label="Producto">{productName.trim() || 'Producto eliminado'}</span>
-                              <span className={styles.muted} data-label="Cant.">{ps.quantity} u.</span>
-                              <span className={styles.amount} data-label="Monto">{formatARS((ps.sale_price ?? 0) * (ps.quantity ?? 1))}</span>
-                            </>
-                          )
-                        })()}
-                      </div>
+                    {groupedProductSalesDesktop.map(tx => (
+                      <details key={tx.key} className={styles.productAccordionItem}>
+                        <summary className={styles.productAccordionHeader}>
+                          <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)}</span>
+                          <span className={styles.productAccordionCount}>{tx.itemCount} item(s)</span>
+                          <span className={styles.productAccordionTotal}>{formatARS(tx.total)}</span>
+                        </summary>
+                        <div className={styles.productAccordionBody}>
+                          <div className={styles.productAccordionTableHead}>
+                            <span>Producto</span>
+                            <span>Cantidad</span>
+                            <span>Precio Unit.</span>
+                            <span>Subtotal</span>
+                          </div>
+                          {tx.items.map(item => (
+                            <div key={item.id} className={styles.productAccordionRow}>
+                              <span data-label="Producto">{item.productName}</span>
+                              <span data-label="Cantidad">{item.quantity} u.</span>
+                              <span data-label="Precio Unit.">{formatARS(item.unitPrice)}</span>
+                              <span className={styles.amount} data-label="Subtotal">{formatARS(item.subtotal)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
                     ))}
                   </div>
                 </div>
 
                 <div className={styles.productAccordion}>
-                  {(productSalesMobile as Array<{ id: string; sale_price: number; date: string; quantity: number; products?: Array<{ name: string }> | { name: string } }>).map(ps => {
-                    const productName = (Array.isArray(ps.products) ? ps.products?.[0]?.name : ps.products?.name)?.trim() || 'Producto eliminado'
-                    const unitPrice = ps.sale_price ?? 0
-                    const quantity = ps.quantity ?? 1
-                    const total = unitPrice * quantity
-                    return (
-                      <details key={ps.id} className={styles.productAccordionItem}>
-                        <summary className={styles.productAccordionHeader}>
-                          <span className={styles.productAccordionDate}>{formatShortDate(ps.date)}</span>
-                          <span className={styles.productAccordionTotal}>{formatARS(total)}</span>
-                        </summary>
-                        <div className={styles.productAccordionBody}>
-                          <p className={styles.productLine}>
-                            <span className={styles.productLabel}>Producto</span>
-                            <span>{productName}</span>
-                          </p>
-                          <p className={styles.productLine}>
-                            <span className={styles.productLabel}>Cantidad</span>
-                            <span>{quantity} u.</span>
-                          </p>
-                          <p className={styles.productLine}>
-                            <span className={styles.productLabel}>Precio</span>
-                            <span>{formatARS(unitPrice)}</span>
-                          </p>
+                  {groupedProductSalesMobile.map(tx => (
+                    <details key={tx.key} className={styles.productAccordionItem}>
+                      <summary className={styles.productAccordionHeader}>
+                        <span className={styles.productAccordionDate}>📦 {formatShortDate(tx.date)}</span>
+                        <span className={styles.productAccordionCount}>{tx.itemCount} item(s)</span>
+                        <span className={styles.productAccordionTotal}>{formatARS(tx.total)}</span>
+                      </summary>
+                      <div className={styles.productAccordionBody}>
+                        <div className={styles.productAccordionTableHead}>
+                          <span>Producto</span>
+                          <span>Cantidad</span>
+                          <span>Precio Unit.</span>
+                          <span>Subtotal</span>
                         </div>
-                      </details>
-                    )
-                  })}
+                        {tx.items.map(item => (
+                          <div key={item.id} className={styles.productAccordionRow}>
+                            <span data-label="Producto">{item.productName}</span>
+                            <span data-label="Cantidad">{item.quantity} u.</span>
+                            <span data-label="Precio Unit.">{formatARS(item.unitPrice)}</span>
+                            <span className={styles.amount} data-label="Subtotal">{formatARS(item.subtotal)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
                 </div>
 
                 {tipo === 'producto' && (
