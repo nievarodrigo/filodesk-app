@@ -18,7 +18,7 @@ export default function DeleteVentaButton({ barbershopId, saleId }: Props) {
       disabled={pending}
       onClick={() => {
         if (confirm('¿Eliminar esta venta?')) {
-          startTransition(() => deleteVenta(barbershopId, saleId))
+          startTransition(() => { deleteVenta(barbershopId, saleId) })
         }
       }}
     >

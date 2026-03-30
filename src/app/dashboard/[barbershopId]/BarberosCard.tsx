@@ -133,7 +133,7 @@ function BarberRow({ barbershopId, barber }: { barbershopId: string; barber: Bar
       </div>
       <button
         disabled={pending}
-        onClick={() => start(() => toggleBarberActive(barbershopId, barber.id, !barber.active))}
+        onClick={() => start(() => { toggleBarberActive(barbershopId, barber.id, !barber.active) })}
         style={{
           background: 'transparent',
           border: `1px solid ${barber.active ? 'rgba(224,112,112,.4)' : 'rgba(94,207,135,.4)'}`,

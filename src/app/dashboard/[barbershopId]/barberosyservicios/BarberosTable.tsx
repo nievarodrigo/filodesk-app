@@ -62,7 +62,7 @@ export default function BarberosTable({ barbershopId, barbershopName, barbers }:
   }
 
   function handleToggle(barberId: string, newActive: boolean) {
-    startTransition(() => toggleBarberActive(barbershopId, barberId, newActive))
+    startTransition(() => { toggleBarberActive(barbershopId, barberId, newActive) })
   }
 
   return (

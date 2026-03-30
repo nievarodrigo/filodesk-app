@@ -54,14 +54,14 @@ export default function ServiciosTable({ barbershopId, services }: Props) {
   }
 
   function handleToggle(serviceId: string, newActive: boolean) {
-    startTransition(() => toggleServicio(barbershopId, serviceId, newActive))
+    startTransition(() => { toggleServicio(barbershopId, serviceId, newActive) })
   }
 
-  function handleDelete(serviceId: string, name: string) {
-    if (!confirm(`¿Eliminar el servicio "${name}"?`)) return
+  function handleDelete(serviceId: string) {
+    if (!confirm('¿Estás seguro de eliminar este servicio?')) return
     startTransition(async () => {
       const result = await deleteServicio(barbershopId, serviceId)
-      if (result?.error) alert(result.error)
+      if ('error' in result) alert(result.error)
     })
   }
 
