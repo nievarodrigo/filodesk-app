@@ -31,7 +31,15 @@ export async function register(
 ): Promise<AuthFormState> {
   const turnstileToken = formData.get('cf-turnstile-response') as string
   const captchaOk = await authService.verifyTurnstile(turnstileToken || '')
-  if (!captchaOk) return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
+  
+  // BYPASS TEMPORAL #082: Para pruebas en staging/develop si falla Turnstile
+  const isDev = process.env.NODE_ENV === 'development'
+  const isStaging = process.env.NEXT_PUBLIC_SITE_URL?.includes('vercel.app')
+  const skipCaptcha = process.env.SKIP_CAPTCHA === 'true'
+
+  if (!captchaOk && !isDev && !isStaging && !skipCaptcha) {
+    return { message: 'Verificación de seguridad fallida. Intentá de nuevo.' }
+  }
 
   const validated = RegisterSchema.safeParse({
     firstName: formData.get('firstName'),
