@@ -37,6 +37,25 @@ export async function findNameByIdAndOwner(supabase: SupabaseClient, id: string,
   return data
 }
 
+export async function activateGaliopaySubscription(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  paymentId: string,
+  paidAt: string,
+  expiresAt: string,
+) {
+  return supabase
+    .from('barbershops')
+    .update({
+      subscription_status: 'active',
+      subscription_provider: 'galiopay',
+      subscription_payment_id: paymentId,
+      subscription_paid_at: paidAt,
+      subscription_renews_at: expiresAt,
+    })
+    .eq('id', barbershopId)
+}
+
 export async function updateSubscription(
   supabase: SupabaseClient,
   barbershopId: string,

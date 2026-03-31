@@ -4,9 +4,8 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { createMPCheckoutWithMonths, createMPSubscription } from '@/app/actions/subscription'
-import { createGalioPAyPaymentLink } from '@/app/actions/galiopay'
+import { createGalioPayPaymentLink } from '@/app/actions/galiopay'
 import { generateTransferProofWhatsAppLink } from '@/lib/whatsapp'
-import { useRouter } from 'next/navigation'
 
 // CVU y Alias de FiloDesk (hardcodeados para mostrarlos al usuario)
 const FILODESK_CVU = '0070396130004005324429'
@@ -44,7 +43,6 @@ function fmt(n: number) {
 }
 
 export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
-  const router = useRouter()
   // Si está en trial, solo mostrar Plan Base
   const isTrial = subscriptionStatus === 'trial'
   const visiblePlans = isTrial
@@ -128,7 +126,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
         await createMPSubscription(barbershopId, selectedPlanId)
       } else if (method === 'transfer') {
         // GalioPay Automático con redirección a /suscripcion/procesando (via server action)
-        await createGalioPAyPaymentLink(barbershopId, months, selectedPlanId)
+        await createGalioPayPaymentLink(barbershopId, months, selectedPlanId)
       } else if (method === 'transfer-inline') {
         // La UI ya se muestra inline (WhatsApp)
         return

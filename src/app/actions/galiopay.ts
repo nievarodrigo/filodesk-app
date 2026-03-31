@@ -6,10 +6,9 @@ import * as galiopayService from '@/services/galiopay.service'
 import * as barbershopRepo from '@/repositories/barbershop.repository'
 import * as checkoutIntentRepo from '@/repositories/checkout-intent.repository'
 
-const BASE_PRICE = 11999
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.08, 6: 0.13, 12: 0.20 }
 
-export async function createGalioPAyPaymentLink(barbershopId: string, months: number, planId: string = 'base'): Promise<void> {
+export async function createGalioPayPaymentLink(barbershopId: string, months: number, planId: string = 'base'): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -17,8 +16,18 @@ export async function createGalioPAyPaymentLink(barbershopId: string, months: nu
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, user.id)
   if (!barbershop) redirect('/dashboard')
 
+  // Leer el precio real del plan desde la base de datos, no hardcodearlo
+  const { data: planData } = await supabase
+    .from('plans')
+    .select('price, name')
+    .eq('id', planId)
+    .eq('active', true)
+    .single()
+
+  if (!planData) redirect(`/suscripcion?barbershopId=${barbershopId}&error=invalid_plan`)
+
   const discount = DISCOUNTS[months] ?? 0
-  const pricePerMonth = Math.round(BASE_PRICE * (1 - discount))
+  const pricePerMonth = Math.round(planData.price * (1 - discount))
   const totalPrice = pricePerMonth * months
   const label = months === 1 ? '1 mes' : `${months} meses`
 
@@ -40,9 +49,9 @@ export async function createGalioPAyPaymentLink(barbershopId: string, months: nu
 
   // 2. Generar link de pago en GalioPay usando el intentId como referencia
   const result = await galiopayService.createPaymentLink({
-    referenceId: intentId, // Usamos el UUID del intent para el webhook
+    referenceId: intentId, // El webhook recibe este UUID para encontrar el intent
     amount: totalPrice,
-    description: `FiloDesk — ${barbershop.name} (Plan ${planId}) — ${label}`,
+    description: `FiloDesk — ${barbershop.name} (Plan ${planData.name}) — ${label}`,
     email: user.email ?? undefined,
     name: barbershop.name,
   })
@@ -53,6 +62,5 @@ export async function createGalioPAyPaymentLink(barbershopId: string, months: nu
     redirect(`/suscripcion?barbershopId=${barbershopId}&error=galiopay`)
   }
 
-  // Redirigir al link de pago de GalioPay
   redirect(result.paymentLink.url)
 }
