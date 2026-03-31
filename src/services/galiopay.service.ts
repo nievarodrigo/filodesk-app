@@ -1,5 +1,9 @@
 const API_BASE = process.env.GALIOPAY_API_BASE || 'https://api.galiopay.com/v1'
 
+// FIX #080: CVU y Alias de servidor, nunca expone al cliente
+const GALIOPAY_CVU = process.env.GALIOPAY_CVU
+const GALIOPAY_ALIAS = process.env.GALIOPAY_ALIAS
+
 interface CreatePaymentLinkInput {
   referenceId: string
   amount: number
@@ -12,6 +16,13 @@ interface PaymentLinkResponse {
   id: string
   url: string
   status: string
+}
+
+export function getGalioPayCredentials() {
+  return {
+    cvu: GALIOPAY_CVU,
+    alias: GALIOPAY_ALIAS,
+  }
 }
 
 export async function createPaymentLink(input: CreatePaymentLinkInput) {
