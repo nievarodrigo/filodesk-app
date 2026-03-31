@@ -77,7 +77,7 @@ export async function createPaymentLink(input: CreatePaymentLinkInput) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
+        'x-api-key': process.env.GALIOPAY_API_KEY || '',
         'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
       body: JSON.stringify(body),
@@ -101,7 +101,7 @@ export async function getPaymentLink(linkId: string) {
   try {
     const res = await fetch(`${API_BASE}/payment-links/${linkId}`, {
       headers: {
-        'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
+        'x-api-key': process.env.GALIOPAY_API_KEY || '',
         'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
     })
@@ -127,7 +127,7 @@ export async function getPayment(paymentId: string) {
   try {
     const res = await fetch(`${API_BASE}/payments/${paymentId}`, {
       headers: {
-        'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
+        'x-api-key': process.env.GALIOPAY_API_KEY || '',
         'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
     })
@@ -166,7 +166,7 @@ export async function refundPayment(paymentId: string, options?: {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
+        'x-api-key': process.env.GALIOPAY_API_KEY || '',
         'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
       body: JSON.stringify(body),
