@@ -9,7 +9,7 @@ export default async function Hero() {
 
   return (
     <div className={styles.hero}>
-      <div className={styles.heroBadge}>✦ La app #1 para barberías</div>
+      <div className={styles.heroBadge}>✦ Hecho para barberías argentinas</div>
       <h1>
         Tu barbería,<br />
         bajo <span>control</span>.

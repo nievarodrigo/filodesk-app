@@ -11,11 +11,13 @@ const plans = [
     disabled: false,
     highlight: false,
     features: [
-      'Hasta 5 barberos',
-      'Dashboard con ingresos y ventas en tiempo real',
+      'Hasta 6 barberos',
+      'Registro de ventas y servicios',
       'Comisiones calculadas automáticamente',
-      'Ganancia neta descontando gastos y comisiones',
-      'Registro de servicios y productos',
+      'Control de gastos del local',
+      'Ganancia neta real (ingresos menos gastos y comisiones)',
+      'Nóminas del equipo',
+      'Agenda de turnos',
       'Control de stock con alertas de reposición',
       'Gráficos de ventas mensuales',
       'Funciona desde el celular, sin instalar nada',
@@ -26,7 +28,7 @@ const plans = [
     name: 'Pro',
     price: '19.999',
     sub: 'En desarrollo — disponible pronto',
-    cta: 'Anotarme en lista de espera',
+    cta: 'Próximamente',
     href: '#',
     disabled: true,
     highlight: true,
@@ -34,33 +36,11 @@ const plans = [
     features: [
       'Barberos ilimitados',
       'Todo lo del plan Base',
-      'Rol Dueño — acceso total',
-      'Rol Encargado — gestiona sin ver finanzas',
-      'Rol Barbero — registra sus servicios',
-      'Historial completo sin límite',
-      'Gráficos y estadísticas avanzadas',
-      'Exportar reportes (Excel/PDF)',
+      'Múltiples usuarios con acceso al dashboard',
+      'Rol Encargado — gestiona el local sin ver finanzas',
+      'Rol Barbero — solo registra sus propios servicios',
+      'Exportar reportes en CSV',
       'Soporte prioritario',
-    ],
-  },
-  {
-    name: 'Premium IA',
-    price: '29.999',
-    sub: 'En desarrollo — disponible pronto',
-    cta: 'Anotarme en lista de espera',
-    href: '#',
-    disabled: true,
-    highlight: false,
-    accent: 'green' as const,
-    features: [
-      'Barberías ilimitadas',
-      'Todo lo del plan Pro',
-      'Predicción de demanda por día y horario',
-      'Alertas automáticas de caída de ingresos',
-      'Sugerencias de inversión en publicidad',
-      'Detección de barberos con bajo rendimiento',
-      'Recomendaciones de precios por temporada',
-      'Asistente IA personalizado',
     ],
   },
 ]
@@ -76,7 +56,6 @@ export default function Pricing() {
 
       <div className={styles.pricingGrid}>
         {plans.map((plan) => {
-          const isGreen = plan.accent === 'green'
           return (
             <div
               key={plan.name}
@@ -85,30 +64,18 @@ export default function Pricing() {
               {/* Top accent bar */}
               <div
                 className={styles.pricingAccent}
-                style={
-                  isGreen
-                    ? { background: 'linear-gradient(to right, var(--gold), var(--green))' }
-                    : plan.highlight
-                      ? { background: 'var(--blue)' }
-                      : undefined
-                }
+                style={plan.highlight ? { background: 'var(--blue)' } : undefined}
               />
 
               {/* Badge */}
-              {plan.badge && (
+              {plan.badge ? (
                 <div className={styles.pricingBadge}>{plan.badge}</div>
-              )}
-              {isGreen && (
-                <div className={styles.pricingBadge} style={{ background: 'linear-gradient(135deg, var(--gold), var(--green))' }}>
-                  Próximamente
-                </div>
-              )}
-              {!plan.badge && !isGreen && (
+              ) : (
                 <div className={styles.pricingBadge}>{plan.name}</div>
               )}
 
               {/* Price */}
-              <div className={styles.pricingPrice} style={isGreen ? { color: 'var(--green)' } : undefined}>
+              <div className={styles.pricingPrice}>
                 ${plan.price} <span>ARS/mes</span>
               </div>
               <div className={styles.pricingSub}>{plan.sub}</div>

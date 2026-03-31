@@ -11,8 +11,8 @@ const features = [
       </svg>
     ),
     title: 'Registrá ventas en segundos',
-    desc: 'Anotás el barbero, los servicios y la cantidad. FiloDesk suma el total y registra todo al instante, sin papeles ni planillas.',
-    mobileTitle: 'Arqueo de caja diario',
+    desc: 'Seleccionás el barbero, el servicio y listo. FiloDesk registra la venta, calcula la comisión y actualiza los números al instante.',
+    mobileTitle: 'Registro de ventas rápido',
   },
   {
     icon: (
@@ -35,7 +35,7 @@ const features = [
       </svg>
     ),
     title: 'Tu ganancia real del mes',
-    desc: 'Ingresos menos comisiones menos gastos: el número que importa, calculado en automático.',
+    desc: 'Ingresos menos comisiones menos gastos: el número que importa, calculado en automático. Sin planillas, sin estimaciones.',
     mobileTitle: 'Ganancia neta en tiempo real',
   },
   {
@@ -47,22 +47,29 @@ const features = [
         <line x1="16" y1="17" x2="8" y2="17"/>
       </svg>
     ),
-    title: 'Gastos del local',
-    desc: 'Alquiler, insumos, publicidad y servicios, todo registrado y descontado de tu ganancia.',
-    mobileTitle: 'Registro de gastos del local',
+    title: 'Gastos y nóminas',
+    desc: 'Registrás alquiler, insumos, sueldos y cualquier egreso del local. Todo se descuenta automáticamente de tu ganancia neta.',
+    mobileTitle: 'Gastos y nóminas del local',
   },
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <line x1="19" y1="8" x2="19" y2="14"/>
-        <line x1="22" y1="11" x2="16" y2="11"/>
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     ),
-    title: 'Armá tu equipo',
-    desc: 'Agregás cada barbero con su porcentaje y tus servicios. FiloDesk calcula todo sin fricción.',
-    mobileTitle: 'Múltiples usuarios y roles',
+    title: 'Agenda de turnos',
+    desc: 'Organizá los turnos de cada barbero en una grilla visual por día. Para las barberías que trabajan con reservas.',
+    mobileTitle: 'Agenda de turnos',
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    ),
+    title: 'Control de stock',
+    desc: 'Llevás el inventario de productos con alertas de reposición. Cada venta descuenta el stock automáticamente.',
+    mobileTitle: 'Control de stock con alertas',
   },
   {
     icon: (
@@ -73,8 +80,9 @@ const features = [
         <rect x="3" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
-    title: 'Análisis de reportes y estadísticas',
-    desc: 'Visualizá ventas, rendimiento y tendencias para tomar decisiones con datos reales.',
+    title: 'Gráficos y estadísticas',
+    desc: 'Visualizá ventas por barbero, ingresos por mes y tendencias del negocio. Para tomar decisiones con datos reales.',
+    mobileTitle: 'Gráficos y estadísticas',
   },
   {
     icon: (
@@ -84,7 +92,8 @@ const features = [
       </svg>
     ),
     title: 'Desde el celular, sin instalar apps',
-    desc: 'Abrís FiloDesk desde el navegador del celu y funciona igual que en la compu.',
+    desc: 'Abrís FiloDesk desde el navegador del celu y funciona igual que en la compu. Sin descargas, sin actualizaciones manuales.',
+    mobileTitle: 'Funciona desde el celular',
   },
 ]
 
