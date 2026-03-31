@@ -21,16 +21,20 @@ const FAQS = [
     a: 'Sí. FiloDesk funciona desde cualquier navegador, en celular, tablet o computadora. No necesitás descargar nada.',
   },
   {
-    q: '¿Qué pasa con mis datos si cancelo?',
-    a: 'Tus datos son tuyos. Si cancelás, tenés 30 días para exportarlos. Después se eliminan de forma permanente.',
+    q: '¿Puedo tener varios barberos en una misma cuenta?',
+    a: 'Sí. El plan Base soporta hasta 6 barberos. Si tenés más, el plan Pro no tiene límite.',
   },
   {
-    q: '¿Puedo tener varios barberos en una misma cuenta?',
-    a: 'Sí. Podés cargar todos los barberos de tu local y llevar el seguimiento de cada uno por separado.',
+    q: '¿Puedo dar acceso a mi encargado o a mis barberos?',
+    a: 'Eso está disponible en el plan Pro. Con roles diferenciados, el encargado puede gestionar el local sin ver las finanzas, y cada barbero accede solo para registrar sus propios servicios.',
   },
   {
     q: '¿Cómo se cobra la suscripción?',
     a: 'Por Mercado Pago, mensualmente. Podés cancelar cuando quieras desde tu cuenta, sin cargos extra.',
+  },
+  {
+    q: '¿Qué pasa con mis datos si cancelo?',
+    a: 'Tus datos son tuyos. Al cancelar, te enviamos una copia completa de toda tu información antes de eliminarla de forma permanente.',
   },
 ]
 
