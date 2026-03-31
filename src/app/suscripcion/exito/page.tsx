@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { CheckCircle } from 'lucide-react'
+import styles from '../result.module.css'
 
 export default async function SuscripcionExitoPage({
   searchParams,
@@ -7,36 +9,22 @@ export default async function SuscripcionExitoPage({
 }) {
   const { barbershopId: rawBarbershopId } = await searchParams
   const barbershopId = rawBarbershopId?.split('?')[0]
+  const agendaHref = barbershopId ? `/dashboard/${barbershopId}/agenda` : '/dashboard'
 
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)', padding: '24px',
-    }}>
-      <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 16, padding: '40px 36px', maxWidth: 440, width: '100%',
-        display: 'flex', flexDirection: 'column', gap: 20, textAlign: 'center',
-      }}>
-        <div style={{ fontSize: '2.5rem' }}>⌛</div>
-        <h1 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--cream)' }}>
-          Procesando tu suscripción
-        </h1>
-        <p style={{ fontSize: '.9rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-          Estamos confirmando tu pago con Mercado Pago. Esto suele tardar unos segundos. 
-          Tu cuenta se activará automáticamente.
+    <main className={styles.page}>
+      <section className={styles.card}>
+        <div className={styles.iconWrap}>
+          <CheckCircle className={styles.iconSuccess} aria-hidden="true" />
+        </div>
+        <h1 className={styles.title}>¡Bienvenido al Plan Pro!</h1>
+        <p className={styles.description}>
+          Tu suscripción se acreditó correctamente. Ya podés seguir gestionando el negocio con todas las funciones premium.
         </p>
-        <Link
-          href={barbershopId ? `/dashboard/${barbershopId}` : '/dashboard'}
-          style={{
-            background: 'var(--gold)', color: 'var(--bg)', borderRadius: 10,
-            padding: '14px 24px', fontWeight: 700, fontSize: '1rem',
-            textDecoration: 'none', display: 'block',
-          }}
-        >
-          Ir al dashboard
+        <Link href={agendaHref} className={styles.cta}>
+          Ir a la Agenda
         </Link>
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }

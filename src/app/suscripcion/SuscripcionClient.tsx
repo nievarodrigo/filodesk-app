@@ -2,9 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
 import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
-
-const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
 
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
@@ -38,16 +37,17 @@ function fmt(n: number) {
 }
 
 export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
+  const visiblePlans = plans.filter((plan) => plan.id === 'base' || plan.id === 'pro')
   const [screen, setScreen] = useState<Screen>('plans')
   const normalizedCurrentPlan = currentPlan || 'Base'
-  const initialSelectedPlanId = plans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
+  const initialSelectedPlanId = visiblePlans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialSelectedPlanId)
   const [months, setMonths] = useState(1)
   const [method, setMethod] = useState<Method>('checkout')
   const [pending, start] = useTransition()
 
   // Guard clause para evitar crash si no hay planes
-  if (!plans || plans.length === 0) {
+  if (!visiblePlans || visiblePlans.length === 0) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
         <div style={{ textAlign: 'center', padding: 20 }}>
@@ -59,41 +59,31 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
     )
   }
 
-  const currentPlanData = plans.find((plan) => plan.name === normalizedCurrentPlan) ?? plans[0]
+  const currentPlanData = visiblePlans.find((plan) => plan.name === normalizedCurrentPlan) ?? visiblePlans[0]
   const currentPlanPrice = currentPlanData?.price ?? 0
 
-  const uiPlans = plans.map(p => {
+  const uiPlans = visiblePlans.map(p => {
     const isCurrent = p.name === normalizedCurrentPlan
-    const isPremiumLocked = p.id === 'expert'
-    const isProLocked = p.id === 'pro' && barbershopId !== TESTING_BARBERSHOP_ID && !isCurrent
     const isUpgrade = p.price > currentPlanPrice
 
     return {
       ...p,
-      badge: isCurrent ? 'TU PLAN ACTUAL' : isPremiumLocked ? 'PRÓXIMAMENTE' : isProLocked ? 'EN DESARROLLO' : p.id === 'base' ? 'BASE' : p.id === 'pro' ? 'PRO' : 'PREMIUM IA',
-      badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : p.id === 'pro' ? 'blue' : 'green',
-      accent: p.id === 'base' ? 'var(--gold)' : p.id === 'pro' ? 'var(--blue)' : 'linear-gradient(to right, var(--gold), var(--green))',
-      available: !isPremiumLocked && !isProLocked,
+      badge: isCurrent ? 'TU PLAN ACTUAL' : p.id === 'base' ? 'BASE' : 'PRO',
+      badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : 'blue',
+      accent: p.id === 'base' ? 'var(--gold)' : 'var(--blue)',
+      available: true,
       isCurrent,
       isUpgrade,
       sub: isCurrent
         ? 'Este es el plan activo de tu barbería'
-        : isPremiumLocked
-          ? 'Estamos preparando la experiencia avanzada con IA'
-          : isProLocked
-            ? 'Estamos terminando los detalles del plan Pro'
-          : isUpgrade
-            ? 'Desbloqueá funciones adicionales para tu equipo'
-            : 'Disponible para elegir',
+        : isUpgrade
+          ? 'Desbloqueá funciones adicionales para tu equipo'
+          : 'Disponible para elegir',
       note: isCurrent
         ? 'Podés conservarlo o mejorar cuando quieras'
-        : isPremiumLocked
-          ? 'Disponible próximamente'
-          : isProLocked
-            ? 'Acceso beta privado'
-          : isUpgrade
-            ? 'Upgrade disponible'
-            : 'También podés elegir este plan',
+        : isUpgrade
+          ? 'Upgrade disponible'
+          : 'También podés elegir este plan',
     }
   })
 
@@ -139,6 +129,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
     <>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        .suscripcion-spinner { animation: spin 1s linear infinite; }
         .suscripcion-month-btn:hover { opacity: 0.85; }
         .suscripcion-method-btn:hover:not(:disabled) { border-color: var(--gold) !important; }
         .suscripcion-pay-btn:hover:not(:disabled) { filter: brightness(1.1); }
@@ -294,7 +285,12 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                 <MethodCard active={method === 'transfer'} onClick={() => setMethod('transfer')} icon="🏦" title="Transferencia bancaria" subtitle="Desde cualquier banco · Rápido" badge="RECOMENDADO" badgeColor="gold" />
               </div>
               <button className="suscripcion-pay-btn" onClick={handlePay} disabled={pending} style={{ width: '100%', padding: '15px 24px', background: pending ? 'var(--border)' : 'var(--gold)', color: pending ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 12, fontSize: '.95rem', fontWeight: 700, cursor: pending ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                {pending ? 'Redirigiendo...' : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Pagar con Transferencia →` : 'Activar débito automático →')}
+                {pending ? (
+                  <>
+                    <Loader2 size={18} className="suscripcion-spinner" />
+                    Redirigiendo a pago seguro...
+                  </>
+                ) : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Pagar con Transferencia →` : 'Activar débito automático →')}
               </button>
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}</p>
