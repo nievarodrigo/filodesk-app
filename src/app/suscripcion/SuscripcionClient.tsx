@@ -3,8 +3,10 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
-import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
+import { createMPCheckoutWithMonths, createMPSubscription } from '@/app/actions/subscription'
+import { createGalioPAyPaymentLink } from '@/app/actions/galiopay'
 import { generateTransferProofWhatsAppLink } from '@/lib/whatsapp'
+import { useRouter } from 'next/navigation'
 
 // CVU y Alias de FiloDesk (hardcodeados para mostrarlos al usuario)
 const FILODESK_CVU = '0070396130004005324429'
@@ -42,6 +44,7 @@ function fmt(n: number) {
 }
 
 export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
+  const router = useRouter()
   // Si está en trial, solo mostrar Plan Base
   const isTrial = subscriptionStatus === 'trial'
   const visiblePlans = isTrial
@@ -120,17 +123,14 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   }
 
   function handlePay() {
-    if (method === 'transfer') {
-      // Mostrar UI de transferencia inline
-      setMethod('transfer-inline')
-      return
-    }
-
     start(async () => {
       if (method === 'subscription') {
         await createMPSubscription(barbershopId, selectedPlanId)
+      } else if (method === 'transfer') {
+        // GalioPay Automático con redirección a /suscripcion/procesando (via server action)
+        await createGalioPAyPaymentLink(barbershopId, months, selectedPlanId)
       } else if (method === 'transfer-inline') {
-        // La UI ya se muestra inline, no redirigir
+        // La UI ya se muestra inline (WhatsApp)
         return
       } else {
         await createMPCheckoutWithMonths(barbershopId, months, selectedPlanId)
@@ -323,8 +323,18 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                     <Loader2 size={18} className="suscripcion-spinner" />
                     Redirigiendo a pago seguro...
                   </>
-                ) : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Ver datos de transferencia →` : method === 'transfer-inline' ? 'Esperando comprobante...' : 'Activar débito automático →')}
+                ) : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Continuar con GalioPay →` : method === 'transfer-inline' ? 'Esperando comprobante...' : 'Activar débito automático →')}
               </button>
+              
+              {method === 'transfer' && !pending && (
+                <button 
+                  onClick={() => setMethod('transfer-inline')}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--muted)', fontSize: '.75rem', textDecoration: 'underline', cursor: 'pointer', marginTop: -8 }}
+                >
+                  ¿Problemas con GalioPay? Ver datos de CVU manual
+                </button>
+              )}
+
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}</p>
                 {method !== 'subscription' && <p style={{ fontSize: '.7rem', color: 'var(--border)' }}>{method === 'transfer' ? 'Activación manual en 24hs' : 'No necesitás cuenta en MercadoPago'}</p>}
