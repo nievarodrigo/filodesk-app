@@ -13,9 +13,10 @@ interface CreatePaymentLinkInput {
 }
 
 interface PaymentLinkResponse {
-  id: string
   url: string
-  status: string
+  proofToken: string
+  referenceId: string
+  sandbox: boolean
 }
 
 export function getGalioPayCredentials() {
@@ -28,8 +29,9 @@ export function getGalioPayCredentials() {
 export async function createPaymentLink(input: CreatePaymentLinkInput) {
   const { referenceId, amount, description, email, name } = input
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
+  const isSandbox = process.env.NODE_ENV !== 'production'
 
-  // Payload según documentación oficial de GalioPay
+  // Payload según documentación oficial de GalioPay Payment Links API
   const body = {
     referenceId,
     items: [
@@ -44,6 +46,9 @@ export async function createPaymentLink(input: CreatePaymentLinkInput) {
       success: `${siteUrl}/suscripcion/exito-pago`,
       failure: `${siteUrl}/suscripcion?error=galiopay`,
     },
+    // Webhook para recibir notificaciones de pago
+    notificationUrl: `${siteUrl}/api/webhooks/galiopay`,
+    sandbox: isSandbox,
   }
 
   try {
