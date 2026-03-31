@@ -55,3 +55,20 @@ export function generateInviteWhatsAppLink(
     ? `https://wa.me/${target}?text=${encodeURIComponent(message)}`
     : `https://wa.me/?text=${encodeURIComponent(message)}`
 }
+
+export function generateAppointmentWhatsAppLink(
+  phone: string | null | undefined,
+  clientName: string,
+  dateLabel: string,
+  timeLabel: string
+) {
+  const target = normalizeWhatsAppPhone(phone)
+  const message = [
+    `Hola ${clientName}, te confirmo tu turno para el ${dateLabel} a las ${timeLabel} en FiloDesk.`,
+    '¡Te esperamos!',
+  ].join(' ')
+
+  return target
+    ? `https://wa.me/${target}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/?text=${encodeURIComponent(message)}`
+}

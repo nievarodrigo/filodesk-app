@@ -1,30 +1,18 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition, type MouseEvent } from 'react'
+import { useParams } from 'next/navigation'
+import {
+  createAgendaAppointment,
+  deleteAgendaAppointment,
+  getAgendaData,
+  updateAgendaAppointmentStatus,
+} from '@/app/actions/agenda'
+import { generateAppointmentWhatsAppLink } from '@/lib/whatsapp'
+import type { AgendaAppointmentView, AgendaBarber, AgendaService, AppointmentStatus } from '@/types'
 import styles from './agenda.module.css'
 
 type ShiftFilter = 'all' | 'morning' | 'afternoon' | 'night'
-
-type Barber = {
-  id: string
-  name: string
-}
-
-type Service = {
-  id: string
-  name: string
-  durationMin: number
-}
-
-type Appointment = {
-  id: string
-  barberId: string
-  dateKey: string
-  startMin: number
-  durationMin: number
-  serviceName: string
-  clientName: string
-}
 
 type Draft = {
   barberId: string
@@ -32,6 +20,8 @@ type Draft = {
   startMin: number
   serviceId: string
   clientName: string
+  clientPhone: string
+  notes: string
 }
 
 const OPEN_MIN = 9 * 60
@@ -40,19 +30,6 @@ const BUFFER_MIN = 5
 const GRID_STEP_MIN = 5
 const PX_PER_MIN = 1.25
 const WEEK_DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-const MOCK_BARBERS: Barber[] = [
-  { id: 'b1', name: 'Juan' },
-  { id: 'b2', name: 'Mateo' },
-  { id: 'b3', name: 'Luca' },
-]
-
-const MOCK_SERVICES: Service[] = [
-  { id: 's1', name: 'Corte clásico', durationMin: 35 },
-  { id: 's2', name: 'Fade + barba', durationMin: 50 },
-  { id: 's3', name: 'Barba premium', durationMin: 30 },
-  { id: 's4', name: 'Color + styling', durationMin: 70 },
-]
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
@@ -68,8 +45,7 @@ function parseDateKey(dateKey: string) {
 }
 
 function formatDayLabel(dateKey: string) {
-  const d = parseDateKey(dateKey)
-  return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return parseDateKey(dateKey).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 function formatMinuteLabel(min: number) {
@@ -104,11 +80,8 @@ function monthMatrix(baseMonth: Date) {
   const cells: Array<Date | null> = []
   for (let i = 0; i < totalCells; i++) {
     const day = i - startPad + 1
-    if (day < 1 || day > last.getDate()) {
-      cells.push(null)
-    } else {
-      cells.push(new Date(baseMonth.getFullYear(), baseMonth.getMonth(), day))
-    }
+    if (day < 1 || day > last.getDate()) cells.push(null)
+    else cells.push(new Date(baseMonth.getFullYear(), baseMonth.getMonth(), day))
   }
   return cells
 }
@@ -120,23 +93,42 @@ function getFilterWindow(filter: ShiftFilter) {
   return { from: OPEN_MIN, to: CLOSE_MIN }
 }
 
-function buildMockAppointments(todayKey: string): Appointment[] {
-  return [
-    { id: 'a1', barberId: 'b1', dateKey: todayKey, startMin: 9 * 60, durationMin: 45, serviceName: 'Corte clásico', clientName: 'Nico' },
-    { id: 'a2', barberId: 'b1', dateKey: todayKey, startMin: 9 * 60 + 47, durationMin: 30, serviceName: 'Barba premium', clientName: 'Leo' },
-    { id: 'a3', barberId: 'b2', dateKey: todayKey, startMin: 9 * 60, durationMin: 50, serviceName: 'Fade + barba', clientName: 'Santi' },
-    { id: 'a4', barberId: 'b3', dateKey: todayKey, startMin: 13 * 60, durationMin: 70, serviceName: 'Color + styling', clientName: 'Tomi' },
-    { id: 'a5', barberId: 'b2', dateKey: todayKey, startMin: 17 * 60 + 30, durationMin: 35, serviceName: 'Corte clásico', clientName: 'Fede' },
-    { id: 'a6', barberId: 'b1', dateKey: todayKey, startMin: 18 * 60 + 15, durationMin: 50, serviceName: 'Fade + barba', clientName: 'Dami' },
-    { id: 'a7', barberId: 'b3', dateKey: toDateKey(new Date(parseDateKey(todayKey).getFullYear(), parseDateKey(todayKey).getMonth(), parseDateKey(todayKey).getDate() + 1)), startMin: 10 * 60, durationMin: 35, serviceName: 'Corte clásico', clientName: 'Agus' },
-  ]
+function getMonthRangeISO(monthRef: Date) {
+  const from = new Date(monthRef.getFullYear(), monthRef.getMonth(), 1, 0, 0, 0, 0)
+  const to = new Date(monthRef.getFullYear(), monthRef.getMonth() + 1, 1, 0, 0, 0, 0)
+  return { fromISO: from.toISOString(), toISO: to.toISOString() }
+}
+
+function toDateKeyFromISO(iso: string) {
+  return toDateKey(new Date(iso))
+}
+
+function getMinutesFromISO(iso: string) {
+  const d = new Date(iso)
+  return d.getHours() * 60 + d.getMinutes()
+}
+
+function toISOFromDateKeyAndMin(dateKey: string, min: number) {
+  const base = parseDateKey(dateKey)
+  const date = new Date(base.getFullYear(), base.getMonth(), base.getDate(), Math.floor(min / 60), min % 60, 0, 0)
+  return date.toISOString()
 }
 
 function isRangeOverlap(startA: number, endA: number, startB: number, endB: number) {
   return startA < endB && endA > startB
 }
 
+function statusLabel(status: AppointmentStatus) {
+  if (status === 'confirmed') return 'Confirmado'
+  if (status === 'completed') return 'Completado'
+  if (status === 'cancelled') return 'Cancelado'
+  return 'Pendiente'
+}
+
 export default function AgendaPage() {
+  const params = useParams<{ barbershopId: string }>()
+  const barbershopId = typeof params?.barbershopId === 'string' ? params.barbershopId : ''
+
   const now = useMemo(() => new Date(), [])
   const todayKey = useMemo(() => toDateKey(now), [now])
 
@@ -144,9 +136,44 @@ export default function AgendaPage() {
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null)
   const [shiftFilter, setShiftFilter] = useState<ShiftFilter>('all')
   const [isMobile, setIsMobile] = useState(false)
-  const [activeMobileBarberId, setActiveMobileBarberId] = useState(MOCK_BARBERS[0].id)
-  const [appointments, setAppointments] = useState<Appointment[]>(() => buildMockAppointments(todayKey))
+  const [activeMobileBarberId, setActiveMobileBarberId] = useState<string>('')
+
+  const [barbers, setBarbers] = useState<AgendaBarber[]>([])
+  const [services, setServices] = useState<AgendaService[]>([])
+  const [appointments, setAppointments] = useState<AgendaAppointmentView[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [editingAppointment, setEditingAppointment] = useState<AgendaAppointmentView | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  const loadAgenda = useCallback(async () => {
+    if (!barbershopId) return
+
+    setLoading(true)
+    setError(null)
+
+    const { fromISO, toISO } = getMonthRangeISO(monthRef)
+    const result = await getAgendaData(barbershopId, fromISO, toISO)
+
+    if ('error' in result) {
+      setError(result.error)
+      setLoading(false)
+      return
+    }
+
+    setBarbers(result.barbers)
+    setServices(result.services)
+    setAppointments(result.appointments)
+    setActiveMobileBarberId((prev) => prev || result.barbers[0]?.id || '')
+    setLoading(false)
+  }, [barbershopId, monthRef])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadAgenda()
+  }, [loadAgenda])
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 768px)')
@@ -156,40 +183,44 @@ export default function AgendaPage() {
     return () => media.removeEventListener('change', sync)
   }, [])
 
+  const calendarCells = useMemo(() => monthMatrix(monthRef), [monthRef])
+
+  const selectedKey = selectedDateKey ?? todayKey
   const windowRange = getFilterWindow(shiftFilter)
   const visibleFrom = windowRange.from
   const visibleTo = windowRange.to
   const visibleRangeMin = visibleTo - visibleFrom
 
-  const calendarCells = useMemo(() => monthMatrix(monthRef), [monthRef])
-  const selectedKey = selectedDateKey ?? todayKey
-
   const appointmentsByDay = useMemo(() => {
     const map: Record<string, number> = {}
     for (const appt of appointments) {
-      map[appt.dateKey] = (map[appt.dateKey] ?? 0) + 1
+      const day = toDateKeyFromISO(appt.startTime)
+      if (appt.status === 'cancelled') continue
+      map[day] = (map[day] ?? 0) + 1
     }
     return map
   }, [appointments])
 
-  const dayAppointments = useMemo(
-    () => appointments.filter((appt) => appt.dateKey === selectedKey),
-    [appointments, selectedKey]
-  )
+  const dayAppointments = useMemo(() => {
+    return appointments.filter((appt) => toDateKeyFromISO(appt.startTime) === selectedKey)
+  }, [appointments, selectedKey])
 
   const violationIds = useMemo(() => {
-    const byBarber: Record<string, Appointment[]> = {}
+    const byBarber: Record<string, AgendaAppointmentView[]> = {}
     for (const appt of dayAppointments) {
+      if (appt.status === 'cancelled') continue
       byBarber[appt.barberId] = [...(byBarber[appt.barberId] ?? []), appt]
     }
+
     const conflicts = new Set<string>()
     for (const list of Object.values(byBarber)) {
-      const sorted = [...list].sort((a, b) => a.startMin - b.startMin)
+      const sorted = [...list].sort((a, b) => getMinutesFromISO(a.startTime) - getMinutesFromISO(b.startTime))
       for (let i = 1; i < sorted.length; i++) {
         const prev = sorted[i - 1]
         const curr = sorted[i]
-        const prevEndWithBuffer = prev.startMin + prev.durationMin + BUFFER_MIN
-        if (curr.startMin < prevEndWithBuffer) {
+        const prevEnd = getMinutesFromISO(prev.endTime)
+        const currStart = getMinutesFromISO(curr.startTime)
+        if (currStart < prevEnd + BUFFER_MIN) {
           conflicts.add(prev.id)
           conflicts.add(curr.id)
         }
@@ -199,24 +230,27 @@ export default function AgendaPage() {
   }, [dayAppointments])
 
   const visibleBarbers = isMobile
-    ? MOCK_BARBERS.filter((b) => b.id === activeMobileBarberId)
-    : MOCK_BARBERS
+    ? barbers.filter((barber) => barber.id === activeMobileBarberId)
+    : barbers
 
-  const serviceOptions = MOCK_SERVICES
-  const selectedService = serviceOptions.find((s) => s.id === (draft?.serviceId ?? serviceOptions[0].id)) ?? serviceOptions[0]
-  const draftEndMin = draft ? clampToAgenda(draft.startMin + selectedService.durationMin + BUFFER_MIN) : null
+  const serviceOptions = services
+  const selectedService = serviceOptions.find((service) => service.id === (draft?.serviceId ?? serviceOptions[0]?.id)) ?? serviceOptions[0]
+  const draftEndMin = draft && selectedService
+    ? clampToAgenda(draft.startMin + selectedService.durationMin + BUFFER_MIN)
+    : null
 
   const draftConflict = useMemo(() => {
     if (!draft || draftEndMin === null) return false
-    const sameBarber = appointments.filter((a) => a.dateKey === draft.dateKey && a.barberId === draft.barberId)
-    return sameBarber.some((a) => {
-      const aStart = a.startMin
-      const aEnd = a.startMin + a.durationMin + BUFFER_MIN
+
+    const sameBarber = dayAppointments.filter((appt) => appt.barberId === draft.barberId && appt.status !== 'cancelled')
+    return sameBarber.some((appt) => {
+      const aStart = getMinutesFromISO(appt.startTime)
+      const aEnd = getMinutesFromISO(appt.endTime) + BUFFER_MIN
       return isRangeOverlap(draft.startMin, draftEndMin, aStart, aEnd)
     })
-  }, [appointments, draft, draftEndMin])
+  }, [dayAppointments, draft, draftEndMin])
 
-  const canSchedule = Boolean(draft) && !draftConflict
+  const canSchedule = Boolean(draft && draft.clientName.trim() && selectedService) && !draftConflict
 
   function prevMonth() {
     setMonthRef((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
@@ -227,6 +261,7 @@ export default function AgendaPage() {
   }
 
   function openDraft(dateKey: string, barberId: string, min: number) {
+    if (!serviceOptions.length) return
     const safe = clampToAgenda(snapToStep(min))
     setDraft({
       barberId,
@@ -234,10 +269,12 @@ export default function AgendaPage() {
       startMin: safe,
       serviceId: serviceOptions[0].id,
       clientName: '',
+      clientPhone: '',
+      notes: '',
     })
   }
 
-  function handleColumnClick(event: React.MouseEvent<HTMLDivElement>, barberId: string) {
+  function handleColumnClick(event: MouseEvent<HTMLDivElement>, barberId: string) {
     if (!selectedDateKey) return
     const rect = event.currentTarget.getBoundingClientRect()
     const y = event.clientY - rect.top
@@ -251,21 +288,57 @@ export default function AgendaPage() {
   }
 
   function saveDraft() {
-    if (!draft || draftEndMin === null || draftConflict) return
-    const service = serviceOptions.find((s) => s.id === draft.serviceId) ?? serviceOptions[0]
-    setAppointments((prev) => [
-      {
-        id: `new-${Date.now()}`,
+    if (!draft || !selectedService || draftEndMin === null || draftConflict || !barbershopId) return
+
+    startTransition(async () => {
+      const result = await createAgendaAppointment(barbershopId, {
         barberId: draft.barberId,
-        dateKey: draft.dateKey,
-        startMin: draft.startMin,
-        durationMin: service.durationMin,
-        serviceName: service.name,
-        clientName: draft.clientName.trim() || 'Cliente sin nombre',
-      },
-      ...prev,
-    ])
-    setDraft(null)
+        clientName: draft.clientName,
+        clientPhone: draft.clientPhone,
+        serviceId: draft.serviceId,
+        startTime: toISOFromDateKeyAndMin(draft.dateKey, draft.startMin),
+        endTime: toISOFromDateKeyAndMin(draft.dateKey, draftEndMin),
+        notes: draft.notes,
+      })
+
+      if ('error' in result) {
+        alert(result.error)
+        return
+      }
+
+      setDraft(null)
+      await loadAgenda()
+    })
+  }
+
+  function handleStatusChange(appointmentId: string, status: AppointmentStatus) {
+    if (!barbershopId) return
+
+    startTransition(async () => {
+      const result = await updateAgendaAppointmentStatus(barbershopId, appointmentId, status)
+      if ('error' in result) {
+        alert(result.error)
+        return
+      }
+      setEditingAppointment((prev) => (prev ? { ...prev, status } : prev))
+      await loadAgenda()
+    })
+  }
+
+  function handleDeleteAppointment(appointmentId: string) {
+    if (!barbershopId) return
+    const confirmed = confirm('¿Querés borrar el turno?')
+    if (!confirmed) return
+
+    startTransition(async () => {
+      const result = await deleteAgendaAppointment(barbershopId, appointmentId)
+      if ('error' in result) {
+        alert(result.error)
+        return
+      }
+      setEditingAppointment(null)
+      await loadAgenda()
+    })
   }
 
   return (
@@ -275,7 +348,10 @@ export default function AgendaPage() {
         <p className={styles.subtitle}>Elegí a quién querés agendar y chequeá que el horario esté libre antes de confirmar.</p>
       </header>
 
-      {!selectedDateKey ? (
+      {loading && <p className={styles.infoLine}>Cargando agenda...</p>}
+      {error && <p className={styles.error}>{error}</p>}
+
+      {!loading && !selectedDateKey ? (
         <section className={styles.monthCard}>
           <div className={styles.monthHeader}>
             <button type="button" className={styles.monthNavBtn} onClick={prevMonth} aria-label="Mes anterior">◀</button>
@@ -308,7 +384,9 @@ export default function AgendaPage() {
             })}
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {!loading && selectedDateKey ? (
         <section className={styles.dayCard}>
           <div className={styles.dayHeader}>
             <button type="button" className={styles.backBtn} onClick={() => setSelectedDateKey(null)}>← Volver al mes</button>
@@ -324,7 +402,7 @@ export default function AgendaPage() {
 
           {isMobile && (
             <div className={styles.mobileBarberPicker}>
-              {MOCK_BARBERS.map((barber) => (
+              {barbers.map((barber) => (
                 <button
                   key={barber.id}
                   type="button"
@@ -353,10 +431,11 @@ export default function AgendaPage() {
             <div className={styles.barberCols}>
               {visibleBarbers.map((barber) => {
                 const barberAppointments = dayAppointments
-                  .filter((a) => a.barberId === barber.id)
-                  .filter((a) => {
-                    const endWithBuffer = a.startMin + a.durationMin + BUFFER_MIN
-                    return a.startMin < visibleTo && endWithBuffer > visibleFrom
+                  .filter((appt) => appt.barberId === barber.id)
+                  .filter((appt) => {
+                    const start = getMinutesFromISO(appt.startTime)
+                    const end = getMinutesFromISO(appt.endTime)
+                    return start < visibleTo && end > visibleFrom
                   })
 
                 return (
@@ -368,22 +447,26 @@ export default function AgendaPage() {
                       ))}
 
                       {barberAppointments.map((appt) => {
-                        const start = Math.max(appt.startMin, visibleFrom)
-                        const end = Math.min(appt.startMin + appt.durationMin + BUFFER_MIN, visibleTo)
+                        const start = Math.max(getMinutesFromISO(appt.startTime), visibleFrom)
+                        const end = Math.min(getMinutesFromISO(appt.endTime), visibleTo)
                         const top = (start - visibleFrom) * PX_PER_MIN
-                        const height = Math.max((end - start) * PX_PER_MIN, 20)
+                        const height = Math.max((end - start) * PX_PER_MIN, 22)
                         const violated = violationIds.has(appt.id)
                         return (
                           <article
                             key={appt.id}
                             className={`${styles.apptCard} ${violated ? styles.apptCardConflict : ''}`}
                             style={{ top, height }}
-                            onClick={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              setEditingAppointment(appt)
+                            }}
                             title={violated ? 'Este turno viola el buffer de 5 min' : 'Turno OK'}
                           >
-                            <p className={styles.apptTime}>{formatMinuteLabel(appt.startMin)} - {formatMinuteLabel(appt.startMin + appt.durationMin + BUFFER_MIN)}</p>
+                            <p className={styles.apptTime}>{formatMinuteLabel(getMinutesFromISO(appt.startTime))} - {formatMinuteLabel(getMinutesFromISO(appt.endTime))}</p>
                             <p className={styles.apptService}>{appt.serviceName}</p>
                             <p className={styles.apptClient}>{appt.clientName}</p>
+                            <p className={styles.apptStatus}>{statusLabel(appt.status)}</p>
                             {violated && <p className={styles.apptWarn}>Buffer inválido (&lt; 5 min)</p>}
                           </article>
                         )
@@ -395,9 +478,9 @@ export default function AgendaPage() {
             </div>
           </div>
         </section>
-      )}
+      ) : null}
 
-      {draft && (
+      {draft && selectedService && (
         <div className={styles.modalBackdrop} onClick={closeDraft}>
           <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
             <h2 className={styles.modalTitle}>Nuevo turno</h2>
@@ -409,7 +492,7 @@ export default function AgendaPage() {
                 value={draft.barberId}
                 onChange={(event) => setDraft((prev) => (prev ? { ...prev, barberId: event.target.value } : prev))}
               >
-                {MOCK_BARBERS.map((barber) => (
+                {barbers.map((barber) => (
                   <option key={barber.id} value={barber.id}>{barber.name}</option>
                 ))}
               </select>
@@ -450,6 +533,26 @@ export default function AgendaPage() {
               />
             </label>
 
+            <label className={styles.field}>
+              <span>Teléfono</span>
+              <input
+                type="tel"
+                value={draft.clientPhone}
+                onChange={(event) => setDraft((prev) => (prev ? { ...prev, clientPhone: event.target.value } : prev))}
+                placeholder="Ej: +54 11 1234 5678"
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Notas</span>
+              <input
+                type="text"
+                value={draft.notes}
+                onChange={(event) => setDraft((prev) => (prev ? { ...prev, notes: event.target.value } : prev))}
+                placeholder="Opcional"
+              />
+            </label>
+
             <p className={styles.calcLine}>
               Fin estimado (con buffer): <strong>{draftEndMin !== null ? formatMinuteLabel(draftEndMin) : '—'}</strong>
             </p>
@@ -459,8 +562,53 @@ export default function AgendaPage() {
             )}
 
             <div className={styles.modalActions}>
-              <button type="button" className={styles.btnGhost} onClick={closeDraft}>Cancelar</button>
-              <button type="button" className={styles.btnPrimary} disabled={!canSchedule} onClick={saveDraft}>AGENDAR</button>
+              <button type="button" className={styles.btnGhost} onClick={closeDraft} disabled={pending}>Cancelar</button>
+              <button type="button" className={styles.btnPrimary} disabled={!canSchedule || pending} onClick={saveDraft}>AGENDAR</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingAppointment && (
+        <div className={styles.modalBackdrop} onClick={() => setEditingAppointment(null)}>
+          <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+            <h2 className={styles.modalTitle}>Gestión de turno</h2>
+            <p className={styles.modalHint}>
+              {editingAppointment.clientName} · {formatDayLabel(toDateKeyFromISO(editingAppointment.startTime))} · {formatMinuteLabel(getMinutesFromISO(editingAppointment.startTime))}
+            </p>
+
+            <p className={styles.calcLine}>Estado actual: <strong>{statusLabel(editingAppointment.status)}</strong></p>
+
+            <div className={styles.statusActions}>
+              <button type="button" className={styles.btnGhost} disabled={pending} onClick={() => handleStatusChange(editingAppointment.id, 'pending')}>Pendiente</button>
+              <button type="button" className={styles.btnPrimary} disabled={pending} onClick={() => handleStatusChange(editingAppointment.id, 'confirmed')}>Confirmar turno</button>
+              <button type="button" className={styles.btnGhost} disabled={pending} onClick={() => handleStatusChange(editingAppointment.id, 'completed')}>Completar</button>
+            </div>
+
+            <a
+              className={styles.btnWhatsApp}
+              href={generateAppointmentWhatsAppLink(
+                editingAppointment.clientPhone,
+                editingAppointment.clientName,
+                formatDayLabel(toDateKeyFromISO(editingAppointment.startTime)),
+                formatMinuteLabel(getMinutesFromISO(editingAppointment.startTime))
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp de confirmación
+            </a>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                disabled={pending}
+                onClick={() => handleDeleteAppointment(editingAppointment.id)}
+              >
+                Borrar turno
+              </button>
+              <button type="button" className={styles.btnGhost} onClick={() => setEditingAppointment(null)} disabled={pending}>Cerrar</button>
             </div>
           </div>
         </div>

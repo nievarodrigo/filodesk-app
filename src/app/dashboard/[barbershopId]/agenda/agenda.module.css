@@ -21,6 +21,12 @@
   font-size: .9rem;
 }
 
+.infoLine {
+  margin: 0;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
 .monthCard,
 .dayCard {
   background: var(--surface);
@@ -287,6 +293,14 @@
   color: var(--text);
 }
 
+.apptStatus {
+  margin: 0;
+  font-size: .64rem;
+  color: var(--gold);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .apptWarn {
   margin: 0;
   font-size: .64rem;
@@ -377,7 +391,8 @@
 }
 
 .btnGhost,
-.btnPrimary {
+.btnPrimary,
+.btnDanger {
   min-height: 44px;
   border-radius: 8px;
   font-size: .84rem;
@@ -397,9 +412,38 @@
   color: var(--bg);
 }
 
-.btnPrimary:disabled {
+.btnDanger {
+  border: 1px solid rgba(224,112,112,.45);
+  background: rgba(224,112,112,.16);
+  color: var(--red);
+}
+
+.btnPrimary:disabled,
+.btnGhost:disabled,
+.btnDanger:disabled {
   opacity: .45;
   cursor: not-allowed;
+}
+
+.statusActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.btnWhatsApp {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--green) 45%, var(--border));
+  background: color-mix(in srgb, var(--green) 16%, transparent);
+  color: var(--green);
+  font-size: .84rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
 }
 
 @media (max-width: 1024px) {
@@ -439,5 +483,9 @@
   .apptCard {
     left: 4px;
     right: 4px;
+  }
+
+  .statusActions {
+    grid-template-columns: 1fr;
   }
 }

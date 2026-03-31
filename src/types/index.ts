@@ -6,3 +6,5 @@ export * from './service-type'
 export * from './product'
 export * from './expense'
 export * from './payroll'
+
+export * from './appointment'
