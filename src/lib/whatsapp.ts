@@ -72,3 +72,29 @@ export function generateAppointmentWhatsAppLink(
     ? `https://wa.me/${target}?text=${encodeURIComponent(message)}`
     : `https://wa.me/?text=${encodeURIComponent(message)}`
 }
+
+export function generateTransferProofWhatsAppLink(
+  barbershopName: string,
+  planName: string,
+  amount: string,
+  months: number
+) {
+  const message = [
+    `¡Hola! 💈 Hice la transferencia para activar mi Plan ${planName} en FiloDesk.`,
+    `🏪 Barbería: ${barbershopName}`,
+    `📦 Plan: ${planName}`,
+    `💰 Monto: ${amount}`,
+    months > 1 ? `⏰ Duración: ${months} meses` : '',
+    '📎 Adjunto comprobante de transferencia.',
+    'Por favor verificá y activame el acceso.',
+    '¡Gracias! 🙌',
+  ].filter(Boolean).join('\n')
+
+  // WhatsApp de soporte de FiloDesk (por defecto vacío abre wa.me)
+  const soportePhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT || ''
+  const target = normalizeWhatsAppPhone(soportePhone)
+
+  return target
+    ? `https://wa.me/${target}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/?text=${encodeURIComponent(message)}`
+}

@@ -4,6 +4,11 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { createMPCheckoutWithMonths, createMPSubscription, createBankTransfer } from '@/app/actions/subscription'
+import { generateTransferProofWhatsAppLink } from '@/lib/whatsapp'
+
+// CVU y Alias de FiloDesk (hardcodeados para mostrarlos al usuario)
+const FILODESK_CVU = '0070396130004005324429'
+const FILODESK_ALIAS = 'FIlodeskapp'
 
 const MONTH_OPTIONS = [
   { months: 1,  label: '1 mes',   discount: 0    },
@@ -12,7 +17,7 @@ const MONTH_OPTIONS = [
   { months: 12, label: '1 año',   discount: 0.20 },
 ]
 
-type Method = 'checkout' | 'subscription' | 'transfer'
+type Method = 'checkout' | 'subscription' | 'transfer' | 'transfer-inline'
 type Screen = 'plans' | 'payment'
 
 interface Plan {
@@ -37,8 +42,12 @@ function fmt(n: number) {
 }
 
 export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
-  const visiblePlans = plans.filter((plan) => plan.id === 'base' || plan.id === 'pro')
-  const [screen, setScreen] = useState<Screen>('plans')
+  // Si está en trial, solo mostrar Plan Base
+  const isTrial = subscriptionStatus === 'trial'
+  const visiblePlans = isTrial
+    ? plans.filter((plan) => plan.id === 'base')
+    : plans.filter((plan) => plan.id === 'base' || plan.id === 'pro')
+  const [screen, setScreen] = useState<Screen>(isTrial ? 'payment' : 'plans')
   const normalizedCurrentPlan = currentPlan || 'Base'
   const initialSelectedPlanId = visiblePlans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialSelectedPlanId)
@@ -102,7 +111,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   }
 
   function goBack() {
-    setScreen('plans')
+    setScreen(isTrial ? 'payment' : 'plans')
   }
 
   function pickMonths(m: number) {
@@ -111,11 +120,18 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   }
 
   function handlePay() {
+    if (method === 'transfer') {
+      // Mostrar UI de transferencia inline
+      setMethod('transfer-inline')
+      return
+    }
+
     start(async () => {
       if (method === 'subscription') {
         await createMPSubscription(barbershopId, selectedPlanId)
-      } else if (method === 'transfer') {
-        await createBankTransfer(barbershopId, months, selectedPlanId)
+      } else if (method === 'transfer-inline') {
+        // La UI ya se muestra inline, no redirigir
+        return
       } else {
         await createMPCheckoutWithMonths(barbershopId, months, selectedPlanId)
       }
@@ -162,20 +178,23 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                 <Image src="/logo-dark.png"  alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
                 <div>
                   <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--cream)', marginBottom: 6 }}>
-                    {subscriptionStatus === 'active'
-                      ? 'Gestioná tu suscripción'
-                      : subscriptionStatus === 'trial'
-                        ? 'Tu período de prueba terminó'
+                    {isTrial
+                      ? 'PERÍODO DE PRUEBA ✨'
+                      : subscriptionStatus === 'active'
+                        ? 'Gestioná tu suscripción'
                         : 'Suscripción vencida'}
                   </h1>
                   <p style={{ fontSize: '.88rem', color: 'var(--muted)', lineHeight: 1.6 }}>
-                    {subscriptionStatus === 'active'
-                      ? `Tu plan actual es ${normalizedCurrentPlan}. Podés mantenerlo o mejorar a un plan superior.`
-                      : trialEnd
-                        ? `Tu prueba venció el ${trialEnd}.`
-                        : 'Tu suscripción está vencida.'}{' '}
-                    Elegí un plan para seguir con{' '}
-                    <strong style={{ color: 'var(--text)' }}>{barbershopName}</strong>.
+                    {isTrial
+                      ? `Activá tu Plan Base para seguir usando todas las funciones sin límites.`
+                      : subscriptionStatus === 'active'
+                        ? `Tu plan actual es ${normalizedCurrentPlan}. Podés mantenerlo o mejorar a un plan superior.`
+                        : trialEnd
+                          ? `Tu prueba venció el ${trialEnd}.`
+                          : 'Tu suscripción está vencida.'}{' '}
+                    {isTrial && trialEnd
+                      ? <><br/>Tu prueba termina el <strong style={{ color: 'var(--gold)' }}>{trialEnd}</strong>.</>
+                      : `Elegí un plan para seguir con ${barbershopName}.`}
                   </p>
                 </div>
               </div>
@@ -284,13 +303,27 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                 <MethodCard active={method === 'subscription'} disabled={subDisabled} onClick={() => setMethod('subscription')} icon="🔄" title="Débito automático" subtitle={subDisabled ? 'Solo disponible para 1 mes' : 'Se renueva mensualmente'} badge="MENSUAL" />
                 <MethodCard active={method === 'transfer'} onClick={() => setMethod('transfer')} icon="🏦" title="Transferencia bancaria" subtitle="Desde cualquier banco · Rápido" badge="RECOMENDADO" badgeColor="gold" />
               </div>
-              <button className="suscripcion-pay-btn" onClick={handlePay} disabled={pending} style={{ width: '100%', padding: '15px 24px', background: pending ? 'var(--border)' : 'var(--gold)', color: pending ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 12, fontSize: '.95rem', fontWeight: 700, cursor: pending ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+
+              {/* UI de Transferencia Inline - #083 */}
+              {method === 'transfer-inline' && (
+                <TransferInlineUI
+                  cvu={FILODESK_CVU}
+                  alias={FILODESK_ALIAS}
+                  amount={fmt(total)}
+                  planName={plan.name}
+                  barbershopName={barbershopName}
+                  months={months}
+                  onBack={() => setMethod('transfer')}
+                />
+              )}
+
+              <button className="suscripcion-pay-btn" onClick={handlePay} disabled={pending || method === 'transfer-inline'} style={{ width: '100%', padding: '15px 24px', background: pending || method === 'transfer-inline' ? 'var(--border)' : 'var(--gold)', color: pending || method === 'transfer-inline' ? 'var(--muted)' : '#0e0e0e', border: 'none', borderRadius: 12, fontSize: '.95rem', fontWeight: 700, cursor: pending || method === 'transfer-inline' ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 {pending ? (
                   <>
                     <Loader2 size={18} className="suscripcion-spinner" />
                     Redirigiendo a pago seguro...
                   </>
-                ) : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Pagar con Transferencia →` : 'Activar débito automático →')}
+                ) : (method === 'checkout' ? `Pagar ${fmt(total)} →` : method === 'transfer' ? `Ver datos de transferencia →` : method === 'transfer-inline' ? 'Esperando comprobante...' : 'Activar débito automático →')}
               </button>
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <p style={{ fontSize: '.73rem', color: 'var(--muted)' }}>🔒 Pagos seguros vía {method === 'transfer' ? 'GalioPay' : 'MercadoPago'}</p>
@@ -334,5 +367,98 @@ function MethodCard({ active, disabled, onClick, icon, title, subtitle, badge, b
         {active && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
       </div>
     </button>
+  )
+}
+
+// Componente de Transferencia Inline - Ticket #083
+interface TransferInlineUIProps {
+  cvu: string
+  alias: string
+  amount: string
+  planName: string
+  barbershopName: string
+  months: number
+  onBack: () => void
+}
+
+function TransferInlineUI({ cvu, alias, amount, planName, barbershopName, months, onBack }: TransferInlineUIProps) {
+  const whatsAppLink = generateTransferProofWhatsAppLink(barbershopName, planName, amount, months)
+
+  return (
+    <div style={{
+      background: 'var(--surface)',
+      border: '1.5px solid var(--gold)',
+      borderRadius: 14,
+      padding: '24px 20px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <p style={{ fontSize: '.75rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--gold)' }}>
+          Datos para transferir
+        </p>
+        <button
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--muted)',
+            fontSize: '.75rem',
+            cursor: 'pointer',
+          }}
+        >
+          ← Cambiar método
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ background: 'rgba(212,168,42,0.08)', border: '1px solid rgba(212,168,42,0.2)', borderRadius: 10, padding: '14px 16px' }}>
+          <p style={{ fontSize: '.68rem', color: 'var(--muted)', marginBottom: 4 }}>CVU</p>
+          <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--cream)', fontFamily: 'monospace', letterSpacing: '1px' }}>{cvu}</p>
+        </div>
+
+        <div style={{ background: 'rgba(212,168,42,0.08)', border: '1px solid rgba(212,168,42,0.2)', borderRadius: 10, padding: '14px 16px' }}>
+          <p style={{ fontSize: '.68rem', color: 'var(--muted)', marginBottom: 4 }}>Alias</p>
+          <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--cream)', fontFamily: 'monospace', letterSpacing: '1px' }}>{alias}</p>
+        </div>
+
+        <div style={{ background: 'rgba(212,168,42,0.08)', border: '1px solid rgba(212,168,42,0.2)', borderRadius: 10, padding: '14px 16px' }}>
+          <p style={{ fontSize: '.68rem', color: 'var(--muted)', marginBottom: 4 }}>Monto a transferir</p>
+          <p style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--gold)' }}>{amount}</p>
+          {months > 1 && <p style={{ fontSize: '.72rem', color: 'var(--muted)', marginTop: 2 }}>Por {months} meses</p>}
+        </div>
+      </div>
+
+      <p style={{ fontSize: '.8rem', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.5 }}>
+        Hacé la transferencia y envianos el comprobante por WhatsApp
+      </p>
+
+      <a
+        href={whatsAppLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          padding: '14px 20px',
+          background: '#25D366',
+          color: '#fff',
+          borderRadius: 10,
+          fontSize: '.9rem',
+          fontWeight: 700,
+          textDecoration: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        📱 Enviar comprobante por WhatsApp
+      </a>
+
+      <p style={{ fontSize: '.7rem', color: 'var(--muted)', textAlign: 'center' }}>
+        Te activamos el acceso en 24hs hábiles después de verificar el pago
+      </p>
+    </div>
   )
 }
