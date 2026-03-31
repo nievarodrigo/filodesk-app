@@ -158,7 +158,7 @@ export default function AgendaPage() {
     const result = await getAgendaData(barbershopId, fromISO, toISO)
 
     if ('error' in result) {
-      setError(result.error)
+      setError(result.error ?? 'Error al cargar la agenda')
       setLoading(false)
       return
     }
