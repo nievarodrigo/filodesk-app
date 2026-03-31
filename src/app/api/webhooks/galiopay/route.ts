@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const paymentId = body.id as string
   const status = body.status as string
-  const referenceId = body.referenceId as string // = checkout_intent UUID
+  const referenceId = body.referenceId as string
   const amount = body.amount as number
   const currency = (body.currency as string) || 'ARS'
   const paymentDate = (body.date as string) || new Date().toISOString()
@@ -45,37 +45,31 @@ export async function POST(req: NextRequest) {
   console.log(`[GalioPay webhook] recibido id=${paymentId} status=${status} ref=${referenceId} amount=${amount} ${currency}`)
   if (sandbox) console.warn('[GalioPay webhook] ⚠️ SANDBOX — pago de prueba')
 
-  // Solo procesamos pagos aprobados
   if (status !== 'approved') {
     console.log(`[GalioPay webhook] status=${status}, ignorado`)
     return OK()
   }
 
   try {
-    // SECURITY: usar service role — el webhook no tiene sesión de usuario
     const supabase = createServiceClient()
 
-    // 1. Buscar la intención de pago (referenceId = intentId creado en la action)
     const intent = await checkoutIntentRepo.findById(supabase, referenceId)
     if (!intent) {
       console.error(`[GalioPay webhook] intent no encontrado: ${referenceId}`)
       return OK()
     }
 
-    // 2. Marcar como completado de forma atómica (idempotencia)
-    //    Si ya estaba completado, .single() devuelve error → saltamos sin activar doble
+    // Idempotencia: si ya fue procesado, ignorar
     const markResult = await checkoutIntentRepo.markCompletedIfPending(supabase, intent.id, paymentId)
     if (markResult.error) {
       console.warn(`[GalioPay webhook] intent ya procesado: ${referenceId}`)
       return OK()
     }
 
-    // 3. Calcular fecha de vencimiento según meses pagados
     const months: number = intent.months ?? 1
     const paid = new Date(paymentDate)
     const expiresAt = new Date(paid.getFullYear(), paid.getMonth() + months, paid.getDate()).toISOString()
 
-    // 4. Activar suscripción en la barbería
     await barbershopRepo.activateGaliopaySubscription(
       supabase,
       intent.barbershop_id,
@@ -88,7 +82,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     Sentry.captureException(error)
     console.error('[GalioPay webhook] error procesando pago:', error)
-    // Igual respondemos 200 para que GalioPay no reintente con datos ya procesados
   }
 
   return OK()

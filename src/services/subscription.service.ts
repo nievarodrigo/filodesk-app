@@ -277,6 +277,58 @@ export async function createBankTransfer(
   return { redirectUrl: galioResult.paymentLink.url }
 }
 
+export async function processGalioPayWebhook(
+  supabase: SupabaseClient,
+  payload: {
+    id: string
+    status: string
+    referenceId: string
+    amount: number
+    netAmount: number
+    date: string
+  }
+) {
+  const { referenceId, status, amount, date } = payload
+
+  if (status !== 'approved') return { ok: true }
+
+  // Buscar la suscripción pendiente para obtener el plan
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('plan_id')
+    .eq('barbershop_id', referenceId)
+    .eq('status', 'pending_validation')
+    .eq('payment_method', 'bank_transfer')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const planId = subscription?.plan_id ?? 'base'
+  const plan = await getPlanData(supabase, planId)
+
+  await barbershopRepo.updateSubscription(
+    supabase,
+    referenceId,
+    'active',
+    null,
+    date,
+    null,
+    amount,
+    'bank_transfer',
+    plan?.name ?? null
+  )
+
+  // Marcar la suscripción como activa
+  await supabase
+    .from('subscriptions')
+    .update({ status: 'active' })
+    .eq('barbershop_id', referenceId)
+    .eq('status', 'pending_validation')
+    .eq('payment_method', 'bank_transfer')
+
+  return { ok: true }
+}
+
 export async function processWebhook(
   supabase: SupabaseClient,
   subscriptionId: string

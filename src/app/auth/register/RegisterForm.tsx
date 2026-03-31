@@ -136,6 +136,12 @@ export default function RegisterForm() {
           )}
         </div>
 
+        <div
+          className="cf-turnstile"
+          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'}
+          data-theme="dark"
+        />
+
         {state?.message && (
           <div className={styles.errorBox}>{state.message}</div>
         )}

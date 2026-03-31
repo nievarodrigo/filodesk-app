@@ -31,7 +31,7 @@ export async function register(
 ): Promise<AuthFormState> {
   const turnstileToken = formData.get('cf-turnstile-response') as string
   const captchaOk = await authService.verifyTurnstile(turnstileToken || '')
-  
+
   // BYPASS TEMPORAL #082: Para pruebas en staging/develop si falla Turnstile
   const isDev = process.env.NODE_ENV === 'development'
   const isStaging = process.env.NEXT_PUBLIC_SITE_URL?.includes('vercel.app')

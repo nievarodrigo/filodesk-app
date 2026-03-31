@@ -73,7 +73,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   const currentPlanPrice = currentPlanData?.price ?? 0
 
   const uiPlans = visiblePlans.map(p => {
-    const isCurrent = p.name === normalizedCurrentPlan
+    const isCurrent = subscriptionStatus === 'active' && p.name === normalizedCurrentPlan
     const isUpgrade = p.price > currentPlanPrice
 
     return {
