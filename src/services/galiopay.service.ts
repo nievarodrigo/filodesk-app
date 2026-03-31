@@ -1,4 +1,4 @@
-const API_BASE = process.env.GALIOPAY_API_BASE || 'https://api.galiopay.com/v1'
+const API_BASE = process.env.GALIOPAY_API_BASE || 'https://pay.galio.app/api'
 
 // FIX #080: CVU y Alias de servidor, nunca expone al cliente
 const GALIOPAY_CVU = process.env.GALIOPAY_CVU
@@ -27,21 +27,23 @@ export function getGalioPayCredentials() {
 
 export async function createPaymentLink(input: CreatePaymentLinkInput) {
   const { referenceId, amount, description, email, name } = input
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
 
+  // Payload según documentación oficial de GalioPay
   const body = {
-    reference_id: referenceId,
-    amount: Math.round(amount),
-    currency: 'ARS',
-    description,
-    ...(email && { customer_email: email }),
-    ...(name && { customer_name: name }),
-    products: [
+    referenceId,
+    items: [
       {
-        name: description,
+        title: description,
         quantity: 1,
-        unit_price: Math.round(amount),
+        unitPrice: Math.round(amount),
+        currencyId: 'ARS',
       },
     ],
+    backUrl: {
+      success: `${siteUrl}/suscripcion/exito-pago`,
+      failure: `${siteUrl}/suscripcion?error=galiopay`,
+    },
   }
 
   try {
@@ -50,7 +52,7 @@ export async function createPaymentLink(input: CreatePaymentLinkInput) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
-        'X-Client-Id': process.env.GALIOPAY_CLIENT_ID || '',
+        'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
       body: JSON.stringify(body),
     })
@@ -74,7 +76,7 @@ export async function getPaymentLink(linkId: string) {
     const res = await fetch(`${API_BASE}/payment-links/${linkId}`, {
       headers: {
         'Authorization': `Bearer ${process.env.GALIOPAY_API_KEY}`,
-        'X-Client-Id': process.env.GALIOPAY_CLIENT_ID || '',
+        'x-client-id': process.env.GALIOPAY_CLIENT_ID || '',
       },
     })
 
