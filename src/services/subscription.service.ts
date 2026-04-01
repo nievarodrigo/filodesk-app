@@ -59,9 +59,11 @@ export async function createMPSubscription(
   if (!plan) return { error: 'invalid_plan' as const }
 
   const siteUrl = getSiteUrl()
+  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const resolvedPayerEmail = isSandbox ? process.env.MP_TEST_PAYER_EMAIL : payerEmail
   const body = {
     reason: `FiloDesk — ${barbershop.name} (Plan ${plan.name})`,
-    ...(payerEmail && { payer_email: payerEmail }),
+    ...(resolvedPayerEmail && { payer_email: resolvedPayerEmail }),
     auto_recurring: {
       frequency: 1,
       frequency_type: 'months',
