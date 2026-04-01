@@ -70,7 +70,7 @@ export async function createMPSubscription(
       transaction_amount: plan.price,
       currency_id: 'ARS',
     },
-    back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
+    back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}&planName=${encodeURIComponent(plan.name)}`,
     external_reference: barbershopId,
     status: 'pending',
   }
