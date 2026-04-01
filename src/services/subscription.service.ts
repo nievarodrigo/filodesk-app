@@ -70,6 +70,8 @@ export async function createMPSubscription(
     external_reference: barbershopId,
   }
 
+  console.log('[MP preapproval] request body:', JSON.stringify(body))
+
   const res = await fetch('https://api.mercadopago.com/preapproval', {
     method: 'POST',
     headers: {
