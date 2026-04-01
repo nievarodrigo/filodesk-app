@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient, createClient } from '@/lib/supabase/server'
 import * as subscriptionService from '@/services/subscription.service'
 
 export default async function PagoExitoPage({
@@ -13,6 +13,10 @@ export default async function PagoExitoPage({
 
   let approved = false
   const supabase = createServiceClient()
+
+  // Refrescar el access token del usuario — el service client no maneja cookies de auth
+  const userClient = await createClient()
+  await userClient.auth.getUser()
 
   // SECURITY: Verificar el pago real contra MercadoPago con idempotencia garantizada
   // MP redirige con: payment_id + external_reference (que incluye intentId)
