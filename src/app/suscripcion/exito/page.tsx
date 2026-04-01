@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
 import styles from '../result.module.css'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function SuscripcionExitoPage({
   searchParams,
@@ -9,6 +10,10 @@ export default async function SuscripcionExitoPage({
 }) {
   const { barbershopId: rawBarbershopId } = await searchParams
   const barbershopId = rawBarbershopId?.split('?')[0]
+
+  // Refrescar el access token del usuario antes de renderizar
+  const userClient = await createClient()
+  await userClient.auth.getUser()
   const agendaHref = barbershopId ? `/dashboard/${barbershopId}/agenda` : '/dashboard'
 
   return (
