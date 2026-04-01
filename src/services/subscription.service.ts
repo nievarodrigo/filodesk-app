@@ -82,9 +82,19 @@ export async function createMPSubscription(
   })
 
   const data = await res.json()
-  if (!res.ok || !data.init_point) return { error: 'mp_error' as const }
+  if (!res.ok) {
+    console.error('[MP preapproval] API error:', JSON.stringify(data))
+    return { error: 'mp_error' as const }
+  }
 
-  return { redirectUrl: data.init_point as string }
+  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const redirectUrl = isSandbox ? (data.sandbox_init_point ?? data.init_point) : data.init_point
+  if (!redirectUrl) {
+    console.error('[MP preapproval] no init_point in response:', JSON.stringify(data))
+    return { error: 'mp_error' as const }
+  }
+
+  return { redirectUrl: redirectUrl as string }
 }
 
 export async function createMPCheckout(
