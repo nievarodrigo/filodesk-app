@@ -19,7 +19,7 @@ export async function createMPSubscription(barbershopId: string, planId: string 
   let result: Awaited<ReturnType<typeof subscriptionService.createMPSubscription>>
   try {
     result = await subscriptionService.createMPSubscription(
-      supabase, barbershopId, user.id, planId, user.email ?? undefined
+      supabase, barbershopId, user.id, planId
     )
   } catch (error) {
     Sentry.captureException(error)

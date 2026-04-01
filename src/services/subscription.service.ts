@@ -50,7 +50,6 @@ export async function createMPSubscription(
   barbershopId: string,
   userId: string,
   planId: string = 'base',
-  payerEmail?: string,
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
@@ -61,7 +60,6 @@ export async function createMPSubscription(
   const siteUrl = getSiteUrl()
   const body = {
     reason: `FiloDesk — ${barbershop.name} (Plan ${plan.name})`,
-    ...(payerEmail && { payer_email: payerEmail }),
     auto_recurring: {
       frequency: 1,
       frequency_type: 'months',
