@@ -72,6 +72,7 @@ export async function createMPSubscription(
     },
     back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
     external_reference: barbershopId,
+    status: 'pending',
   }
 
   console.log('[MP preapproval] request body:', JSON.stringify(body))
