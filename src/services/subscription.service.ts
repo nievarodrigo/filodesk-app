@@ -49,7 +49,8 @@ export async function createMPSubscription(
   supabase: SupabaseClient,
   barbershopId: string,
   userId: string,
-  planId: string = 'base'
+  planId: string = 'base',
+  payerEmail?: string,
 ) {
   const barbershop = await barbershopRepo.findNameByIdAndOwner(supabase, barbershopId, userId)
   if (!barbershop) return { error: 'not_found' as const }
@@ -60,17 +61,18 @@ export async function createMPSubscription(
   const siteUrl = getSiteUrl()
   const body = {
     reason: `FiloDesk — ${barbershop.name} (Plan ${plan.name})`,
+    ...(payerEmail && { payer_email: payerEmail }),
     auto_recurring: {
       frequency: 1,
       frequency_type: 'months',
       transaction_amount: plan.price,
       currency_id: 'ARS',
     },
-    back_url: `${siteUrl}/dashboard/${barbershopId}`,
+    back_url: `${siteUrl}/suscripcion/exito?barbershopId=${barbershopId}`,
     external_reference: barbershopId,
   }
 
-  const res = await fetch('https://api.mercadopago.com/preapproval_plan', {
+  const res = await fetch('https://api.mercadopago.com/preapproval', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -123,9 +125,15 @@ export async function createMPCheckout(
       currency_id: 'ARS',
     }],
     back_urls: {
-      success: `${siteUrl}/suscripcion/exito-pago?barbershopId=${barbershopId}`,
-      failure: `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
-      pending: `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
+      success: siteUrl.includes('localhost')
+        ? 'https://filodesk.app/suscripcion/exito-pago'
+        : `${siteUrl}/suscripcion/exito-pago?barbershopId=${barbershopId}`,
+      failure: siteUrl.includes('localhost')
+        ? 'https://filodesk.app/suscripcion'
+        : `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
+      pending: siteUrl.includes('localhost')
+        ? 'https://filodesk.app/suscripcion'
+        : `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
     },
     auto_return: 'approved',
     external_reference: `${barbershopId}:${intentId}`,
