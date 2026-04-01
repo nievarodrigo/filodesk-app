@@ -59,7 +59,7 @@ export async function createMPSubscription(
   if (!plan) return { error: 'invalid_plan' as const }
 
   const siteUrl = getSiteUrl()
-  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const isSandbox = process.env.VERCEL_ENV !== 'production'
   const resolvedPayerEmail = isSandbox ? process.env.MP_TEST_PAYER_EMAIL : payerEmail
   const body = {
     reason: `FiloDesk — ${barbershop.name} (Plan ${plan.name})`,
@@ -130,7 +130,7 @@ export async function createMPCheckout(
   if (intentResult.error) return { error: 'intent_creation_failed' as const }
 
   const intentId = intentResult.data.id
-  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const isSandbox = process.env.VERCEL_ENV !== 'production'
   const baseUrl = siteUrl.includes('localhost') ? 'https://filodesk.app' : siteUrl
 
   const body = {
