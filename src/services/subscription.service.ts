@@ -91,7 +91,6 @@ export async function createMPSubscription(
     return { error: 'mp_error' as const }
   }
 
-  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
   const redirectUrl = isSandbox ? (data.sandbox_init_point ?? data.init_point) : data.init_point
   if (!redirectUrl) {
     console.error('[MP preapproval] no init_point in response:', JSON.stringify(data))
