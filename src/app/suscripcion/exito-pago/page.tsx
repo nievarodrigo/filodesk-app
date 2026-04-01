@@ -8,7 +8,8 @@ export default async function PagoExitoPage({
   searchParams: Promise<{ barbershopId?: string; status?: string; payment_id?: string; external_reference?: string }>
 }) {
   const { barbershopId: rawBarbershopId, status: paymentStatus, payment_id: paymentId, external_reference: externalRef } = await searchParams
-  const barbershopId = rawBarbershopId?.split('?')[0]
+  // barbershopId puede venir en la URL o extraerse del external_reference ("barbershopId:intentId")
+  const barbershopId = rawBarbershopId?.split('?')[0] ?? externalRef?.split(':')[0]
 
   let approved = false
   const supabase = createServiceClient()

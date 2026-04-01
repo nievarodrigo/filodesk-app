@@ -117,6 +117,9 @@ export async function createMPCheckout(
   if (intentResult.error) return { error: 'intent_creation_failed' as const }
 
   const intentId = intentResult.data.id
+  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const baseUrl = siteUrl.includes('localhost') ? 'https://filodesk.app' : siteUrl
+
   const body = {
     items: [{
       title: `FiloDesk — ${barbershop.name} (${label})`,
@@ -125,15 +128,9 @@ export async function createMPCheckout(
       currency_id: 'ARS',
     }],
     back_urls: {
-      success: siteUrl.includes('localhost')
-        ? 'https://filodesk.app/suscripcion/exito-pago'
-        : `${siteUrl}/suscripcion/exito-pago?barbershopId=${barbershopId}`,
-      failure: siteUrl.includes('localhost')
-        ? 'https://filodesk.app/suscripcion'
-        : `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
-      pending: siteUrl.includes('localhost')
-        ? 'https://filodesk.app/suscripcion'
-        : `${siteUrl}/suscripcion?barbershopId=${barbershopId}`,
+      success: `${baseUrl}/suscripcion/exito-pago?barbershopId=${barbershopId}`,
+      failure: `${baseUrl}/suscripcion?barbershopId=${barbershopId}`,
+      pending: `${baseUrl}/suscripcion?barbershopId=${barbershopId}`,
     },
     auto_return: 'approved',
     external_reference: `${barbershopId}:${intentId}`,
@@ -149,12 +146,13 @@ export async function createMPCheckout(
   })
 
   const data = await res.json()
-  if (!res.ok || !data.init_point) {
+  if (!res.ok || (!data.init_point && !data.sandbox_init_point)) {
     await checkoutIntentRepo.markFailed(supabase, intentId)
     return { error: 'mp_error' as const }
   }
 
-  return { redirectUrl: data.init_point as string }
+  const redirectUrl = isSandbox ? data.sandbox_init_point : data.init_point
+  return { redirectUrl: redirectUrl as string }
 }
 
 export async function verifyCheckoutPayment(
