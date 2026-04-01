@@ -15,7 +15,7 @@ export default async function SuscripcionExitoPage({
   // Refrescar el access token del usuario antes de renderizar
   const userClient = await createClient()
   await userClient.auth.getUser()
-  const agendaHref = barbershopId ? `/dashboard/${barbershopId}/agenda` : '/dashboard'
+  const agendaHref = barbershopId ? `/dashboard/${barbershopId}` : '/dashboard'
 
   return (
     <main className={styles.page}>
@@ -28,7 +28,7 @@ export default async function SuscripcionExitoPage({
           Tu suscripción se acreditó correctamente. Ya podés seguir gestionando el negocio con todas las funciones premium.
         </p>
         <Link href={agendaHref} className={styles.cta}>
-          Ir a la Agenda
+          Ir al dashboard
         </Link>
       </section>
     </main>
