@@ -23,8 +23,9 @@ export default async function middleware(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value)
             response.cookies.set(name, value, {
               // FIX #080: sameSite 'lax' para cross-site cookies (redirecciones de MP/GalioPay)
               sameSite: 'lax',
@@ -34,7 +35,6 @@ export default async function middleware(request: NextRequest) {
               maxAge: options?.maxAge,
             })
           })
-          response = NextResponse.next({ request })
         },
       },
     }

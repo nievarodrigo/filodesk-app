@@ -8,8 +8,9 @@ export default async function SuscripcionExitoPage({
 }: {
   searchParams: Promise<{ barbershopId?: string; planName?: string }>
 }) {
-  const { barbershopId: rawBarbershopId, planName } = await searchParams
+  const { barbershopId: rawBarbershopId, planName: rawPlanName } = await searchParams
   const barbershopId = rawBarbershopId?.split('?')[0]
+  const planName = rawPlanName?.split('?')[0]
 
   // Refrescar el access token del usuario antes de renderizar
   const userClient = await createClient()
