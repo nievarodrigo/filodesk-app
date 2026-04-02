@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { deleteVenta } from '@/app/actions/venta'
 import { BarbershopRole } from '@/lib/definitions'
 import styles from './ventashoy.module.css'
 
@@ -171,33 +172,38 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
 }
 
 interface Props {
+  barbershopId: string
   role: BarbershopRole
   serviceSales: ServiceSale[]
   productSales: ProductSale[]
 }
 
-export default function VentasHoySection({ role, serviceSales, productSales }: Props) {
+export default function VentasHoySection({ barbershopId, role, serviceSales, productSales }: Props) {
+  const [serviceSalesState, setServiceSalesState] = useState(serviceSales)
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
   const [barberPage, setBarberPage] = useState(1)
   const [servicePagesPerBarber, setServicePagesPerBarber] = useState<Record<string, number>>({})
   const [transactionPage, setTransactionPage] = useState(1)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null)
+  const [isDeleting, startDeleteTransition] = useTransition()
 
   const ITEMS_PER_PAGE = 10
 
-  const grouped = groupServicesByBarber(serviceSales)
+  const grouped = groupServicesByBarber(serviceSalesState)
   const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSales)
-  const totalServicios = serviceSales.reduce((s, r) => s + r.amount, 0)
+  const totalServicios = serviceSalesState.reduce((s, r) => s + r.amount, 0)
   const totalProductos = role === 'barber' ? 0 : productSales.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
 
   const TABS = role === 'barber'
     ? [
-        { key: 'servicio', label: `Tus servicios (${serviceSales.length})` },
+        { key: 'servicio', label: `Tus servicios (${serviceSalesState.length})` },
       ] as const
     : [
         { key: 'todos', label: 'Todos' },
-        { key: 'servicio', label: `Servicios (${serviceSales.length})` },
+        { key: 'servicio', label: `Servicios (${serviceSalesState.length})` },
         { key: 'producto', label: `Productos (${productSales.length})` },
       ] as const
 
@@ -206,7 +212,7 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
   const showServices = effectiveFilter === 'todos' || effectiveFilter === 'servicio'
   const showProducts = role !== 'barber' && (effectiveFilter === 'todos' || effectiveFilter === 'producto')
 
-  const totalCount = serviceSales.length + (role === 'barber' ? 0 : productSales.length)
+  const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSales.length)
 
   // Paginación de barberos
   const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
@@ -219,6 +225,32 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
   const txStart = (transactionPage - 1) * ITEMS_PER_PAGE
   const txEnd = txStart + ITEMS_PER_PAGE
   const paginatedTransactions = groupedTransactions.slice(txStart, txEnd)
+
+  function handleDeleteService(saleId: string, serviceName: string) {
+    if (role === 'barber') return
+    const ok = window.confirm(`¿Eliminar "${serviceName}" de ventas de hoy? Esta acción no se puede deshacer.`)
+    if (!ok) return
+
+    setDeleteError(null)
+    const previous = serviceSalesState
+    setDeletingSaleId(saleId)
+    setServiceSalesState((current) => current.filter((sale) => sale.id !== saleId))
+
+    startDeleteTransition(async () => {
+      try {
+        const result = await deleteVenta(barbershopId, saleId)
+        if (result?.error) {
+          setServiceSalesState(previous)
+          setDeleteError(result.error)
+        }
+      } catch {
+        setServiceSalesState(previous)
+        setDeleteError('No se pudo eliminar el servicio. Intentá de nuevo.')
+      } finally {
+        setDeletingSaleId(null)
+      }
+    })
+  }
 
   return (
     <div className={styles.section}>
@@ -258,6 +290,9 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
         <p className={styles.empty}>Todavía no hay ventas hoy.</p>
       ) : (
         <div className={styles.table}>
+          {deleteError && (
+            <p className={styles.errorBox}>{deleteError}</p>
+          )}
 
           {/* ── Servicios agrupados por barbero ── */}
           {showServices && grouped.length > 0 && (
@@ -308,15 +343,26 @@ export default function VentasHoySection({ role, serviceSales, productSales }: P
                       </div>
                       {paginatedServices.map(svc => (
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
-                          <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
-                          <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
-                          <span className={styles.detailQty} data-label="Cant.">1</span>
-                          <span className={styles.detailAmount} data-label="Monto">
-                            {formatARS(svc.amount)}
-                            {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
-                          </span>
-                        </div>
-                      ))}
+                        <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
+                        <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
+                        <span className={styles.detailQty} data-label="Cant.">1</span>
+                        <span className={styles.detailAmount} data-label="Monto">
+                          {formatARS(svc.amount)}
+                          {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
+                          {role !== 'barber' && (
+                            <button
+                              type="button"
+                              className={styles.deleteServiceBtn}
+                              onClick={() => handleDeleteService(svc.id, svc.service)}
+                              disabled={isDeleting && deletingSaleId === svc.id}
+                              aria-label={`Eliminar servicio ${svc.service}`}
+                            >
+                              {isDeleting && deletingSaleId === svc.id ? 'Eliminando…' : 'Eliminar'}
+                            </button>
+                          )}
+                        </span>
+                      </div>
+                    ))}
                       {totalServicePages > 1 && (
                         <PaginationControls
                           currentPage={servicePage}

@@ -5,8 +5,8 @@ export async function insertMany(supabase: SupabaseClient, rows: SaleRow[]) {
   return supabase.from('sales').insert(rows)
 }
 
-export async function deleteById(supabase: SupabaseClient, id: string) {
-  return supabase.from('sales').delete().eq('id', id)
+export async function deleteById(supabase: SupabaseClient, id: string, barbershopId: string) {
+  return supabase.from('sales').delete().eq('id', id).eq('barbershop_id', barbershopId)
 }
 
 export async function countByBarberId(supabase: SupabaseClient, barberId: string) {

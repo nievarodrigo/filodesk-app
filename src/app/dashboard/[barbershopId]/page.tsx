@@ -331,6 +331,7 @@ export default async function DashboardPage({
         collapseOnMobile
       >
         <VentasHoySection
+          barbershopId={barbershopId}
           role={context.role as BarbershopRole}
           serviceSales={(recentSales ?? []).map((s: Sale) => {
             const barberName = (s.barbers && typeof s.barbers === 'object')

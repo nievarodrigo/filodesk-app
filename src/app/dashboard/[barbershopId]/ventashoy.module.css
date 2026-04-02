@@ -146,6 +146,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .detailAmountMuted {
   color: var(--muted);
@@ -162,6 +164,35 @@
   background: rgba(212, 168, 42, 0.14);
   border: 1px solid rgba(212, 168, 42, 0.28);
   color: var(--gold);
+}
+
+.deleteServiceBtn {
+  border: 1px solid rgba(224, 112, 112, 0.35);
+  background: rgba(224, 112, 112, 0.12);
+  color: var(--red);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.deleteServiceBtn:hover:not(:disabled) {
+  background: rgba(224, 112, 112, 0.2);
+}
+.deleteServiceBtn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.errorBox {
+  margin: 8px 12px 12px;
+  background: rgba(224,112,112,.1);
+  border: 1px solid rgba(224,112,112,.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .82rem;
+  color: var(--red);
 }
 
 .productTransaction {

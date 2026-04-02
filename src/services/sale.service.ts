@@ -48,6 +48,6 @@ export async function createSale(
   return {}
 }
 
-export async function deleteSale(supabase: SupabaseClient, saleId: string) {
-  await saleRepo.deleteById(supabase, saleId)
+export async function deleteSale(supabase: SupabaseClient, saleId: string, barbershopId: string) {
+  await saleRepo.deleteById(supabase, saleId, barbershopId)
 }
