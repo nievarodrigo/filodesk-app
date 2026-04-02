@@ -45,7 +45,7 @@ const securityHeaders = [
      * Los dominios externos (Stripe, MercadoPago, Turnstile, Supabase) son necesarios
      * para funcionalidades de pago y autenticación.
      */
-    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.turnstile.cloud https://sdk.mercadopago.com; frame-src 'self' https://www.mercadopago.com.ar https://sdk.mercadopago.com; connect-src 'self' https://api.mercadopago.com https://www.mercadopago.com.ar https://*.supabase.co https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline';"
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.turnstile.cloud https://challenges.cloudflare.com https://sdk.mercadopago.com; frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com.ar https://sdk.mercadopago.com; connect-src 'self' https://api.mercadopago.com https://www.mercadopago.com.ar https://*.supabase.co https://*.vercel.app; img-src 'self' data: https: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline';"
   }
 ]
 
