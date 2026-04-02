@@ -22,7 +22,9 @@ interface ProductSale {
   id: string; type: 'producto'
   product: string; quantity: number
   unit_price: number
+  unit_cost: number
   amount: number
+  profit: number
   transaction_id: string
   created_at: string
 }
@@ -32,12 +34,15 @@ interface GroupedTransaction {
   created_at: string
   itemCount: number
   total: number
+  totalProfit: number
   items: Array<{
     id: string
     product: string
     quantity: number
     unit_price: number
+    unit_cost: number
     amount: number
+    profit: number
   }>
 }
 
@@ -62,14 +67,16 @@ function groupProductsByTransaction(sales: ProductSale[]): GroupedTransaction[] 
     if (existing) {
       existing.itemCount++
       existing.total += s.amount
-      existing.items.push({ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, amount: s.amount })
+      existing.totalProfit += s.profit
+      existing.items.push({ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, unit_cost: s.unit_cost, amount: s.amount, profit: s.profit })
     } else {
       map.set(key, {
         transaction_id: key,
         created_at: s.created_at,
         itemCount: 1,
         total: s.amount,
-        items: [{ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, amount: s.amount }],
+        totalProfit: s.profit,
+        items: [{ id: s.id, product: s.product, quantity: s.quantity, unit_price: s.unit_price, unit_cost: s.unit_cost, amount: s.amount, profit: s.profit }],
       })
     }
   }
@@ -444,11 +451,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
           {/* ── Productos agrupados por transacción ── */}
           {showProducts && groupedTransactions.length > 0 && (
             <>
-              <div className={styles.tableHead}>
+              <div className={`${styles.tableHead} ${styles.tableHeadProduct}`}>
                 <span></span>
                 <span>Transacción</span>
                 <span>Productos</span>
                 <span>Total</span>
+                <span>Ganancia</span>
               </div>
               {paginatedTransactions.map(tx => (
                 <details key={tx.transaction_id} className={styles.productTransaction}>
@@ -460,6 +468,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                       <span>{formatARS(tx.total)}</span>
                       <span className={styles.transactionChevron} aria-hidden>▾</span>
                     </span>
+                    <span className={styles.transactionTotal}>{formatARS(tx.totalProfit)}</span>
                   </summary>
                   <div className={styles.detailBlock}>
                     <div className={`${styles.productDetailHead} ${styles.innerHeadShared}`}>
@@ -467,6 +476,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                       <span>Cant.</span>
                       <span>Precio Unit.</span>
                       <span>Subtotal</span>
+                      <span>Ganancia</span>
                     </div>
                     {tx.items.map(item => (
                       <div key={item.id} className={`${styles.productDetailRow} ${styles.detailRowCard}`}>
@@ -485,6 +495,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             {isDeletingProduct && deletingProductSaleId === item.id ? 'Eliminando…' : 'Eliminar'}
                           </button>
                         </span>
+                        <span className={styles.detailAmount} data-label="Ganancia">{formatARS(item.profit)}</span>
                       </div>
                     ))}
                   </div>

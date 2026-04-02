@@ -137,7 +137,7 @@ export default async function DashboardPage({
     context.role === 'barber'
       ? Promise.resolve({ data: [] as ProductSale[] })
       : supabase.from('product_sales')
-          .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
+          .select('id, sale_price, quantity, transaction_id, created_at, products(name, cost_price)')
           .eq('barbershop_id', barbershopId)
           .eq('date', todayDate)
           .order('created_at', { ascending: false })
@@ -358,16 +358,22 @@ export default async function DashboardPage({
             }
           })}
           productSales={(productSalesToday ?? []).map((s: ProductSale) => {
-            const productName = (s.products && typeof s.products === 'object')
-              ? (Array.isArray(s.products) ? s.products[0]?.name : s.products.name)
-              : 'Sin producto'
+            const productData = (s.products && typeof s.products === 'object')
+              ? (Array.isArray(s.products) ? s.products[0] : s.products)
+              : null
+            const productName = productData?.name ?? 'Sin producto'
+            const unitCost = Number(productData?.cost_price ?? 0)
+            const quantity = s.quantity ?? 1
+            const unitPrice = s.sale_price ?? 0
             return {
               id: s.id,
               type: 'producto' as const,
               product: productName ?? '—',
-              quantity: s.quantity ?? 1,
-              unit_price: s.sale_price ?? 0,
-              amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+              quantity,
+              unit_price: unitPrice,
+              unit_cost: unitCost,
+              amount: unitPrice * quantity,
+              profit: (unitPrice - unitCost) * quantity,
               transaction_id: s.transaction_id ?? '',
               created_at: s.created_at ?? '',
             }

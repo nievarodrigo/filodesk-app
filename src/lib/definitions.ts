@@ -75,8 +75,10 @@ export interface ProductSale {
   created_at?: string
   products?: {
     name: string
+    cost_price?: number | null
   } | Array<{
     name: string
+    cost_price?: number | null
   }>
 }
 
