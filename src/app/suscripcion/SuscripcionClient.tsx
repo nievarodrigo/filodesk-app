@@ -36,13 +36,14 @@ interface Props {
   subscriptionStatus: string
   trialEnd:           string | null
   plans:              Plan[]
+  proAvailable:       boolean
 }
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
 }
 
-export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans }: Props) {
+export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans, proAvailable }: Props) {
   // Si está en trial, solo mostrar Plan Base
   const isTrial = subscriptionStatus === 'trial'
   const visiblePlans = isTrial
@@ -75,13 +76,14 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   const uiPlans = visiblePlans.map(p => {
     const isCurrent = subscriptionStatus === 'active' && p.name === normalizedCurrentPlan
     const isUpgrade = p.price > currentPlanPrice
+    const available = p.id === 'pro' ? proAvailable : true
 
     return {
       ...p,
       badge: isCurrent ? 'TU PLAN ACTUAL' : p.id === 'base' ? 'BASE' : 'PRO',
       badgeColor: isCurrent ? 'gold' : p.id === 'base' ? 'gold' : 'blue',
       accent: p.id === 'base' ? 'var(--gold)' : 'var(--blue)',
-      available: true,
+      available,
       isCurrent,
       isUpgrade,
       sub: isCurrent
@@ -112,7 +114,7 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
   }
 
   function goBack() {
-    setScreen(isTrial ? 'payment' : 'plans')
+    setScreen('plans')
   }
 
   function pickMonths(m: number) {

@@ -51,11 +51,8 @@ export default async function SuscripcionPage({
         ? 'trial'
         : barbershop.subscription_status
 
-  // Pro solo disponible para la barbería de testing
   const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
-  const visiblePlans = (plans || []).filter(p =>
-    p.id !== 'pro' || barbershopId === TESTING_BARBERSHOP_ID
-  )
+  const proAvailable = barbershopId === TESTING_BARBERSHOP_ID
 
   return (
     <SuscripcionClient
@@ -64,7 +61,8 @@ export default async function SuscripcionPage({
       currentPlan={barbershop.plan_name ?? 'Base'}
       subscriptionStatus={effectiveStatus}
       trialEnd={trialEnd}
-      plans={visiblePlans}
+      plans={plans || []}
+      proAvailable={proAvailable}
     />
   )
 }
