@@ -59,6 +59,17 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
     }))
   }
 
+  function changeRowQuantity(id: number, delta: number) {
+    setRows((current) =>
+      current.map((row) => {
+        if (row.id !== id) return row
+        const currentQty = Math.max(1, Number(row.quantity) || 1)
+        const nextQty = Math.max(1, currentQty + delta)
+        return { ...row, quantity: String(nextQty) }
+      })
+    )
+  }
+
   function handleReset() {
     setSelectedBarber(null)
     setRows([newRow()])
@@ -118,18 +129,35 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
               ))}
             </select>
 
-            <input
-              name="quantity[]"
-              type="number"
-              inputMode="numeric"
-              min="1"
-              step="1"
-              className={styles.input}
-              value={row.quantity}
-              onChange={e => updateRow(row.id, 'quantity', e.target.value)}
-              style={{ width: 56, textAlign: 'center' }}
-              title="Cantidad"
-            />
+            <div className={styles.qtyStepper}>
+              <button
+                type="button"
+                className={styles.qtyBtn}
+                onClick={() => changeRowQuantity(row.id, -1)}
+                aria-label="Disminuir cantidad"
+              >
+                −
+              </button>
+              <input
+                name="quantity[]"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                step="1"
+                className={`${styles.input} ${styles.qtyInput}`}
+                value={row.quantity}
+                onChange={e => updateRow(row.id, 'quantity', e.target.value)}
+                title="Cantidad"
+              />
+              <button
+                type="button"
+                className={styles.qtyBtn}
+                onClick={() => changeRowQuantity(row.id, 1)}
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </button>
+            </div>
 
             <input
               name="amount[]"
