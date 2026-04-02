@@ -172,6 +172,9 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
 
           {screen === 'plans' ? (
             <>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <a href={`/dashboard/${barbershopId}`} style={{ fontSize: '.82rem', color: 'var(--muted)', textDecoration: 'none', padding: '4px 0' }}>← Volver al dashboard</a>
+              </div>
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
                 <Image src="/logo-dark.png"  alt="FiloDesk" width={60} height={60} style={{ borderRadius: 12 }} />
                 <div>

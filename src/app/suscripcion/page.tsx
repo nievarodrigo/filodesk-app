@@ -37,18 +37,34 @@ export default async function SuscripcionPage({
     .eq('active', true)
     .order('price', { ascending: true })
 
-  const trialEnd = barbershop.trial_ends_at
-    ? new Date(barbershop.trial_ends_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const trialEndsAt = barbershop.trial_ends_at ? new Date(barbershop.trial_ends_at) : null
+  const trialEnd = trialEndsAt
+    ? trialEndsAt.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
     : null
+
+  // Si trial_ends_at es futuro, forzar status 'trial' sin importar lo que diga la DB
+  const now = new Date()
+  const effectiveStatus =
+    barbershop.subscription_status === 'active'
+      ? 'active'
+      : trialEndsAt && trialEndsAt > now
+        ? 'trial'
+        : barbershop.subscription_status
+
+  // Pro solo disponible para la barbería de testing
+  const TESTING_BARBERSHOP_ID = 'bba517b8-ea61-45d0-8b70-adb41298d54f'
+  const visiblePlans = (plans || []).filter(p =>
+    p.id !== 'pro' || barbershopId === TESTING_BARBERSHOP_ID
+  )
 
   return (
     <SuscripcionClient
       barbershopId={barbershopId}
       barbershopName={barbershop.name}
       currentPlan={barbershop.plan_name ?? 'Base'}
-      subscriptionStatus={barbershop.subscription_status}
+      subscriptionStatus={effectiveStatus}
       trialEnd={trialEnd}
-      plans={plans || []}
+      plans={visiblePlans}
     />
   )
 }
