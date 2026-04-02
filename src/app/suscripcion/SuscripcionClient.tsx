@@ -46,9 +46,7 @@ function fmt(n: number) {
 export default function SuscripcionClient({ barbershopId, barbershopName, currentPlan, subscriptionStatus, trialEnd, plans, proAvailable }: Props) {
   // Si está en trial, solo mostrar Plan Base
   const isTrial = subscriptionStatus === 'trial'
-  const visiblePlans = isTrial
-    ? plans.filter((plan) => plan.id === 'base')
-    : plans.filter((plan) => plan.id === 'base' || plan.id === 'pro')
+  const visiblePlans = plans.filter((plan) => plan.id === 'base' || plan.id === 'pro')
   const [screen, setScreen] = useState<Screen>(isTrial ? 'payment' : 'plans')
   const normalizedCurrentPlan = currentPlan || 'Base'
   const initialSelectedPlanId = visiblePlans.find((plan) => plan.name === normalizedCurrentPlan)?.id ?? 'base'
