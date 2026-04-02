@@ -30,12 +30,15 @@ export default async function DashboardLayout({
 
   // Chequear suscripción en cada carga del dashboard
   const status = barbershop.subscription_status
-  if (status === 'expired') {
-    redirect(`/suscripcion?barbershopId=${barbershopId}`)
-  }
-  if (status === 'trial') {
-    const endsAt = barbershop.trial_ends_at ? new Date(barbershop.trial_ends_at) : new Date(0)
-    if (endsAt < new Date()) {
+  const trialEndsAt = barbershop.trial_ends_at ? new Date(barbershop.trial_ends_at) : null
+  const trialStillActive = trialEndsAt && trialEndsAt > new Date()
+
+  // Si el trial todavía no vence, dejar pasar sin importar el status en DB
+  if (!trialStillActive) {
+    if (status === 'expired') {
+      redirect(`/suscripcion?barbershopId=${barbershopId}`)
+    }
+    if (status === 'trial') {
       redirect(`/suscripcion?barbershopId=${barbershopId}`)
     }
   }
