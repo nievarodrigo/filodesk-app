@@ -154,6 +154,7 @@ export default async function DashboardPage({
 
   const totalServiciosHoy = salesTodayRows.reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const productosVendidosHoy = (productSalesToday ?? []).reduce((s, r) => s + (r.quantity ?? 1), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = salesTodayRows.length
 
@@ -180,6 +181,7 @@ export default async function DashboardPage({
         { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
         { label: 'Ingresos hoy', value: formatARS(totalHoy), color: 'var(--green)' },
         { label: 'Comisiones hoy', value: formatARS(comisionesHoy), color: 'var(--gold)' },
+        { label: 'Productos vendidos hoy', value: productosVendidosHoy.toString(), color: 'var(--cream)' },
         { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)', highlight: true },
       ]
 
