@@ -30,7 +30,9 @@ Next.js 16.2.1 (App Router, Turbopack), Supabase (PostgreSQL + RLS), MercadoPago
 ### MP Débito Automático (preapproval) ✅ FUNCIONANDO (verificado a nivel API y webhook)
 - Preapproval se crea y redirige correctamente a MP.
 - Webhook recibe, verifica firma y procesa eventos `subscription_preapproval`.
-- No se pudo verificar activación end-to-end en sandbox (MP sandbox no envía webhooks reales para preapproval — limitación conocida). Verificado vía simulador de MP.
+- Simulador de MP devuelve 200 OK correctamente.
+- MP sandbox no envía webhooks reales para preapproval (limitación conocida). Pendiente verificar activación en producción con pago real.
+- Siempre retorna 200 al webhook para evitar reintentos de MP.
 
 ### Turnstile (Cloudflare) ✅ FUNCIONANDO
 - Activo en registro.
