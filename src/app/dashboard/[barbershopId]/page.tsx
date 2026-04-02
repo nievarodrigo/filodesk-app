@@ -298,20 +298,20 @@ export default async function DashboardPage({
           <div className={styles.kpisSplit}>
             <div className={`${styles.kpiCard} ${styles.kpiCardHero}`}>
               <div className={styles.kpiHeroSplit}>
-                <div className={styles.kpiHeroCol}>
-                  <p className={styles.kpiLabel}>{netKpi.label}</p>
-                  <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
-                    {netKpi.value}
-                  </p>
-                </div>
                 {netMonthKpi && (
-                  <div className={`${styles.kpiHeroCol} ${styles.kpiHeroColRight}`}>
+                  <div className={styles.kpiHeroCol}>
                     <p className={styles.kpiLabel}>{netMonthKpi.label}</p>
                     <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netMonthKpi.color }}>
                       {netMonthKpi.value}
                     </p>
                   </div>
                 )}
+                <div className={`${styles.kpiHeroCol} ${styles.kpiHeroColRight}`}>
+                  <p className={styles.kpiLabel}>{netKpi.label}</p>
+                  <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
+                    {netKpi.value}
+                  </p>
+                </div>
               </div>
             </div>
 
