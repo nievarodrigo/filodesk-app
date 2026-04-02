@@ -93,6 +93,14 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
     setQty(1)
   }
 
+  function adjustPickerQty(delta: number) {
+    setQty((current) => {
+      const maxAllowed = selected ? Math.max(1, availableStock(selected)) : Number.POSITIVE_INFINITY
+      const next = Math.max(1, current + delta)
+      return Math.min(next, maxAllowed)
+    })
+  }
+
   function removeFromCart(productId: string) {
     setCart(prev => prev.filter(c => c.product.id !== productId))
   }
@@ -162,14 +170,34 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 className={styles.widgetSearch}
                 autoComplete="off"
               />
-              <input
-                type="number"
-                min="1"
-                max={selected ? availableStock(selected) : 999}
-                value={qty}
-                onChange={e => setQty(Math.max(1, Number(e.target.value)))}
-                className={styles.widgetQty}
-              />
+              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card)', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => adjustPickerQty(-1)}
+                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  aria-label="Disminuir cantidad"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={selected ? availableStock(selected) : 999}
+                  value={qty}
+                  onChange={e => setQty(Math.max(1, Number(e.target.value)))}
+                  className={styles.widgetQty}
+                  style={{ border: 'none', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', borderRadius: 0, background: 'transparent', textAlign: 'center' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustPickerQty(1)}
+                  disabled={!!selected && qty >= Math.max(1, availableStock(selected))}
+                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'var(--border)' : 'var(--muted)', cursor: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'not-allowed' : 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={addToCart}
