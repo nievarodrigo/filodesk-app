@@ -186,7 +186,17 @@ export default async function DashboardPage({
       ]
 
   const netKpi = context.role === 'barber' ? null : kpis.find((k) => k.label === 'Ganancia neta hoy')
-  const secondaryKpis = context.role === 'barber' ? kpis : kpis.filter((k) => k.label !== 'Ganancia neta hoy')
+  const secondaryKpis = context.role === 'barber'
+    ? kpis
+    : (() => {
+        const byLabel = new Map(kpis.map((k) => [k.label, k]))
+        return [
+          byLabel.get('Ingresos hoy'),
+          byLabel.get('Servicios hoy'),
+          byLabel.get('Comisiones hoy'),
+          byLabel.get('Productos vendidos hoy'),
+        ].filter((k): k is NonNullable<typeof k> => !!k)
+      })()
 
   const planName = context.plan
   const subscriptionMessage = (() => {
