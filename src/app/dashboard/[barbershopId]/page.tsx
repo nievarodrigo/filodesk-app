@@ -80,6 +80,7 @@ export default async function DashboardPage({
   if (!context) redirect('/dashboard')
 
   const todayDate = today()
+  const monthStartDate = `${todayDate.slice(0, 8)}01`
 
   const [
     { data: barbershop },
@@ -131,6 +132,9 @@ export default async function DashboardPage({
     { data: salesToday },
     { data: productSalesToday },
     { data: expensesToday },
+    { data: salesMonth },
+    { data: productSalesMonth },
+    { data: expensesMonth },
   ] = await Promise.all([
     scopedSalesQuery.order('created_at', { ascending: false }).limit(10),
     scopedSalesTotalsQuery,
@@ -145,6 +149,30 @@ export default async function DashboardPage({
     context.role === 'barber'
       ? Promise.resolve({ data: [] as Array<{ amount: number }> })
       : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as SaleWithBarber[] })
+      : supabase
+          .from('sales')
+          .select('amount, barber_id, barbers(name, commission_pct)')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as ProductSale[] })
+      : supabase
+          .from('product_sales')
+          .select('sale_price, quantity')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as Array<{ amount: number }> })
+      : supabase
+          .from('expenses')
+          .select('amount')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
   ])
 
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
@@ -164,6 +192,16 @@ export default async function DashboardPage({
   }, 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
+
+  const salesMonthRows = (salesMonth ?? []) as SaleWithBarber[]
+  const totalServiciosMes = salesMonthRows.reduce((s, r) => s + (r.amount ?? 0), 0)
+  const totalProductosMes = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const comisionesMes = salesMonthRows.reduce((s, r) => {
+    const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
+    return s + Math.round((r.amount ?? 0) * (pct / 100))
+  }, 0)
+  const gastosMes = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const gananciaNetaMes = totalServiciosMes + totalProductosMes - comisionesMes - gastosMes
 
   const activeBarbers = (barbers ?? []).filter(b => b.active)
   const visibleBarbers = context.role === 'barber' && currentBarber ? [currentBarber] : activeBarbers
@@ -197,6 +235,9 @@ export default async function DashboardPage({
           byLabel.get('Productos vendidos hoy'),
         ].filter((k): k is NonNullable<typeof k> => !!k)
       })()
+  const netMonthKpi = context.role === 'barber'
+    ? null
+    : { label: 'Ganancia neta mes', value: formatARS(gananciaNetaMes), color: gananciaNetaMes >= 0 ? 'var(--green)' : 'var(--red)' }
 
   const planName = context.plan
   const subscriptionMessage = (() => {
@@ -256,10 +297,22 @@ export default async function DashboardPage({
         ) : (
           <div className={styles.kpisSplit}>
             <div className={`${styles.kpiCard} ${styles.kpiCardHero}`}>
-              <p className={styles.kpiLabel}>{netKpi.label}</p>
-              <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
-                {netKpi.value}
-              </p>
+              <div className={styles.kpiHeroSplit}>
+                <div className={styles.kpiHeroCol}>
+                  <p className={styles.kpiLabel}>{netKpi.label}</p>
+                  <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
+                    {netKpi.value}
+                  </p>
+                </div>
+                {netMonthKpi && (
+                  <div className={`${styles.kpiHeroCol} ${styles.kpiHeroColRight}`}>
+                    <p className={styles.kpiLabel}>{netMonthKpi.label}</p>
+                    <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netMonthKpi.color }}>
+                      {netMonthKpi.value}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className={styles.kpisSecondary}>
