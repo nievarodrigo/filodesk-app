@@ -97,6 +97,21 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
     setCart(prev => prev.filter(c => c.product.id !== productId))
   }
 
+  function changeCartQty(productId: string, delta: number) {
+    setCart(prev =>
+      prev.flatMap((item) => {
+        if (item.product.id !== productId) return [item]
+
+        const nextQty = item.quantity + delta
+        const maxQty = item.product.stock
+        if (nextQty <= 0) return []
+        if (nextQty > maxQty) return [item]
+
+        return [{ ...item, quantity: nextQty }]
+      })
+    )
+  }
+
   const total = cart.reduce((s, c) => s + c.product.sale_price * c.quantity, 0)
   const date  = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
 
@@ -208,8 +223,30 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
               {cart.map(c => (
                 <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: 1 }}>
-                    {c.product.name} <span style={{ color: 'var(--muted)' }}>×{c.quantity}</span>
+                    {c.product.name}
                   </span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 6px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--surface)' }}>
+                    <button
+                      type="button"
+                      onClick={() => changeCartQty(c.product.id, -1)}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      aria-label={`Disminuir cantidad de ${c.product.name}`}
+                    >
+                      −
+                    </button>
+                    <span style={{ minWidth: 14, textAlign: 'center', fontSize: '.8rem', color: 'var(--cream)', fontWeight: 700 }}>
+                      {c.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => changeCartQty(c.product.id, +1)}
+                      disabled={c.quantity >= c.product.stock}
+                      style={{ background: 'transparent', border: 'none', color: c.quantity >= c.product.stock ? 'var(--border)' : 'var(--muted)', cursor: c.quantity >= c.product.stock ? 'not-allowed' : 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      aria-label={`Aumentar cantidad de ${c.product.name}`}
+                    >
+                      +
+                    </button>
+                  </div>
                   <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {formatARS(c.product.sale_price * c.quantity)}
                   </span>
