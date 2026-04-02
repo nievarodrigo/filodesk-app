@@ -73,6 +73,12 @@
 }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--card); }
+.tableHeadService {
+  grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
+}
+.tableRowService {
+  grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
+}
 
 .countBadge {
   font-size: .8rem; font-weight: 700; color: var(--muted);
@@ -107,7 +113,7 @@
 
 .detailHead {
   display: grid;
-  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr);
+  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr);
   column-gap: 8px;
   align-items: center;
   padding: 10px 12px 8px;
@@ -120,7 +126,7 @@
 
 .detailRow {
   display: grid;
-  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr);
+  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr);
   column-gap: 8px;
   align-items: center;
   padding: 8px 12px;
@@ -285,6 +291,9 @@
     font-size: .84rem;
     padding: 12px 10px;
     min-height: 56px;
+  }
+  .tableRowService {
+    grid-template-columns: 20px minmax(0, 1fr) auto auto auto;
   }
 
   .detailBlock {

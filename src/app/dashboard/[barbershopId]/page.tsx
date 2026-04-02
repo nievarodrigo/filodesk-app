@@ -345,6 +345,11 @@ export default async function DashboardPage({
               barber_id: s.barber_id ?? '',
               type: 'servicio' as const,
               barber: barberName ?? '—',
+              commission_pct: (() => {
+                if (!s.barbers || typeof s.barbers !== 'object') return 0
+                const pct = Array.isArray(s.barbers) ? s.barbers[0]?.commission_pct : s.barbers.commission_pct
+                return Number(pct ?? 0)
+              })(),
               service: serviceName ?? '—',
               amount: s.amount ?? 0,
               status: s.status ?? 'approved',

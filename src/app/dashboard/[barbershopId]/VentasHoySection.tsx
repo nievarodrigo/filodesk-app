@@ -11,6 +11,7 @@ interface ServiceSale {
   barber_id: string
   type: 'servicio'
   barber: string
+  commission_pct: number
   service: string
   amount: number
   status: 'pending' | 'approved'
@@ -124,10 +125,12 @@ interface GroupedBarber {
   barber: string
   serviceCount: number
   total: number
+  totalCommission: number
   services: Array<{
     id: string
     service: string
     amount: number
+    commission: number
     status: 'pending' | 'approved'
     created_at: string
     notes: string | null
@@ -142,10 +145,12 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
     if (existing) {
       existing.serviceCount++
       existing.total += s.amount
+      existing.totalCommission += Math.round(s.amount * ((s.commission_pct ?? 0) / 100))
       existing.services.push({
         id: s.id,
         service: s.service,
         amount: s.amount,
+        commission: Math.round(s.amount * ((s.commission_pct ?? 0) / 100)),
         status: s.status,
         created_at: s.created_at,
         notes: s.notes,
@@ -156,10 +161,12 @@ function groupServicesByBarber(sales: ServiceSale[]): GroupedBarber[] {
         barber: s.barber,
         serviceCount: 1,
         total: s.amount,
+        totalCommission: Math.round(s.amount * ((s.commission_pct ?? 0) / 100)),
         services: [{
           id: s.id,
           service: s.service,
           amount: s.amount,
+          commission: Math.round(s.amount * ((s.commission_pct ?? 0) / 100)),
           status: s.status,
           created_at: s.created_at,
           notes: s.notes,
@@ -335,11 +342,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
           {/* ── Servicios agrupados por barbero ── */}
           {showServices && grouped.length > 0 && (
             <>
-              <div className={styles.tableHead}>
+              <div className={`${styles.tableHead} ${styles.tableHeadService}`}>
                 <span></span>
                 <span>Barbero</span>
                 <span>Servicios</span>
                 <span>Total</span>
+                <span>Comisión</span>
               </div>
               {paginatedBarbers.map(g => {
                 const servicePage = servicePagesPerBarber[g.barber_id] || 1
@@ -368,6 +376,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.rowPrimaryText}>{g.barber}</span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
                     <span className={styles.rowAmount}>{formatARS(g.total)}</span>
+                    <span className={styles.rowAmount}>{formatARS(g.totalCommission)}</span>
                   </div>
 
                   {/* ── Detalle expandible de servicios ── */}
@@ -378,13 +387,14 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <span>Servicio</span>
                         <span>Cant.</span>
                         <span>Monto</span>
+                        <span>Comisión</span>
                       </div>
                       {paginatedServices.map(svc => (
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
-                        <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
-                        <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
-                        <span className={styles.detailQty} data-label="Cant.">1</span>
-                        <span className={styles.detailAmount} data-label="Monto">
+                          <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
+                          <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
+                          <span className={styles.detailQty} data-label="Cant.">1</span>
+                          <span className={styles.detailAmount} data-label="Monto">
                           {formatARS(svc.amount)}
                           {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           {role !== 'barber' && (
@@ -399,8 +409,9 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             </button>
                           )}
                         </span>
-                      </div>
-                    ))}
+                          <span className={styles.detailAmount} data-label="Comisión">{formatARS(svc.commission)}</span>
+                        </div>
+                      ))}
                       {totalServicePages > 1 && (
                         <PaginationControls
                           currentPage={servicePage}
