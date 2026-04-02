@@ -94,6 +94,12 @@
   line-height: 1;
   color: var(--cream);
 }
+.kpiCardHighlight {
+  padding: 22px 20px;
+}
+.kpiValueHighlight {
+  font-size: 2rem;
+}
 
 /* ── Form row (service + product side by side) ── */
 .formRow {

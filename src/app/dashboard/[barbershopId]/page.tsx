@@ -180,7 +180,7 @@ export default async function DashboardPage({
         { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
         { label: 'Ingresos hoy', value: formatARS(totalHoy), color: 'var(--green)' },
         { label: 'Comisiones hoy', value: formatARS(comisionesHoy), color: 'var(--gold)' },
-        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
+        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)', highlight: true },
       ]
 
   const planName = context.plan
@@ -231,9 +231,9 @@ export default async function DashboardPage({
       >
         <div className={styles.kpis}>
           {kpis.map(k => (
-            <div key={k.label} className={styles.kpiCard}>
+            <div key={k.label} className={`${styles.kpiCard}${k.highlight ? ` ${styles.kpiCardHighlight}` : ''}`}>
               <p className={styles.kpiLabel}>{k.label}</p>
-              <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+              <p className={`${styles.kpiValue}${k.highlight ? ` ${styles.kpiValueHighlight}` : ''}`} style={{ color: k.color }}>{k.value}</p>
             </div>
           ))}
         </div>
