@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { deleteVenta } from '@/app/actions/venta'
+import { deleteVentaProducto } from '@/app/actions/producto'
 import { BarbershopRole } from '@/lib/definitions'
 import styles from './ventashoy.module.css'
 
@@ -180,6 +181,7 @@ interface Props {
 
 export default function VentasHoySection({ barbershopId, role, serviceSales, productSales }: Props) {
   const [serviceSalesState, setServiceSalesState] = useState(serviceSales)
+  const [productSalesState, setProductSalesState] = useState(productSales)
   const [filter, setFilter] = useState<'todos' | 'servicio' | 'producto'>('todos')
   const [expandedBarberIds, setExpandedBarberIds] = useState<Set<string>>(new Set())
   const [barberPage, setBarberPage] = useState(1)
@@ -187,14 +189,16 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const [transactionPage, setTransactionPage] = useState(1)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null)
+  const [deletingProductSaleId, setDeletingProductSaleId] = useState<string | null>(null)
   const [isDeleting, startDeleteTransition] = useTransition()
+  const [isDeletingProduct, startDeleteProductTransition] = useTransition()
 
   const ITEMS_PER_PAGE = 10
 
   const grouped = groupServicesByBarber(serviceSalesState)
-  const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSales)
+  const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSalesState)
   const totalServicios = serviceSalesState.reduce((s, r) => s + r.amount, 0)
-  const totalProductos = role === 'barber' ? 0 : productSales.reduce((s, r) => s + r.amount, 0)
+  const totalProductos = role === 'barber' ? 0 : productSalesState.reduce((s, r) => s + r.amount, 0)
   const total = totalServicios + totalProductos
 
   const TABS = role === 'barber'
@@ -204,7 +208,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
     : [
         { key: 'todos', label: 'Todos' },
         { key: 'servicio', label: `Servicios (${serviceSalesState.length})` },
-        { key: 'producto', label: `Productos (${productSales.length})` },
+        { key: 'producto', label: `Productos (${productSalesState.length})` },
       ] as const
 
   const effectiveFilter = role === 'barber' ? 'servicio' : filter
@@ -212,7 +216,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const showServices = effectiveFilter === 'todos' || effectiveFilter === 'servicio'
   const showProducts = role !== 'barber' && (effectiveFilter === 'todos' || effectiveFilter === 'producto')
 
-  const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSales.length)
+  const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSalesState.length)
 
   // Paginación de barberos
   const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
@@ -248,6 +252,32 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
         setDeleteError('No se pudo eliminar el servicio. Intentá de nuevo.')
       } finally {
         setDeletingSaleId(null)
+      }
+    })
+  }
+
+  function handleDeleteProductSale(productSaleId: string, productName: string) {
+    if (role === 'barber') return
+    const ok = window.confirm(`¿Eliminar "${productName}" de ventas de productos? Esta acción no se puede deshacer.`)
+    if (!ok) return
+
+    setDeleteError(null)
+    const previous = productSalesState
+    setDeletingProductSaleId(productSaleId)
+    setProductSalesState((current) => current.filter((sale) => sale.id !== productSaleId))
+
+    startDeleteProductTransition(async () => {
+      try {
+        const result = await deleteVentaProducto(barbershopId, productSaleId)
+        if (result?.error) {
+          setProductSalesState(previous)
+          setDeleteError(result.error)
+        }
+      } catch {
+        setProductSalesState(previous)
+        setDeleteError('No se pudo eliminar la venta de producto. Intentá de nuevo.')
+      } finally {
+        setDeletingProductSaleId(null)
       }
     })
   }
@@ -424,7 +454,18 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <span className={styles.detailService} data-label="Producto">{item.product}</span>
                         <span className={styles.detailQty} data-label="Cant.">×{item.quantity}</span>
                         <span className={styles.detailAmountMuted} data-label="Precio Unit.">{formatARS(item.unit_price)}</span>
-                        <span className={styles.detailAmount} data-label="Subtotal">{formatARS(item.amount)}</span>
+                        <span className={styles.detailAmount} data-label="Subtotal">
+                          {formatARS(item.amount)}
+                          <button
+                            type="button"
+                            className={styles.deleteServiceBtn}
+                            onClick={() => handleDeleteProductSale(item.id, item.product)}
+                            disabled={isDeletingProduct && deletingProductSaleId === item.id}
+                            aria-label={`Eliminar venta de producto ${item.product}`}
+                          >
+                            {isDeletingProduct && deletingProductSaleId === item.id ? 'Eliminando…' : 'Eliminar'}
+                          </button>
+                        </span>
                       </div>
                     ))}
                   </div>

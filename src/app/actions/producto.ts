@@ -168,3 +168,24 @@ export async function deleteProducto(barbershopId: string, productId: string) {
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
   return { success: true, mode: result.mode }
 }
+
+export async function deleteVentaProducto(barbershopId: string, productSaleId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || context.role === 'barber') {
+    return { error: 'No tenés permisos para eliminar ventas de productos.' }
+  }
+
+  const result = await productService.deleteProductSale(supabase, barbershopId, productSaleId)
+  if (result.error) return { error: result.error }
+
+  revalidatePath(`/dashboard/${barbershopId}`)
+  revalidatePath(`/dashboard/${barbershopId}/ventas`)
+  revalidatePath(`/dashboard/${barbershopId}/productos`)
+  revalidatePath(`/dashboard/${barbershopId}/finanzas`)
+
+  return { success: true }
+}

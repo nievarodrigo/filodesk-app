@@ -29,3 +29,29 @@ export async function countByProductId(
     .eq('product_id', productId)
   return count ?? 0
 }
+
+export async function findById(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  id: string
+) {
+  const { data } = await supabase
+    .from('product_sales')
+    .select('id, product_id, quantity')
+    .eq('barbershop_id', barbershopId)
+    .eq('id', id)
+    .maybeSingle()
+  return data
+}
+
+export async function deleteById(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  id: string
+) {
+  return supabase
+    .from('product_sales')
+    .delete()
+    .eq('barbershop_id', barbershopId)
+    .eq('id', id)
+}

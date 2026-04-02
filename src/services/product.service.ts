@@ -166,3 +166,28 @@ export async function deleteProduct(
 
   return { mode: 'soft' as const }
 }
+
+export async function deleteProductSale(
+  supabase: SupabaseClient,
+  barbershopId: string,
+  productSaleId: string
+) {
+  const sale = await productSaleRepo.findById(supabase, barbershopId, productSaleId)
+  if (!sale) return { error: 'La venta de producto no existe.' }
+
+  const product = await productRepo.findById(supabase, barbershopId, sale.product_id)
+  if (!product) return { error: 'El producto asociado no existe.' }
+
+  const restoreStockRes = await productRepo.updateStock(
+    supabase,
+    barbershopId,
+    sale.product_id,
+    product.stock + (sale.quantity ?? 0)
+  )
+  if (restoreStockRes.error) return { error: 'No se pudo restaurar el stock del producto.' }
+
+  const deleteRes = await productSaleRepo.deleteById(supabase, barbershopId, productSaleId)
+  if (deleteRes.error) return { error: 'No se pudo eliminar la venta de producto.' }
+
+  return { success: true as const }
+}
