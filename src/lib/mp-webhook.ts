@@ -51,8 +51,8 @@ export async function verifyMPSignature(req: NextRequest): Promise<boolean> {
   const nowSeconds = Math.floor(Date.now() / 1000)
   const ageSeconds = nowSeconds - tsNumber
 
-  if (ageSeconds < 0) {
-    console.warn('[MP webhook] timestamp from future (clock skew?)')
+  if (ageSeconds < -60) { // Tolerancia de 60s para clock skew entre MP y Vercel
+    console.warn('[MP webhook] timestamp too far in future (clock skew?):', Math.abs(ageSeconds), 'seconds')
     return false
   }
 
