@@ -40,19 +40,19 @@ export default async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
   const isDashboard  = pathname.startsWith('/dashboard')
   const isOnboarding = pathname.startsWith('/onboarding')
   const isAuthRoute  = pathname.startsWith('/auth')
 
   // Sin sesión → login
-  if ((isDashboard || isOnboarding) && !session) {
+  if ((isDashboard || isOnboarding) && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   // Con sesión en /auth → al dashboard
-  if (isAuthRoute && session) {
+  if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
