@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { deleteVenta } from '@/app/actions/venta'
 import { deleteVentaProducto } from '@/app/actions/producto'
 import { BarbershopRole } from '@/lib/definitions'
@@ -192,6 +192,14 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const [deletingProductSaleId, setDeletingProductSaleId] = useState<string | null>(null)
   const [isDeleting, startDeleteTransition] = useTransition()
   const [isDeletingProduct, startDeleteProductTransition] = useTransition()
+
+  useEffect(() => {
+    if (!isDeleting) setServiceSalesState(serviceSales)
+  }, [serviceSales, isDeleting])
+
+  useEffect(() => {
+    if (!isDeletingProduct) setProductSalesState(productSales)
+  }, [productSales, isDeletingProduct])
 
   const ITEMS_PER_PAGE = 10
 

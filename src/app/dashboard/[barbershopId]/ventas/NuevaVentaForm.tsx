@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { createVenta, type CreateVentaState } from '@/app/actions/venta'
 import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './ventas.module.css'
@@ -25,6 +25,7 @@ function todayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 
 export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, compact, showOnboardingHint }: Props) {
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null)
   const [rows, setRows] = useState<ServiceRow[]>([newRow()])
+  const wasPendingRef = useRef(false)
 
   const action = createVenta.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<CreateVentaState, FormData>(action, undefined)
@@ -74,6 +75,22 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
     setSelectedBarber(null)
     setRows([newRow()])
   }
+
+  useEffect(() => {
+    if (pending) {
+      wasPendingRef.current = true
+      return
+    }
+    if (!wasPendingRef.current) return
+    wasPendingRef.current = false
+
+    const hasError = Boolean(state?.message)
+    if (hasError) return
+
+    formRef.current?.reset()
+    const timer = setTimeout(() => { handleReset() }, 0)
+    return () => clearTimeout(timer)
+  }, [pending, state, formRef])
 
   return (
     <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={compact ? styles.formCompact : styles.formCard}>
