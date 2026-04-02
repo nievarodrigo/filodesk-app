@@ -23,7 +23,7 @@ import { NextRequest } from 'next/server'
  * Comparación: timing-safe para evitar timing attacks
  * Anti-replay: rechaza timestamps > 5 minutos
  */
-export async function verifyMPSignature(req: NextRequest): Promise<boolean> {
+export async function verifyMPSignature(req: NextRequest, fallbackId?: string): Promise<boolean> {
   const signature = req.headers.get('x-signature')
   const requestId = req.headers.get('x-request-id')
 
@@ -64,7 +64,8 @@ export async function verifyMPSignature(req: NextRequest): Promise<boolean> {
 
   // CRITICAL: Leer data.id desde QUERY PARAMS (no desde body)
   // Según doc oficial de MP, el id viene en la URL como parámetro
-  const dataId = req.nextUrl.searchParams.get('id')
+  // Fallback al body para la simulación de MP que no incluye query params
+  const dataId = req.nextUrl.searchParams.get('id') ?? fallbackId
   if (!dataId) {
     console.warn('[MP webhook] missing id in query params')
     return false

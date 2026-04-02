@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
     }
 
     // SECURITY: Validar que la firma proviene de MercadoPago
-    const isValid = await verifyMPSignature(req)
+    let bodyId: string | undefined
+    try { const p = JSON.parse(rawBody); bodyId = p?.data?.id ?? p?.id } catch {}
+    const isValid = await verifyMPSignature(req, bodyId)
     if (!isValid) {
       const error = new Error('Invalid Mercado Pago webhook signature')
       Sentry.captureException(error)
@@ -39,14 +41,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    // Extraer el ID de la query string (el que fue validado por firma)
-    const searchParams = req.nextUrl.searchParams
-    const queryId = searchParams.get('id')
-
-    // SECURITY: Validar igualdad estricta entre query id y body data.id
     const subscriptionId = data?.id as string
-    if (!subscriptionId || subscriptionId !== queryId) {
-      console.warn('[MP webhook] ID mismatch or missing:', { subscriptionId, queryId })
+    const queryId = req.nextUrl.searchParams.get('id')
+
+    // SECURITY: Si viene query id, validar que coincida con el body
+    if (queryId && subscriptionId !== queryId) {
+      console.warn('[MP webhook] ID mismatch:', { subscriptionId, queryId })
+      return NextResponse.json({ ok: false }, { status: 400 })
+    }
+
+    if (!subscriptionId) {
+      console.warn('[MP webhook] missing subscription ID in body')
       return NextResponse.json({ ok: false }, { status: 400 })
     }
 
