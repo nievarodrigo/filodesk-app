@@ -87,7 +87,7 @@ export default async function DashboardPage({
     { data: rawServiceTypes },
     { data: products },
   ] = await Promise.all([
-    supabase.from('barbershops').select('name, subscription_renews_at, subscription_payment_method, plan_name').eq('id', barbershopId).single(),
+    supabase.from('barbershops').select('name, subscription_renews_at, subscription_payment_method, plan_name, subscription_status, trial_ends_at').eq('id', barbershopId).single(),
     supabase.from('barbers').select('id, name, email, user_id, commission_pct, active').eq('barbershop_id', barbershopId).order('name'),
     supabase.from('service_types').select('id, name, default_price, barbershop_id').or(`barbershop_id.eq.${barbershopId},barbershop_id.is.null`).eq('active', true).order('name'),
     supabase.from('products')
@@ -183,7 +183,9 @@ export default async function DashboardPage({
         { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
       ]
 
-  const planName = context.plan
+  const trialEndsAt = barbershop?.trial_ends_at ? new Date(barbershop.trial_ends_at) : null
+  const isTrial = barbershop?.subscription_status === 'trial' || (trialEndsAt && trialEndsAt > new Date())
+  const planName = isTrial ? 'Prueba' : context.plan
   const subscriptionMessage = (() => {
     if (barbershop?.subscription_renews_at) {
       // 'checkout_pro' = pago manual único (MP checkout)
