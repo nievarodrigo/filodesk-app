@@ -46,13 +46,14 @@ export async function verifyMPSignature(req: NextRequest): Promise<boolean> {
   const providedSignature = v1Match.replace('v1=', '')
 
   // Validar que el timestamp no sea viejo (anti-replay)
-  // Aceptamos timestamps de hasta 5 minutos atrás
-  const tsNumber = parseInt(ts, 10)
+  // MP puede enviar ts en segundos (10 dígitos) o milisegundos (13 dígitos)
+  const tsRaw = parseInt(ts, 10)
+  const tsSeconds = tsRaw > 9999999999 ? Math.floor(tsRaw / 1000) : tsRaw
   const nowSeconds = Math.floor(Date.now() / 1000)
-  const ageSeconds = nowSeconds - tsNumber
+  const ageSeconds = nowSeconds - tsSeconds
 
   if (ageSeconds < -60) { // Tolerancia de 60s para clock skew entre MP y Vercel
-    console.warn('[MP webhook] timestamp too far in future (clock skew?):', Math.abs(ageSeconds), 'seconds')
+    console.warn('[MP webhook] timestamp too far in future:', Math.abs(ageSeconds), 'seconds')
     return false
   }
 
