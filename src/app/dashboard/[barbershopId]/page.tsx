@@ -183,6 +183,9 @@ export default async function DashboardPage({
         { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)', highlight: true },
       ]
 
+  const netKpi = context.role === 'barber' ? null : kpis.find((k) => k.label === 'Ganancia neta hoy')
+  const secondaryKpis = context.role === 'barber' ? kpis : kpis.filter((k) => k.label !== 'Ganancia neta hoy')
+
   const planName = context.plan
   const subscriptionMessage = (() => {
     if (barbershop?.subscription_renews_at) {
@@ -229,14 +232,34 @@ export default async function DashboardPage({
         storageKey={`${barbershopId}:inicio:kpis`}
         title="Resumen del dia"
       >
-        <div className={styles.kpis}>
-          {kpis.map(k => (
-            <div key={k.label} className={`${styles.kpiCard}${k.highlight ? ` ${styles.kpiCardHighlight}` : ''}`}>
-              <p className={styles.kpiLabel}>{k.label}</p>
-              <p className={`${styles.kpiValue}${k.highlight ? ` ${styles.kpiValueHighlight}` : ''}`} style={{ color: k.color }}>{k.value}</p>
+        {context.role === 'barber' || !netKpi ? (
+          <div className={styles.kpis}>
+            {kpis.map(k => (
+              <div key={k.label} className={`${styles.kpiCard}${k.highlight ? ` ${styles.kpiCardHighlight}` : ''}`}>
+                <p className={styles.kpiLabel}>{k.label}</p>
+                <p className={`${styles.kpiValue}${k.highlight ? ` ${styles.kpiValueHighlight}` : ''}`} style={{ color: k.color }}>{k.value}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.kpisSplit}>
+            <div className={`${styles.kpiCard} ${styles.kpiCardHero}`}>
+              <p className={styles.kpiLabel}>{netKpi.label}</p>
+              <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
+                {netKpi.value}
+              </p>
             </div>
-          ))}
-        </div>
+
+            <div className={styles.kpisSecondary}>
+              {secondaryKpis.map((k) => (
+                <div key={k.label} className={styles.kpiCard}>
+                  <p className={styles.kpiLabel}>{k.label}</p>
+                  <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CollapsibleCard>
 
       {context.role !== 'barber' && (
