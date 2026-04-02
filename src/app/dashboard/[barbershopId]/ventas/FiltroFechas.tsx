@@ -10,6 +10,7 @@ interface Props {
   hasta: string
   tipo: string
   months: { ym: string; label: string }[]
+  basePath?: string
 }
 
 function isoToDisplay(iso: string): string {
@@ -53,7 +54,7 @@ function getCurrentWeekRange(): { start: string; end: string } {
   return { start: toIsoLocal(start), end: toIsoLocal(end) }
 }
 
-export default function FiltroFechas({ barbershopId, desde, hasta, tipo, months }: Props) {
+export default function FiltroFechas({ barbershopId, desde, hasta, tipo, months, basePath }: Props) {
   const router = useRouter()
   const [dDisplay, setDDisplay] = useState(isoToDisplay(desde))
   const [hDisplay, setHDisplay] = useState(isoToDisplay(hasta))
@@ -75,7 +76,9 @@ export default function FiltroFechas({ barbershopId, desde, hasta, tipo, months 
 
   function apply(newD = dISO, newH = hISO) {
     if (!newD || !newH) return
-    router.push(`/dashboard/${barbershopId}/ventas?desde=${newD}&hasta=${newH}&tipo=${tipo}`)
+    const base = basePath ?? `/dashboard/${barbershopId}/ventas`
+    const sep = base.includes('?') ? '&' : '?'
+    router.push(`${base}${sep}desde=${newD}&hasta=${newH}&tipo=${tipo}`)
   }
 
   return (
