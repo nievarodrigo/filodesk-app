@@ -62,13 +62,13 @@ export async function POST(req: NextRequest) {
       const error = new Error(`[MP webhook] processing failed: ${result.error}`)
       Sentry.captureException(error)
       console.error('[MP webhook] processing failed:', result.error)
-      return NextResponse.json({ ok: false }, { status: 500 })
     }
 
+    // Siempre 200 — MP no debe reintentar por errores internos nuestros
     return NextResponse.json({ ok: true })
   } catch (error) {
     Sentry.captureException(error)
     console.error('[MP webhook] unexpected error:', error)
-    return NextResponse.json({ ok: false }, { status: 500 })
+    return NextResponse.json({ ok: true })
   }
 }
