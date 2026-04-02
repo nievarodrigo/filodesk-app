@@ -31,7 +31,7 @@ Next.js 16.2.1 (App Router, Turbopack), Supabase (PostgreSQL + RLS), MercadoPago
 - Preapproval se crea y redirige correctamente a MP.
 - Webhook recibe, verifica firma y procesa eventos `subscription_preapproval`.
 - Simulador de MP devuelve 200 OK correctamente.
-- MP sandbox no envía webhooks reales para preapproval (limitación conocida). Pendiente verificar activación en producción con pago real.
+- MP sandbox no envía webhooks reales para preapproval (limitación conocida). Verificado end-to-end usando el simulador de MP con un preapproval ID real — la barbería se activó en Supabase correctamente.
 - Siempre retorna 200 al webhook para evitar reintentos de MP.
 
 ### Turnstile (Cloudflare) ✅ FUNCIONANDO
