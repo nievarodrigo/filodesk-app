@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createVenta, type CreateVentaState } from '@/app/actions/venta'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './ventas.module.css'
 
 interface Barber      { id: string; name: string; commission_pct: number }
@@ -27,6 +28,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
 
   const action = createVenta.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<CreateVentaState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   const total = rows.reduce((s, r) => s + (Number(r.amount) || 0) * Math.max(1, Number(r.quantity) || 1), 0)
   const commission = selectedBarber && total > 0
@@ -63,7 +65,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
   }
 
   return (
-    <form action={formAction} className={compact ? styles.formCompact : styles.formCard}>
+    <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={compact ? styles.formCompact : styles.formCard}>
       {!compact && <h3 className={styles.formTitle}>Registrar venta</h3>}
 
       {state?.message && <p className={styles.errorBox}>{state.message}</p>}

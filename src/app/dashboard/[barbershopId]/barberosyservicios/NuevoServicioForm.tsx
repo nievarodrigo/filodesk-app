@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createServicio, type ServicioState } from '@/app/actions/servicio'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './servicios.module.css'
 
 interface Props { barbershopId: string }
@@ -10,6 +11,7 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
   const [open, setOpen] = useState(false)
   const action = createServicio.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<ServicioState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
     <div>
@@ -20,7 +22,7 @@ export default function NuevoServicioForm({ barbershopId }: Props) {
       {open && (
         <div className={`${styles.formCard} ${styles.formCardOpen}`}>
           <h3 className={styles.formTitle}>Nuevo servicio</h3>
-          <form action={formAction} className={styles.form}>
+          <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
             <div className={styles.formRow}>
               <div className={styles.field}>

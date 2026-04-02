@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from 'react'
 import Script from 'next/script'
 import { register } from '@/app/actions/auth'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from '../auth.module.css'
 
 declare global {
@@ -25,6 +26,7 @@ export default function RegisterForm() {
   const [state, action, pending] = useActionState(register, undefined)
   const turnstileRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && window.turnstile && turnstileRef.current && !widgetIdRef.current) {
@@ -58,7 +60,7 @@ export default function RegisterForm() {
         defer
       />
 
-      <form action={action} className={styles.form}>
+      <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={action} className={styles.form}>
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label htmlFor="firstName" className={styles.label}>Nombre</label>

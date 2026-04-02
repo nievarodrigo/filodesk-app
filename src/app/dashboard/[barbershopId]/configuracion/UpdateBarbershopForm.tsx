@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { updateBarbershop, type UpdateBarbershopState } from '@/app/actions/barbershop'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './configuracion.module.css'
 
 interface Props {
@@ -14,9 +15,10 @@ interface Props {
 export default function UpdateBarbershopForm({ barbershopId, name, address, phone }: Props) {
   const boundAction = updateBarbershop.bind(null, barbershopId)
   const [state, action, pending] = useActionState<UpdateBarbershopState, FormData>(boundAction, {})
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
-    <form action={action} className={styles.form}>
+    <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={action} className={styles.form}>
       {state.error && <p className={styles.formError}>{state.error}</p>}
       {state.success && <p className={styles.formSuccess}>Cambios guardados.</p>}
 

@@ -2,13 +2,15 @@
 
 import { useActionState } from 'react'
 import { createBarbershop } from '@/app/actions/barbershop'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './onboarding.module.css'
 
 export default function OnboardingForm() {
   const [state, action, pending] = useActionState(createBarbershop, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
-    <form action={action} className={styles.form}>
+    <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={action} className={styles.form}>
       <div className={styles.field}>
         <label htmlFor="name" className={styles.label}>Nombre de la barbería *</label>
         <input
