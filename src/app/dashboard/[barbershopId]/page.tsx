@@ -260,7 +260,7 @@ export default async function DashboardPage({
         </section>
       )}
 
-      <div style={{ marginTop: 16 }}>
+      <div style={{ marginBottom: 24 }}>
         <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
           {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
         </h2>

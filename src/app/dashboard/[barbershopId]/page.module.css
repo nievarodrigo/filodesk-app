@@ -24,7 +24,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .collapsibleTrigger {
