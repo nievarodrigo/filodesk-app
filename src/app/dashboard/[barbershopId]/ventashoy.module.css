@@ -134,8 +134,56 @@
   font-variant-numeric: tabular-nums;
 }
 
+.categoryBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+}
+
+.categoryHeaderService {
+  border-left: 3px solid var(--gold);
+}
+
+.categoryHeaderProduct {
+  border-left: 3px solid var(--green);
+}
+
+.categoryTitle {
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.categoryMeta {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  color: var(--text);
+  font-weight: 700;
+  padding: 0 6px;
+}
+
 .divider {
-  height: 1px; background: var(--border); margin: 10px 0;
+  height: 1px;
+  background: var(--border);
+  margin: 14px 0;
 }
 
 .muted { color: var(--muted); font-size: .83rem; }
@@ -211,6 +259,18 @@
   display: flex;
   justify-content: flex-end;
   width: 100%;
+}
+.detailNoteDesktop {
+  display: block;
+  font-size: .73rem;
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+  margin-top: 3px;
+  white-space: normal;
+}
+.detailNotes {
+  display: none;
 }
 .detailAmountMuted {
   color: var(--muted);
@@ -364,6 +424,27 @@
 @media (max-width: 768px) {
   .section { padding: 18px 22px; }
   .tableHead { display: none; }
+  .divider {
+    margin: 18px 0;
+    opacity: .8;
+  }
+  .categoryHeader {
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-radius: 10px;
+    margin: 0 6px 8px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+  }
+  .categoryTitle {
+    font-size: .68rem;
+    letter-spacing: .85px;
+  }
+  .categoryMeta {
+    min-width: 26px;
+    height: 26px;
+    font-size: .72rem;
+  }
   .tableRow {
     grid-template-columns: 20px minmax(0, 1fr) auto auto;
     column-gap: 10px;
@@ -457,4 +538,11 @@
   .paginationControls { margin: 10px 0 2px; }
   .deleteServiceBtn { font-size: .75rem; }
   .pendingBadge { font-size: .75rem; }
+  .detailNoteDesktop { display: none; }
+  .detailNotes {
+    display: flex;
+    font-style: italic;
+    color: var(--muted);
+    font-size: .9rem;
+  }
 }
