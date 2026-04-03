@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { createVenta, type CreateVentaState } from '@/app/actions/venta'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './ventas.module.css'
 
 interface Barber      { id: string; name: string; commission_pct: number }
@@ -24,9 +25,11 @@ function todayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 
 export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, compact, showOnboardingHint }: Props) {
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null)
   const [rows, setRows] = useState<ServiceRow[]>([newRow()])
+  const wasPendingRef = useRef(false)
 
   const action = createVenta.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<CreateVentaState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   const total = rows.reduce((s, r) => s + (Number(r.amount) || 0) * Math.max(1, Number(r.quantity) || 1), 0)
   const commission = selectedBarber && total > 0
@@ -57,16 +60,44 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
     }))
   }
 
+  function changeRowQuantity(id: number, delta: number) {
+    setRows((current) =>
+      current.map((row) => {
+        if (row.id !== id) return row
+        const currentQty = Math.max(1, Number(row.quantity) || 1)
+        const nextQty = Math.max(1, currentQty + delta)
+        return { ...row, quantity: String(nextQty) }
+      })
+    )
+  }
+
   function handleReset() {
     setSelectedBarber(null)
     setRows([newRow()])
   }
 
+  useEffect(() => {
+    if (pending) {
+      wasPendingRef.current = true
+      return
+    }
+    if (!wasPendingRef.current) return
+    wasPendingRef.current = false
+
+    const hasError = !state?.success && Boolean(state?.message)
+    if (hasError) return
+
+    formRef.current?.reset()
+    const timer = setTimeout(() => { handleReset() }, 0)
+    return () => clearTimeout(timer)
+  }, [pending, state, formRef])
+
   return (
-    <form action={formAction} className={compact ? styles.formCompact : styles.formCard}>
+    <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={compact ? styles.formCompact : styles.formCard}>
       {!compact && <h3 className={styles.formTitle}>Registrar venta</h3>}
 
-      {state?.message && <p className={styles.errorBox}>{state.message}</p>}
+      {state?.message && !state?.success && <p className={styles.errorBox}>{state.message}</p>}
+      {state?.message && state?.success && <p className={styles.successBox}>{state.message}</p>}
 
       {showOnboardingHint && (
         <div className={styles.onboardingHint}>
@@ -116,18 +147,35 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
               ))}
             </select>
 
-            <input
-              name="quantity[]"
-              type="number"
-              inputMode="numeric"
-              min="1"
-              step="1"
-              className={styles.input}
-              value={row.quantity}
-              onChange={e => updateRow(row.id, 'quantity', e.target.value)}
-              style={{ width: 56, textAlign: 'center' }}
-              title="Cantidad"
-            />
+            <div className={styles.qtyStepper}>
+              <button
+                type="button"
+                className={styles.qtyBtn}
+                onClick={() => changeRowQuantity(row.id, -1)}
+                aria-label="Disminuir cantidad"
+              >
+                −
+              </button>
+              <input
+                name="quantity[]"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                step="1"
+                className={`${styles.input} ${styles.qtyInput}`}
+                value={row.quantity}
+                onChange={e => updateRow(row.id, 'quantity', e.target.value)}
+                title="Cantidad"
+              />
+              <button
+                type="button"
+                className={styles.qtyBtn}
+                onClick={() => changeRowQuantity(row.id, 1)}
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </button>
+            </div>
 
             <input
               name="amount[]"

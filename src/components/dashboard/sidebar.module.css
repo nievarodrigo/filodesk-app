@@ -40,6 +40,24 @@
   flex: 1;
 }
 
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.navGroupHeader {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 12px 4px;
+  margin: 0;
+  opacity: .6;
+}
+
 .navLink {
   display: flex;
   align-items: center;

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createNomina, type NominaState } from '@/app/actions/nomina'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './nominas.module.css'
 
 interface Barber { id: string; name: string; commission_pct: number }
@@ -21,6 +22,7 @@ export default function NuevaNominaForm({ barbershopId, barbers }: Props) {
   const { start, end } = monthRange()
   const action = createNomina.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<NominaState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -33,7 +35,7 @@ export default function NuevaNominaForm({ barbershopId, barbers }: Props) {
         <div className={styles.formCard}>
           <h3 className={styles.formTitle}>Nueva liquidación</h3>
           <p className={styles.formSub}>FiloDesk calcula automáticamente la comisión en base a las ventas del período.</p>
-          <form action={formAction} className={styles.form}>
+          <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
 
             <div className={styles.formGrid}>

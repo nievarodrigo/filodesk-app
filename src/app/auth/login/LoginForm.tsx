@@ -2,13 +2,15 @@
 
 import { useActionState } from 'react'
 import { login } from '@/app/actions/auth'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from '../auth.module.css'
 
 export default function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
-    <form action={action} className={styles.form}>
+    <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={action} className={styles.form}>
       <div className={styles.field}>
         <label htmlFor="email" className={styles.label}>Email</label>
         <input

@@ -142,7 +142,7 @@
 
 .servicesHead {
   display: grid;
-  grid-template-columns: 1fr 56px 1fr 32px;
+  grid-template-columns: 1fr 120px 1fr 32px;
   gap: 8px;
   padding: 0 2px;
   font-size: .72rem;
@@ -154,9 +154,46 @@
 
 .serviceRow {
   display: grid;
-  grid-template-columns: 1fr 56px 1fr 32px;
+  grid-template-columns: 1fr 120px 1fr 32px;
   gap: 8px;
   align-items: center;
+}
+
+.qtyStepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+  width: 100%;
+}
+
+.qtyBtn {
+  width: 32px;
+  min-width: 32px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qtyBtn:hover {
+  color: var(--gold);
+  background: var(--hover);
+}
+
+.qtyInput {
+  border: none !important;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 6px;
+  text-align: center;
 }
 
 .btnRemoveRow {
@@ -244,6 +281,20 @@
   padding: 10px 14px;
   font-size: .85rem;
   color: var(--red);
+}
+.successBox {
+  background: rgba(56, 192, 129, .12);
+  border: 1px solid rgba(56, 192, 129, .35);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .85rem;
+  color: var(--green);
+  animation: successFadeOut 3.6s ease forwards;
+}
+
+@keyframes successFadeOut {
+  0%, 75% { opacity: 1; max-height: 80px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+  100% { opacity: 0; max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border-width: 0; overflow: hidden; }
 }
 
 .onboardingHint {

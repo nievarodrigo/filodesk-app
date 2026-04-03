@@ -66,7 +66,28 @@
 .widgetBtn:hover:not(:disabled) { background: var(--gold-soft); }
 .widgetBtn:disabled { opacity: .6; cursor: not-allowed; }
 
+.widgetFeedbackSlot {
+  min-height: 42px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
 .widgetError { font-size: .78rem; color: var(--red); }
+.widgetSuccess {
+  background: rgba(56, 192, 129, .12);
+  border: 1px solid rgba(56, 192, 129, .35);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .82rem;
+  color: var(--green);
+  animation: widgetSuccessFadeOut 3.6s ease forwards;
+}
+
+@keyframes widgetSuccessFadeOut {
+  0%, 75% { opacity: 1; max-height: 80px; margin-bottom: 6px; padding-top: 10px; padding-bottom: 10px; }
+  100% { opacity: 0; max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border-width: 0; overflow: hidden; }
+}
 
 .widgetBtnSecondary {
   background: transparent;

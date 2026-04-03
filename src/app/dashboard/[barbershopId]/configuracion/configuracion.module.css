@@ -1,0 +1,145 @@
+.header { margin-bottom: 24px; }
+.title  { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
+
+/* ── Section cards ── */
+.sections { display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.cardHeader { margin-bottom: 20px; }
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+
+.cardDesc {
+  font-size: .83rem;
+  color: var(--muted);
+}
+
+/* ── Form ── */
+.form { display: flex; flex-direction: column; gap: 14px; }
+
+.formField { display: flex; flex-direction: column; gap: 6px; }
+
+.formLabel {
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+}
+
+.formOptional { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+.formInput {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .9rem;
+  color: var(--text);
+  width: 100%;
+  max-width: 480px;
+  transition: border-color .15s;
+}
+.formInput:focus { outline: none; border-color: var(--gold); }
+
+.formBtn {
+  align-self: flex-start;
+  background: var(--gold);
+  color: var(--bg);
+  font-size: .88rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity .15s;
+  margin-top: 4px;
+}
+.formBtn:disabled { opacity: .6; cursor: not-allowed; }
+
+.formError {
+  font-size: .85rem;
+  color: var(--red);
+  background: rgba(224,112,112,.08);
+  border: 1px solid rgba(224,112,112,.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.formSuccess {
+  font-size: .85rem;
+  color: var(--green);
+  background: rgba(86,187,124,.08);
+  border: 1px solid rgba(86,187,124,.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+/* ── Plan card ── */
+.planRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.planInfo { display: flex; flex-direction: column; gap: 4px; }
+
+.planName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.planDetail {
+  font-size: .83rem;
+  color: var(--muted);
+}
+
+.planBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(201,168,76,.4);
+  background: rgba(201,168,76,.1);
+  color: var(--gold);
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s;
+}
+.planBtn:hover { background: rgba(201,168,76,.2); }
+
+/* ── Links card (equipo) ── */
+.linkList { display: flex; flex-direction: column; gap: 8px; }
+
+.linkItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: .9rem;
+  transition: border-color .15s, background .15s;
+}
+.linkItem:hover { border-color: rgba(201,168,76,.3); background: var(--hover); }
+
+.linkItemLabel { font-weight: 500; }
+.linkItemArrow { color: var(--muted); font-size: .8rem; }

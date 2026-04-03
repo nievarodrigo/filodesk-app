@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { createBarber } from '@/app/actions/barber'
 import { type CreateBarberState } from '@/lib/validations/barber'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './barberos.module.css'
 
 interface Props { barbershopId: string }
@@ -11,6 +12,7 @@ export default function NuevoBarberoForm({ barbershopId }: Props) {
   const [open, setOpen] = useState(false)
   const action = createBarber.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<CreateBarberState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
     <div>
@@ -21,7 +23,7 @@ export default function NuevoBarberoForm({ barbershopId }: Props) {
       {open && (
         <div className={`${styles.formCard} ${styles.formCardOpen}`}>
           <h3 className={styles.formTitle}>Nuevo barbero</h3>
-          <form action={formAction} className={styles.form}>
+          <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
             <div className={styles.formRow}>
               <div className={styles.field}>

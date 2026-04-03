@@ -14,6 +14,7 @@ import VentasPorBarbero from './VentasPorBarbero'
 import DailyQuickView from './DailyQuickView'
 import InfoTooltip from './InfoTooltip'
 import CustomRangePicker from './CustomRangePicker'
+import MovimientosTab from './MovimientosTab'
 import { buildFinanceKpiConfigs, type KpiTone } from './kpi-config'
 import styles from './finanzas.module.css'
 
@@ -99,10 +100,10 @@ export default async function FinanzasPage({
   searchParams,
 }: {
   params: Promise<{ barbershopId: string }>
-  searchParams: Promise<{ mes?: string; periodo?: string; desde?: string; hasta?: string }>
+  searchParams: Promise<{ mes?: string; periodo?: string; desde?: string; hasta?: string; tab?: string; tipo?: string; pb?: string; pp?: string; p?: string }>
 }) {
   const { barbershopId } = await params
-  const { mes, periodo, desde, hasta } = await searchParams
+  const { mes, periodo, desde, hasta, tab, tipo, pb, pp, p } = await searchParams
   const hdrs = await headers()
   const userAgent = hdrs.get('user-agent') || ''
   const isMobile = /mobile/i.test(userAgent)
@@ -113,6 +114,43 @@ export default async function FinanzasPage({
   const context = await getServerAuthContext(supabase, barbershopId, session.user.id)
   if (!context || !canAccess(context.role, 'view_finance')) {
     redirect(`/dashboard/${barbershopId}`)
+  }
+
+  const tabNav = (
+    <div className={styles.pageTabs}>
+      <Link
+        href={`/dashboard/${barbershopId}/finanzas`}
+        className={tab !== 'movimientos' ? styles.pageTabActive : styles.pageTab}
+      >
+        Resumen
+      </Link>
+      <Link
+        href={`/dashboard/${barbershopId}/finanzas?tab=movimientos`}
+        className={tab === 'movimientos' ? styles.pageTabActive : styles.pageTab}
+      >
+        Movimientos
+      </Link>
+    </div>
+  )
+
+  if (tab === 'movimientos') {
+    return (
+      <div>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Finanzas</h1>
+        </div>
+        {tabNav}
+        <MovimientosTab
+          barbershopId={barbershopId}
+          desde={desde}
+          hasta={hasta}
+          tipo={tipo}
+          pb={pb}
+          pp={pp}
+          p={p}
+        />
+      </div>
+    )
   }
 
   const now = new Date()
@@ -424,6 +462,7 @@ export default async function FinanzasPage({
           barbershopId={barbershopId}
         />
       </div>
+      {tabNav}
       <div className={styles.periodNav}>
         <div className={styles.monthNav}>
           <a
@@ -454,7 +493,7 @@ export default async function FinanzasPage({
         cashToday={efectivoHoy}
         transferToday={transferenciaHoy}
       />
-      <details className={styles.metricsGroup} open>
+      <details className={styles.metricsGroup}>
         <summary className={styles.metricsGroupSummary}>
           <div>
             <p className={styles.metricsGroupTitle}>Métricas de Rendimiento</p>

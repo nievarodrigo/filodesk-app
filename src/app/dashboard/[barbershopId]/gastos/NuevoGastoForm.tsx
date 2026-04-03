@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { createGasto, type GastoState } from '@/app/actions/gasto'
 import { CATEGORIES } from '@/lib/constants/gastos'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './gastos.module.css'
 
 interface Props { barbershopId: string }
@@ -13,6 +14,7 @@ export default function NuevoGastoForm({ barbershopId }: Props) {
   const [open, setOpen] = useState(false)
   const action = createGasto.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<GastoState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
     <div style={{ marginBottom: 20 }}>
@@ -24,7 +26,7 @@ export default function NuevoGastoForm({ barbershopId }: Props) {
       {open && (
         <div className={styles.formCard}>
           <h3 className={styles.formTitle}>Nuevo gasto</h3>
-          <form action={formAction} className={styles.form}>
+          <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
 
             <div className={styles.formGrid}>

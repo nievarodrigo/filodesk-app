@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { inviteMember, type InviteMemberState } from '@/app/actions/member'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './equipo.module.css'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 export default function InviteMemberModal({ barbershopId }: Props) {
   const action = inviteMember.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<InviteMemberState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function InviteMemberModal({ barbershopId }: Props) {
               </button>
             </div>
 
-            <form action={formAction} className={styles.modalForm}>
+            <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.modalForm}>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="member-email">Email</label>
                 <input

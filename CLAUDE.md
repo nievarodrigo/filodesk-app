@@ -2,7 +2,6 @@
 
 ## Reglas críticas del proyecto
 
-- PROHIBIDO MODIFICAR LA ESTRUCTURA DEL SIDEBAR (`src/components/dashboard/Sidebar.tsx`). Solo se permite añadir condicionales de visibilidad mediante `canAccess`.
 - Para cualquier nueva página o acción en el dashboard, es obligatorio obtener el contexto mediante `getServerAuthContext` para validar rol y plan.
 - No usar `createServiceClient` (`service_role`) en acciones de usuario a menos que sea estrictamente necesario para bypass de RLS justificado y documentado.
 

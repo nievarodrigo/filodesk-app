@@ -37,7 +37,7 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
         borderLeft: '4px solid var(--gold)',
         borderRadius: 14,
         padding: '18px 20px',
-        marginBottom: 18,
+        marginBottom: 24,
         display: 'flex',
         flexDirection: 'column',
         gap: 14,

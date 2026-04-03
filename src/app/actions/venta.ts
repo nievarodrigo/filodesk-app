@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServerAuthContext } from '@/services/auth.service'
 import * as saleService from '@/services/sale.service'
 
-export type CreateVentaState = { message?: string } | undefined
+export type CreateVentaState = { message?: string; success?: boolean } | undefined
 
 export async function createVenta(
   barbershopId: string,
@@ -55,13 +55,23 @@ export async function createVenta(
 
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
   revalidatePath(`/dashboard/${barbershopId}`)
+  return { success: true, message: 'Servicio registrado con éxito.' }
 }
 
 export async function deleteVenta(barbershopId: string, saleId: string) {
   const supabase = await createClient()
-  await saleService.deleteSale(supabase, saleId)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const context = await getServerAuthContext(supabase, barbershopId, user.id)
+  if (!context || context.role === 'barber') {
+    return { error: 'No tenés permisos para eliminar servicios.' }
+  }
+
+  await saleService.deleteSale(supabase, saleId, barbershopId)
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
   revalidatePath(`/dashboard/${barbershopId}`)
+  return { success: true }
 }
 
 export async function approveVenta(barbershopId: string, saleId: string) {

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createProducto, type ProductoState } from '@/app/actions/producto'
+import { usePreserveFormOnError } from '@/lib/hooks/usePreserveFormOnError'
 import styles from './productos.module.css'
 
 interface Props { barbershopId: string }
@@ -10,6 +11,7 @@ export default function NuevoProductoForm({ barbershopId }: Props) {
   const [open, setOpen] = useState(false)
   const action = createProducto.bind(null, barbershopId)
   const [state, formAction, pending] = useActionState<ProductoState, FormData>(action, undefined)
+  const { formRef, handleSubmitCapture } = usePreserveFormOnError(state)
 
   return (
     <div>
@@ -20,7 +22,7 @@ export default function NuevoProductoForm({ barbershopId }: Props) {
       {open && (
         <div className={styles.formCard} style={{ marginTop: 16 }}>
           <h3 className={styles.formTitle}>Nuevo producto</h3>
-          <form action={formAction} className={styles.form}>
+          <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={styles.form}>
             {state?.message && <p className={styles.errorBox}>{state.message}</p>}
             <div className={styles.formGrid}>
               <div className={styles.field} style={{ gridColumn: '1 / -1' }}>

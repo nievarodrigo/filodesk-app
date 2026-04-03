@@ -1,0 +1,30 @@
+.header { margin-bottom: 16px; }
+.title { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
+
+.pageTabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+.pageTab {
+  padding: 8px 16px;
+  font-size: .85rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: color .15s, background .15s;
+  position: relative;
+  bottom: -1px;
+}
+.pageTab:hover { color: var(--text); background: var(--card); }
+.pageTabActive {
+  color: var(--gold);
+  background: var(--surface);
+  border-color: var(--border);
+  border-bottom-color: var(--surface);
+}

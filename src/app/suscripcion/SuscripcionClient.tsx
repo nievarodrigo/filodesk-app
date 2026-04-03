@@ -263,6 +263,40 @@ export default function SuscripcionClient({ barbershopId, barbershopName, curren
                     <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>{p.note}</p>
                   </div>
                 ))}
+
+                {/* Plan Intermedio — próximamente */}
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16,
+                  position: 'relative', cursor: 'default', opacity: 0.6,
+                }}>
+                  <div style={{ position: 'absolute', top: -1, left: -1, right: -1, height: 3, background: 'var(--border)', borderRadius: '14px 14px 0 0' }} />
+                  <div style={{
+                    position: 'absolute', top: 12, right: 12, padding: '4px 12px', borderRadius: 20, fontSize: '.65rem', fontWeight: 700, letterSpacing: '.4px', textTransform: 'uppercase',
+                    background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', border: '1px solid var(--border)',
+                  }}>PRÓXIMAMENTE</div>
+                  <div style={{ marginTop: 8 }}>
+                    <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 4 }}>Plan Intermedio</p>
+                    <p style={{ fontSize: '.78rem', color: 'var(--muted)' }}>Más funciones para barbierías en crecimiento</p>
+                  </div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                    {['Todo lo del Plan Base', 'Reportes avanzados', 'Múltiples sucursales', 'Soporte prioritario'].map(f => (
+                      <li key={f} style={{ fontSize: '.82rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: 8, opacity: 0.7 }}>
+                        <span style={{ color: 'var(--border)', flexShrink: 0 }}>✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button disabled style={{
+                    width: '100%', background: 'var(--border)', color: 'var(--muted)',
+                    border: 'none', borderRadius: 8, padding: '11px 20px',
+                    fontSize: '.9rem', fontWeight: 700, cursor: 'not-allowed', marginTop: 'auto',
+                  }}>
+                    Próximamente
+                  </button>
+                  <p style={{ fontSize: '.7rem', color: 'var(--border)', textAlign: 'center', marginTop: 4 }}>En desarrollo</p>
+                </div>
               </div>
             </>
           ) : (

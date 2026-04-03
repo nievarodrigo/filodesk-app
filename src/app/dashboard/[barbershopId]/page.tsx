@@ -80,6 +80,7 @@ export default async function DashboardPage({
   if (!context) redirect('/dashboard')
 
   const todayDate = today()
+  const monthStartDate = `${todayDate.slice(0, 8)}01`
 
   const [
     { data: barbershop },
@@ -131,13 +132,16 @@ export default async function DashboardPage({
     { data: salesToday },
     { data: productSalesToday },
     { data: expensesToday },
+    { data: salesMonth },
+    { data: productSalesMonth },
+    { data: expensesMonth },
   ] = await Promise.all([
     scopedSalesQuery.order('created_at', { ascending: false }).limit(10),
     scopedSalesTotalsQuery,
     context.role === 'barber'
       ? Promise.resolve({ data: [] as ProductSale[] })
       : supabase.from('product_sales')
-          .select('id, sale_price, quantity, transaction_id, created_at, products(name)')
+          .select('id, sale_price, quantity, transaction_id, created_at, products(name, cost_price)')
           .eq('barbershop_id', barbershopId)
           .eq('date', todayDate)
           .order('created_at', { ascending: false })
@@ -145,6 +149,30 @@ export default async function DashboardPage({
     context.role === 'barber'
       ? Promise.resolve({ data: [] as Array<{ amount: number }> })
       : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as SaleWithBarber[] })
+      : supabase
+          .from('sales')
+          .select('amount, barber_id, barbers(name, commission_pct)')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as ProductSale[] })
+      : supabase
+          .from('product_sales')
+          .select('sale_price, quantity')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
+    context.role === 'barber'
+      ? Promise.resolve({ data: [] as Array<{ amount: number }> })
+      : supabase
+          .from('expenses')
+          .select('amount')
+          .eq('barbershop_id', barbershopId)
+          .gte('date', monthStartDate)
+          .lte('date', todayDate),
   ])
 
   // Deduplicar: si hay override propio, ocultar el global del mismo nombre
@@ -154,6 +182,7 @@ export default async function DashboardPage({
 
   const totalServiciosHoy = salesTodayRows.reduce((s, r) => s + (r.amount ?? 0), 0)
   const totalProductosHoy = (productSalesToday ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const productosVendidosHoy = (productSalesToday ?? []).reduce((s, r) => s + (r.quantity ?? 1), 0)
   const totalHoy = totalServiciosHoy + totalProductosHoy
   const countHoy = salesTodayRows.length
 
@@ -163,6 +192,16 @@ export default async function DashboardPage({
   }, 0)
   const gastosHoy = (expensesToday ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
   const gananciaNeta = totalHoy - comisionesHoy - gastosHoy
+
+  const salesMonthRows = (salesMonth ?? []) as SaleWithBarber[]
+  const totalServiciosMes = salesMonthRows.reduce((s, r) => s + (r.amount ?? 0), 0)
+  const totalProductosMes = (productSalesMonth ?? []).reduce((s, r) => s + ((r.sale_price ?? 0) * (r.quantity ?? 1)), 0)
+  const comisionesMes = salesMonthRows.reduce((s, r) => {
+    const pct = Array.isArray(r.barbers) ? r.barbers?.[0]?.commission_pct ?? 0 : r.barbers?.commission_pct ?? 0
+    return s + Math.round((r.amount ?? 0) * (pct / 100))
+  }, 0)
+  const gastosMes = (expensesMonth ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+  const gananciaNetaMes = totalServiciosMes + totalProductosMes - comisionesMes - gastosMes
 
   const activeBarbers = (barbers ?? []).filter(b => b.active)
   const visibleBarbers = context.role === 'barber' && currentBarber ? [currentBarber] : activeBarbers
@@ -180,11 +219,29 @@ export default async function DashboardPage({
         { label: 'Servicios hoy', value: countHoy.toString(), color: 'var(--cream)' },
         { label: 'Ingresos hoy', value: formatARS(totalHoy), color: 'var(--green)' },
         { label: 'Comisiones hoy', value: formatARS(comisionesHoy), color: 'var(--gold)' },
-        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)' },
+        { label: 'Productos vendidos hoy', value: productosVendidosHoy.toString(), color: 'var(--cream)' },
+        { label: 'Ganancia neta hoy', value: formatARS(gananciaNeta), color: gananciaNeta >= 0 ? 'var(--green)' : 'var(--red)', highlight: true },
       ]
 
   const trialEndsAt = barbershop?.trial_ends_at ? new Date(barbershop.trial_ends_at) : null
   const isTrial = barbershop?.subscription_status === 'trial' || (trialEndsAt && trialEndsAt > new Date())
+
+  const netKpi = context.role === 'barber' ? null : kpis.find((k) => k.label === 'Ganancia neta hoy')
+  const secondaryKpis = context.role === 'barber'
+    ? kpis
+    : (() => {
+        const byLabel = new Map(kpis.map((k) => [k.label, k]))
+        return [
+          byLabel.get('Ingresos hoy'),
+          byLabel.get('Servicios hoy'),
+          byLabel.get('Comisiones hoy'),
+          byLabel.get('Productos vendidos hoy'),
+        ].filter((k): k is NonNullable<typeof k> => !!k)
+      })()
+  const netMonthKpi = context.role === 'barber'
+    ? null
+    : { label: 'Ganancia neta mes', value: formatARS(gananciaNetaMes), color: gananciaNetaMes >= 0 ? 'var(--green)' : 'var(--red)' }
+
   const planName = isTrial ? 'Prueba' : context.plan
   const subscriptionMessage = (() => {
     if (barbershop?.subscription_renews_at) {
@@ -231,14 +288,46 @@ export default async function DashboardPage({
         storageKey={`${barbershopId}:inicio:kpis`}
         title="Resumen del dia"
       >
-        <div className={styles.kpis}>
-          {kpis.map(k => (
-            <div key={k.label} className={styles.kpiCard}>
-              <p className={styles.kpiLabel}>{k.label}</p>
-              <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+        {context.role === 'barber' || !netKpi ? (
+          <div className={styles.kpis}>
+            {kpis.map(k => (
+              <div key={k.label} className={`${styles.kpiCard}${k.highlight ? ` ${styles.kpiCardHighlight}` : ''}`}>
+                <p className={styles.kpiLabel}>{k.label}</p>
+                <p className={`${styles.kpiValue}${k.highlight ? ` ${styles.kpiValueHighlight}` : ''}`} style={{ color: k.color }}>{k.value}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.kpisSplit}>
+            <div className={`${styles.kpiCard} ${styles.kpiCardHero}`}>
+              <div className={styles.kpiHeroSplit}>
+                {netMonthKpi && (
+                  <div className={styles.kpiHeroCol}>
+                    <p className={styles.kpiLabel}>{netMonthKpi.label}</p>
+                    <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netMonthKpi.color }}>
+                      {netMonthKpi.value}
+                    </p>
+                  </div>
+                )}
+                <div className={`${styles.kpiHeroCol} ${styles.kpiHeroColRight}`}>
+                  <p className={styles.kpiLabel}>{netKpi.label}</p>
+                  <p className={`${styles.kpiValue} ${styles.kpiValueHero}`} style={{ color: netKpi.color }}>
+                    {netKpi.value}
+                  </p>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
+
+            <div className={styles.kpisSecondary}>
+              {secondaryKpis.map((k) => (
+                <div key={k.label} className={styles.kpiCard}>
+                  <p className={styles.kpiLabel}>{k.label}</p>
+                  <p className={styles.kpiValue} style={{ color: k.color }}>{k.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CollapsibleCard>
 
       {context.role !== 'barber' && (
@@ -262,7 +351,7 @@ export default async function DashboardPage({
         </section>
       )}
 
-      <div style={{ marginTop: 16 }}>
+      <div style={{ marginBottom: 24 }}>
         <h2 className={styles.title} style={{ fontSize: '1.1rem', marginBottom: 16 }}>
           {context.role === 'barber' ? 'Tu herramienta de trabajo' : 'Registro rápido'}
         </h2>
@@ -298,6 +387,7 @@ export default async function DashboardPage({
         collapseOnMobile
       >
         <VentasHoySection
+          barbershopId={barbershopId}
           role={context.role as BarbershopRole}
           serviceSales={(recentSales ?? []).map((s: Sale) => {
             const barberName = (s.barbers && typeof s.barbers === 'object')
@@ -311,6 +401,11 @@ export default async function DashboardPage({
               barber_id: s.barber_id ?? '',
               type: 'servicio' as const,
               barber: barberName ?? '—',
+              commission_pct: (() => {
+                if (!s.barbers || typeof s.barbers !== 'object') return 0
+                const pct = Array.isArray(s.barbers) ? s.barbers[0]?.commission_pct : s.barbers.commission_pct
+                return Number(pct ?? 0)
+              })(),
               service: serviceName ?? '—',
               amount: s.amount ?? 0,
               status: s.status ?? 'approved',
@@ -319,16 +414,22 @@ export default async function DashboardPage({
             }
           })}
           productSales={(productSalesToday ?? []).map((s: ProductSale) => {
-            const productName = (s.products && typeof s.products === 'object')
-              ? (Array.isArray(s.products) ? s.products[0]?.name : s.products.name)
-              : 'Sin producto'
+            const productData = (s.products && typeof s.products === 'object')
+              ? (Array.isArray(s.products) ? s.products[0] : s.products)
+              : null
+            const productName = productData?.name ?? 'Sin producto'
+            const unitCost = Number(productData?.cost_price ?? 0)
+            const quantity = s.quantity ?? 1
+            const unitPrice = s.sale_price ?? 0
             return {
               id: s.id,
               type: 'producto' as const,
               product: productName ?? '—',
-              quantity: s.quantity ?? 1,
-              unit_price: s.sale_price ?? 0,
-              amount: (s.sale_price ?? 0) * (s.quantity ?? 1),
+              quantity,
+              unit_price: unitPrice,
+              unit_cost: unitCost,
+              amount: unitPrice * quantity,
+              profit: (unitPrice - unitCost) * quantity,
               transaction_id: s.transaction_id ?? '',
               created_at: s.created_at ?? '',
             }

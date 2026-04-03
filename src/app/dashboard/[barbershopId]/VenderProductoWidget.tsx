@@ -93,8 +93,31 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
     setQty(1)
   }
 
+  function adjustPickerQty(delta: number) {
+    setQty((current) => {
+      const maxAllowed = selected ? Math.max(1, availableStock(selected)) : Number.POSITIVE_INFINITY
+      const next = Math.max(1, current + delta)
+      return Math.min(next, maxAllowed)
+    })
+  }
+
   function removeFromCart(productId: string) {
     setCart(prev => prev.filter(c => c.product.id !== productId))
+  }
+
+  function changeCartQty(productId: string, delta: number) {
+    setCart(prev =>
+      prev.flatMap((item) => {
+        if (item.product.id !== productId) return [item]
+
+        const nextQty = item.quantity + delta
+        const maxQty = item.product.stock
+        if (nextQty <= 0) return []
+        if (nextQty > maxQty) return [item]
+
+        return [{ ...item, quantity: nextQty }]
+      })
+    )
   }
 
   const total = cart.reduce((s, c) => s + c.product.sale_price * c.quantity, 0)
@@ -106,7 +129,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
       initialRenderRef.current = false
       return
     }
-    if (!pending && !state?.message && formRef.current) {
+    if (!pending && state?.success && formRef.current) {
       // Use setTimeout to defer setState - prevents cascading render warning
       const timer = setTimeout(() => { setCart([]) }, 0)
       return () => clearTimeout(timer)
@@ -134,6 +157,11 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
         </p>
       ) : (
         <>
+          <div className={styles.widgetFeedbackSlot}>
+            {state?.message && !state?.success && <p className={styles.widgetError}>{state.message}</p>}
+            {state?.message && state?.success && <p className={styles.widgetSuccess}>{state.message}</p>}
+          </div>
+
           {/* Autocomplete */}
           <div ref={containerRef} style={{ position: 'relative', marginBottom: 8 }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -147,14 +175,34 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 className={styles.widgetSearch}
                 autoComplete="off"
               />
-              <input
-                type="number"
-                min="1"
-                max={selected ? availableStock(selected) : 999}
-                value={qty}
-                onChange={e => setQty(Math.max(1, Number(e.target.value)))}
-                className={styles.widgetQty}
-              />
+              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card)', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => adjustPickerQty(-1)}
+                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  aria-label="Disminuir cantidad"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={selected ? availableStock(selected) : 999}
+                  value={qty}
+                  onChange={e => setQty(Math.max(1, Number(e.target.value)))}
+                  className={styles.widgetQty}
+                  style={{ border: 'none', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', borderRadius: 0, background: 'transparent', textAlign: 'center' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustPickerQty(1)}
+                  disabled={!!selected && qty >= Math.max(1, availableStock(selected))}
+                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'var(--border)' : 'var(--muted)', cursor: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'not-allowed' : 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={addToCart}
@@ -208,8 +256,30 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
               {cart.map(c => (
                 <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: 1 }}>
-                    {c.product.name} <span style={{ color: 'var(--muted)' }}>×{c.quantity}</span>
+                    {c.product.name}
                   </span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 6px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--surface)' }}>
+                    <button
+                      type="button"
+                      onClick={() => changeCartQty(c.product.id, -1)}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      aria-label={`Disminuir cantidad de ${c.product.name}`}
+                    >
+                      −
+                    </button>
+                    <span style={{ minWidth: 14, textAlign: 'center', fontSize: '.8rem', color: 'var(--cream)', fontWeight: 700 }}>
+                      {c.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => changeCartQty(c.product.id, +1)}
+                      disabled={c.quantity >= c.product.stock}
+                      style={{ background: 'transparent', border: 'none', color: c.quantity >= c.product.stock ? 'var(--border)' : 'var(--muted)', cursor: c.quantity >= c.product.stock ? 'not-allowed' : 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      aria-label={`Aumentar cantidad de ${c.product.name}`}
+                    >
+                      +
+                    </button>
+                  </div>
                   <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {formatARS(c.product.sale_price * c.quantity)}
                   </span>
@@ -231,7 +301,6 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           <form ref={formRef} action={formAction}>
             <input type="hidden" name="items" value={JSON.stringify(cart.map(c => ({ product_id: c.product.id, quantity: c.quantity, sale_price: c.product.sale_price })))} />
             <input type="hidden" name="date" value={date} />
-            {state?.message && <p className={styles.widgetError} style={{ marginBottom: 6 }}>{state.message}</p>}
             <button type="submit" className={styles.widgetBtn} disabled={pending || cart.length === 0} style={{ width: '100%' }}>
               {pending ? '…' : `Confirmar venta${cart.length > 1 ? ` (${cart.length} productos)` : ''}`}
             </button>
