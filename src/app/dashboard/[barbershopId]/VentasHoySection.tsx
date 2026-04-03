@@ -395,6 +395,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <span>Cant.</span>
                         <span>Comisión</span>
                         <span>Total</span>
+                        <span></span>
                       </div>
                       {paginatedServices.map(svc => (
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
@@ -403,20 +404,22 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                           <span className={styles.detailQty} data-label="Cant.">1</span>
                           <span className={styles.detailAccent} data-label="Comisión">{formatARS(svc.commission)}</span>
                           <span className={styles.detailAmount} data-label="Total">
-                          {formatARS(svc.amount)}
-                          {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
-                          {role !== 'barber' && (
-                            <button
-                              type="button"
-                              className={styles.deleteServiceBtn}
-                              onClick={() => handleDeleteService(svc.id, svc.service)}
-                              disabled={isDeleting && deletingSaleId === svc.id}
-                              aria-label={`Eliminar servicio ${svc.service}`}
-                            >
-                              {isDeleting && deletingSaleId === svc.id ? 'Eliminando…' : 'Eliminar'}
-                            </button>
-                          )}
-                        </span>
+                            {formatARS(svc.amount)}
+                            {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
+                          </span>
+                          <span className={styles.detailAction} data-label="">
+                            {role !== 'barber' && (
+                              <button
+                                type="button"
+                                className={styles.deleteServiceBtn}
+                                onClick={() => handleDeleteService(svc.id, svc.service)}
+                                disabled={isDeleting && deletingSaleId === svc.id}
+                                aria-label={`Eliminar servicio ${svc.service}`}
+                              >
+                                {isDeleting && deletingSaleId === svc.id ? 'Eliminando…' : 'Eliminar'}
+                              </button>
+                            )}
+                          </span>
                         </div>
                       ))}
                       {totalServicePages > 1 && (
@@ -477,6 +480,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                       <span>Precio Unit.</span>
                       <span>Ganancia</span>
                       <span>Total</span>
+                      <span></span>
                     </div>
                     {tx.items.map(item => (
                       <div key={item.id} className={`${styles.productDetailRow} ${styles.detailRowCard}`}>
@@ -486,6 +490,8 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <span className={styles.detailAccent} data-label="Ganancia">{formatARS(item.profit)}</span>
                         <span className={styles.detailAmount} data-label="Total">
                           {formatARS(item.amount)}
+                        </span>
+                        <span className={styles.detailAction} data-label="">
                           <button
                             type="button"
                             className={styles.deleteServiceBtn}
