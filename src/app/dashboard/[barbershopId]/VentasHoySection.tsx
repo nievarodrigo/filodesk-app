@@ -225,6 +225,8 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   }, [])
 
   const ITEMS_PER_PAGE = 10
+  const BARBERS_ITEMS_PER_PAGE = isDesktop ? 5 : ITEMS_PER_PAGE
+  const SERVICES_ITEMS_PER_PAGE = isDesktop ? 5 : ITEMS_PER_PAGE
   const PRODUCT_ITEMS_PER_PAGE = isDesktop ? 5 : 10
 
   const grouped = groupServicesByBarber(serviceSalesState)
@@ -257,9 +259,9 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSalesState.length)
 
   // Paginación de barberos
-  const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
-  const barberStart = (barberPage - 1) * ITEMS_PER_PAGE
-  const barberEnd = barberStart + ITEMS_PER_PAGE
+  const totalBarbersPages = Math.ceil(grouped.length / BARBERS_ITEMS_PER_PAGE)
+  const barberStart = (barberPage - 1) * BARBERS_ITEMS_PER_PAGE
+  const barberEnd = barberStart + BARBERS_ITEMS_PER_PAGE
   const paginatedBarbers = grouped.slice(barberStart, barberEnd)
 
   // Paginación de transacciones de productos
@@ -267,6 +269,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const txStart = (transactionPage - 1) * PRODUCT_ITEMS_PER_PAGE
   const txEnd = txStart + PRODUCT_ITEMS_PER_PAGE
   const paginatedTransactions = groupedTransactions.slice(txStart, txEnd)
+
+  useEffect(() => {
+    if (barberPage > totalBarbersPages) {
+      setBarberPage(Math.max(1, totalBarbersPages))
+    }
+  }, [barberPage, totalBarbersPages])
 
   useEffect(() => {
     if (transactionPage > totalTransactionPages) {
@@ -386,10 +394,11 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <span>Total</span>
               </div>
               {paginatedBarbers.map(g => {
-                const servicePage = servicePagesPerBarber[g.barber_id] || 1
-                const totalServicePages = Math.ceil(g.services.length / ITEMS_PER_PAGE)
-                const serviceStart = (servicePage - 1) * ITEMS_PER_PAGE
-                const serviceEnd = serviceStart + ITEMS_PER_PAGE
+                const requestedServicePage = servicePagesPerBarber[g.barber_id] || 1
+                const totalServicePages = Math.ceil(g.services.length / SERVICES_ITEMS_PER_PAGE)
+                const servicePage = Math.min(requestedServicePage, Math.max(1, totalServicePages))
+                const serviceStart = (servicePage - 1) * SERVICES_ITEMS_PER_PAGE
+                const serviceEnd = serviceStart + SERVICES_ITEMS_PER_PAGE
                 const paginatedServices = g.services.slice(serviceStart, serviceEnd)
 
                 return (
