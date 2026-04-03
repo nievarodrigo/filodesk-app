@@ -35,6 +35,11 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
   const commission = selectedBarber && total > 0
     ? Math.round(total * selectedBarber.commission_pct / 100)
     : null
+  const hasStartedService = rows.some((row) =>
+    row.service_type_id !== ''
+    || (row.amount ?? '').trim() !== ''
+    || Math.max(1, Number(row.quantity) || 1) > 1
+  )
 
   function addRow() {
     setRows(r => [...r, newRow()])
@@ -189,13 +194,17 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
               onChange={e => updateRow(row.id, 'amount', e.target.value)}
             />
 
-            <button
-              type="button"
-              className={styles.btnRemoveRow}
-              onClick={() => removeRow(row.id)}
-              disabled={rows.length === 1}
-              title="Quitar"
-            >✕</button>
+            {hasStartedService ? (
+              <button
+                type="button"
+                className={styles.btnRemoveRow}
+                onClick={() => removeRow(row.id)}
+                disabled={rows.length === 1}
+                title="Quitar"
+              >✕</button>
+            ) : (
+              <span aria-hidden className={styles.removePlaceholder}></span>
+            )}
           </div>
         ))}
 
@@ -214,10 +223,12 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
         )}
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="notes">Notas <span className={styles.optional}>(opcional)</span></label>
-        <input id="notes" name="notes" type="text" className={styles.input} placeholder="Ej: cliente nuevo, combo…" />
-      </div>
+      {hasStartedService && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="notes">Notas <span className={styles.optional}>(opcional)</span></label>
+          <input id="notes" name="notes" type="text" className={styles.input} placeholder="Ej: cliente nuevo, combo…" />
+        </div>
+      )}
 
       <div className={styles.formActions}>
         <button type="button" className={styles.btnSecondary} onClick={handleReset}>Limpiar</button>
