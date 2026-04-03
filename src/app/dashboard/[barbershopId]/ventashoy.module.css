@@ -380,6 +380,17 @@
     column-gap: 10px;
   }
 
+  /* Separador visual | entre ×count, comisión y total */
+  .tableRowService .rowAccent::before,
+  .tableRowService .rowAmount::before,
+  .tableRowProduct .transactionAccent::before,
+  .tableRowProduct .transactionTotal::before {
+    content: '|';
+    color: var(--border);
+    margin-right: 10px;
+    font-weight: 400;
+  }
+
   .detailBlock {
     padding: 0;
     background: transparent;
