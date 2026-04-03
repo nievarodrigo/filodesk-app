@@ -283,7 +283,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                     >
                       −
                     </button>
-                    <span style={{ minWidth: 24, textAlign: 'center', fontSize: '.8rem', color: 'var(--cream)', fontWeight: 700 }}>
+                    <span className={styles.widgetCartQty}>
                       {c.quantity}
                     </span>
                     <button
@@ -319,7 +319,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           )}
 
           {/* Formulario de envío */}
-          <form ref={formRef} action={formAction}>
+          <form ref={formRef} action={formAction} className={styles.widgetSubmitForm}>
             <input type="hidden" name="items" value={JSON.stringify(cart.map(c => ({ product_id: c.product.id, quantity: c.quantity, sale_price: c.product.sale_price })))} />
             <input type="hidden" name="date" value={date} />
             <div className={styles.widgetFormActions}>
