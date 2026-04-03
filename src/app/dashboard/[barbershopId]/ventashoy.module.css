@@ -101,6 +101,10 @@
   color: var(--green);
   font-weight: 600;
 }
+.rowAccent {
+  color: var(--gold);
+  font-weight: 600;
+}
 
 .divider {
   height: 1px; background: var(--border); margin: 10px 0;
@@ -160,6 +164,11 @@
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+.detailAccent {
+  color: var(--gold);
+  font-weight: 600;
+  text-align: right;
 }
 .detailAmountMuted {
   color: var(--muted);
@@ -232,6 +241,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+.transactionAccent {
+  color: var(--gold);
+  font-weight: 600;
 }
 .transactionChevron {
   color: var(--muted);

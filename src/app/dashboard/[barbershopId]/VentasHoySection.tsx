@@ -353,8 +353,8 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <span></span>
                 <span>Barbero</span>
                 <span>Servicios</span>
-                <span>Total</span>
                 <span>Comisión</span>
+                <span>Total</span>
               </div>
               {paginatedBarbers.map(g => {
                 const servicePage = servicePagesPerBarber[g.barber_id] || 1
@@ -382,8 +382,8 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     </span>
                     <span className={styles.rowPrimaryText}>{g.barber}</span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
+                    <span className={styles.rowAccent}>{formatARS(g.totalCommission)}</span>
                     <span className={styles.rowAmount}>{formatARS(g.total)}</span>
-                    <span className={styles.rowAmount}>{formatARS(g.totalCommission)}</span>
                   </div>
 
                   {/* ── Detalle expandible de servicios ── */}
@@ -393,15 +393,16 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <span>Hora</span>
                         <span>Servicio</span>
                         <span>Cant.</span>
-                        <span>Monto</span>
                         <span>Comisión</span>
+                        <span>Total</span>
                       </div>
                       {paginatedServices.map(svc => (
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
                           <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
                           <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
                           <span className={styles.detailQty} data-label="Cant.">1</span>
-                          <span className={styles.detailAmount} data-label="Monto">
+                          <span className={styles.detailAccent} data-label="Comisión">{formatARS(svc.commission)}</span>
+                          <span className={styles.detailAmount} data-label="Total">
                           {formatARS(svc.amount)}
                           {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           {role !== 'barber' && (
@@ -416,7 +417,6 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             </button>
                           )}
                         </span>
-                          <span className={styles.detailAmount} data-label="Comisión">{formatARS(svc.commission)}</span>
                         </div>
                       ))}
                       {totalServicePages > 1 && (
@@ -455,8 +455,8 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <span></span>
                 <span>Transacción</span>
                 <span>Productos</span>
-                <span>Total</span>
                 <span>Ganancia</span>
+                <span>Total</span>
               </div>
               {paginatedTransactions.map(tx => (
                 <details key={tx.transaction_id} className={styles.productTransaction}>
@@ -464,26 +464,27 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.transactionIcon} aria-hidden>📦</span>
                     <span className={styles.transactionLabel}>Venta {extractTime(tx.created_at)}</span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
+                    <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
                     <span className={styles.transactionTotal}>
                       <span>{formatARS(tx.total)}</span>
                       <span className={styles.transactionChevron} aria-hidden>▾</span>
                     </span>
-                    <span className={styles.transactionTotal}>{formatARS(tx.totalProfit)}</span>
                   </summary>
                   <div className={styles.detailBlock}>
                     <div className={`${styles.productDetailHead} ${styles.innerHeadShared}`}>
                       <span>Producto</span>
                       <span>Cant.</span>
                       <span>Precio Unit.</span>
-                      <span>Subtotal</span>
                       <span>Ganancia</span>
+                      <span>Total</span>
                     </div>
                     {tx.items.map(item => (
                       <div key={item.id} className={`${styles.productDetailRow} ${styles.detailRowCard}`}>
                         <span className={styles.detailService} data-label="Producto">{item.product}</span>
                         <span className={styles.detailQty} data-label="Cant.">×{item.quantity}</span>
                         <span className={styles.detailAmountMuted} data-label="Precio Unit.">{formatARS(item.unit_price)}</span>
-                        <span className={styles.detailAmount} data-label="Subtotal">
+                        <span className={styles.detailAccent} data-label="Ganancia">{formatARS(item.profit)}</span>
+                        <span className={styles.detailAmount} data-label="Total">
                           {formatARS(item.amount)}
                           <button
                             type="button"
@@ -495,7 +496,6 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             {isDeletingProduct && deletingProductSaleId === item.id ? 'Eliminando…' : 'Eliminar'}
                           </button>
                         </span>
-                        <span className={styles.detailAmount} data-label="Ganancia">{formatARS(item.profit)}</span>
                       </div>
                     ))}
                   </div>
