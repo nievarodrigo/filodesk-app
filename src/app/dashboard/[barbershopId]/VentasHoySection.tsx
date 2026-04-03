@@ -513,7 +513,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.rowChevronProduct} aria-hidden>▶</span>
                     <span className={styles.transactionLabel}>
                       <span className={`${styles.rowTypeTag} ${styles.rowTypeTagProduct}`}>Producto</span>
-                      Venta {extractTime(tx.created_at)}
+                      <span className={styles.transactionPrefix}>Venta</span> {extractTime(tx.created_at)}
                     </span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
                     <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
