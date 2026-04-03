@@ -19,7 +19,7 @@
 .widgetMain {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
   flex: 1;
 }
 
@@ -107,10 +107,13 @@
 }
 
 .widgetFeedbackSlot {
-  min-height: 42px;
-  margin-bottom: 8px;
+  min-height: 0;
+  margin: 0;
   display: flex;
   align-items: center;
+}
+.widgetFeedbackSlot:empty {
+  display: none;
 }
 
 .widgetError { font-size: .78rem; color: var(--red); }
@@ -277,6 +280,9 @@
 .widgetHeadCart > span:nth-child(4) {
   text-align: right;
 }
+.widgetHeadCart > span:nth-child(2) {
+  text-align: center;
+}
 
 .widgetPickerWrap {
   position: relative;
@@ -303,10 +309,13 @@
 .widgetCartStepper {
   border-radius: 8px;
   background: var(--surface);
+  min-width: 112px;
+  max-width: 112px;
+  justify-self: center;
 }
 
 .widgetCartQty {
-  min-width: 38px;
+  min-width: 48px;
   height: 34px;
   display: inline-flex;
   align-items: center;
@@ -335,6 +344,9 @@
   grid-template-columns: minmax(0, 1fr) 120px minmax(90px, 1fr) minmax(90px, 1fr) 32px;
   gap: 8px;
   align-items: center;
+}
+.cartRow > :nth-child(2) {
+  justify-self: center;
 }
 
 .cartProduct {
@@ -441,6 +453,12 @@
     min-width: 44px;
     height: 44px;
     font-size: 1rem;
+  }
+  .widgetCartStepper {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    justify-self: stretch;
   }
   .widgetCartQty {
     min-width: 44px;

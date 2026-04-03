@@ -164,11 +164,6 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
         </p>
       ) : (
         <div className={styles.widgetMain}>
-          <div className={styles.widgetFeedbackSlot}>
-            {state?.message && !state?.success && <p className={styles.widgetError}>{state.message}</p>}
-            {state?.message && state?.success && <p className={styles.widgetSuccess}>{state.message}</p>}
-          </div>
-
           {/* Autocomplete */}
           <div ref={containerRef} className={styles.widgetPickerWrap}>
             <div className={styles.widgetHead}>
@@ -257,6 +252,11 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 })}
               </div>
             )}
+          </div>
+
+          <div className={styles.widgetFeedbackSlot}>
+            {state?.message && !state?.success && <p className={styles.widgetError}>{state.message}</p>}
+            {state?.message && state?.success && <p className={styles.widgetSuccess}>{state.message}</p>}
           </div>
 
           {/* Carrito */}
