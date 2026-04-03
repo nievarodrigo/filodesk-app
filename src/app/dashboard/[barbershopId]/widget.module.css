@@ -117,3 +117,104 @@
 }
 .widgetSearch:focus { border-color: var(--gold); }
 .widgetSearch::placeholder { color: var(--muted); }
+
+.widgetLinkBtn {
+  background: none;
+  border: none;
+  font-size: .72rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 10px 4px;
+  min-height: 44px;
+  transition: color .15s;
+  display: inline-flex;
+  align-items: center;
+}
+.widgetLinkBtn:hover { color: var(--gold); }
+
+.widgetStepperBtn {
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.widgetStepperBtn:hover { color: var(--gold); background: var(--hover); }
+.widgetStepperBtn:disabled { color: var(--border); cursor: not-allowed; }
+
+.widgetCartBtn {
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.widgetCartBtn:hover { color: var(--gold); }
+.widgetCartBtn:disabled { color: var(--border); cursor: not-allowed; }
+
+.widgetCartRemove {
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .9rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.widgetCartRemove:hover { color: var(--red); background: rgba(224,112,112,.08); }
+
+.widgetSuggestion {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  min-height: 44px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--hover);
+}
+.widgetSuggestion:hover { background: var(--hover); }
+
+.widgetModalItem {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hover);
+  padding: 11px 4px;
+  min-height: 44px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-radius: 4px;
+  width: 100%;
+}
+.widgetModalItem:hover { background: var(--hover); }
+
+@media (max-width: 600px) {
+  .widgetTitle { font-size: .75rem; }
+  .widgetSearch,
+  .widgetQty,
+  .widgetSelect {
+    font-size: 1rem;
+  }
+}

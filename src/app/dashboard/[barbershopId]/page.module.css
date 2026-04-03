@@ -3,6 +3,8 @@
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .title { font-size: 1.5rem; font-weight: 700; color: var(--cream); }
 .date  { font-size: .83rem; color: var(--muted); text-transform: capitalize; }
@@ -11,6 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 4px 10px;
+  min-height: 44px;
   border-radius: 999px;
   border: 1px solid rgba(201, 168, 76, 0.2);
   background: rgba(201, 168, 76, 0.1);
@@ -360,4 +363,14 @@
   .formRow { grid-template-columns: 1fr; }
   .table { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .tableHead, .tableRow { min-width: 480px; font-size: .82rem; }
+}
+
+@media (max-width: 600px) {
+  .kpiLabel { font-size: .75rem; }
+  .planBadge { font-size: .75rem; }
+  .date { font-size: .875rem; }
+}
+
+@media (max-width: 390px) {
+  .kpiValueHero { font-size: 1.6rem; }
 }

@@ -264,7 +264,7 @@ export default async function DashboardPage({
           <p className={styles.date}>
             {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
           </p>
-          <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <p style={{ fontSize: '.95rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 600, color: 'var(--gold)' }}>Plan {subscriptionMessage.planName}</span>
             {context.role === 'owner' && context.plan === 'Base' && (
               <a href={`/suscripcion?barbershopId=${barbershopId}`} className={styles.planBadge}>

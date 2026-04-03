@@ -47,12 +47,14 @@
   padding: 5px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600;
   border: 1px solid var(--border); color: var(--muted); background: transparent;
   cursor: pointer; transition: color .15s; white-space: nowrap;
+  min-height: 44px; display: inline-flex; align-items: center;
 }
 .tab:hover { color: var(--text); }
 .tabActive {
   padding: 5px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600;
   background: var(--gold); color: var(--bg); border: 1px solid var(--gold);
   cursor: pointer; white-space: nowrap;
+  min-height: 44px; display: inline-flex; align-items: center;
 }
 
 /* Table */
@@ -234,12 +236,16 @@
   color: var(--red);
   border-radius: 999px;
   min-width: 78px;
-  padding: 3px 10px;
+  min-height: 44px;
+  padding: 8px 14px;
   font-size: .68rem;
   font-weight: 700;
   line-height: 1.2;
   cursor: pointer;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .deleteServiceBtn:hover:not(:disabled) {
   background: rgba(224, 112, 112, 0.2);
@@ -337,12 +343,17 @@
   font-size: .78rem;
 }
 .paginationButton {
-  padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .paginationButton:disabled {
   opacity: .5;
@@ -430,4 +441,6 @@
     display: none;
   }
   .paginationControls { margin: 10px 0 2px; }
+  .deleteServiceBtn { font-size: .75rem; }
+  .pendingBadge { font-size: .75rem; }
 }

@@ -143,9 +143,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
         <button
           type="button"
           onClick={() => setModal(true)}
-          style={{ background: 'none', border: 'none', fontSize: '.72rem', color: 'var(--muted)', cursor: 'pointer', padding: 0, transition: 'color .15s' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+          className={styles.widgetLinkBtn}
         >
           Ver productos →
         </button>
@@ -164,7 +162,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
 
           {/* Autocomplete */}
           <div ref={containerRef} style={{ position: 'relative', marginBottom: 8 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <input
                 type="text"
                 placeholder="Buscar producto..."
@@ -174,12 +172,13 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 onKeyDown={handleKeyDown}
                 className={styles.widgetSearch}
                 autoComplete="off"
+                style={{ flex: '1 1 140px', minWidth: 0 }}
               />
               <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card)', overflow: 'hidden' }}>
                 <button
                   type="button"
                   onClick={() => adjustPickerQty(-1)}
-                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  className={styles.widgetStepperBtn}
                   aria-label="Disminuir cantidad"
                 >
                   −
@@ -197,7 +196,8 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                   type="button"
                   onClick={() => adjustPickerQty(1)}
                   disabled={!!selected && qty >= Math.max(1, availableStock(selected))}
-                  style={{ width: 28, height: 34, border: 'none', background: 'transparent', color: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'var(--border)' : 'var(--muted)', cursor: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'not-allowed' : 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                  className={styles.widgetStepperBtn}
+                  style={{ color: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'var(--border)' : undefined, cursor: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'not-allowed' : undefined }}
                   aria-label="Aumentar cantidad"
                 >
                   +
@@ -228,16 +228,13 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                       type="button"
                       onClick={() => pick(p)}
                       disabled={avail <= 0}
+                      className={styles.widgetSuggestion}
                       style={{
-                        width: '100%', border: 'none',
-                        background: highlighted ? 'var(--hover)' : 'transparent',
-                        padding: '10px 14px', cursor: avail <= 0 ? 'not-allowed' : 'pointer',
-                        textAlign: 'left', display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', borderBottom: '1px solid var(--hover)',
+                        background: highlighted ? 'var(--hover)' : undefined,
+                        cursor: avail <= 0 ? 'not-allowed' : 'pointer',
                         opacity: avail <= 0 ? 0.4 : 1,
                       }}
-                      onMouseEnter={e => { if (avail > 0) { e.currentTarget.style.background = 'var(--hover)'; setActiveIdx(i) } }}
-                      onMouseLeave={e => { if (!highlighted) e.currentTarget.style.background = 'transparent' }}
+                      onPointerEnter={() => { if (avail > 0) setActiveIdx(i) }}
                     >
                       <span style={{ fontSize: '.88rem', color: 'var(--cream)', fontWeight: 500 }}>{p.name}</span>
                       <span style={{ fontSize: '.78rem', color: 'var(--muted)', whiteSpace: 'nowrap', marginLeft: 12 }}>
@@ -254,27 +251,28 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           {cart.length > 0 && (
             <div style={{ background: 'var(--card)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {cart.map(c => (
-                <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: 1 }}>
+                <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: '1 1 100px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {c.product.name}
                   </span>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 6px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--surface)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 0, borderRadius: 999, border: '1px solid var(--border)', background: 'var(--surface)', overflow: 'hidden' }}>
                     <button
                       type="button"
                       onClick={() => changeCartQty(c.product.id, -1)}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      className={styles.widgetCartBtn}
                       aria-label={`Disminuir cantidad de ${c.product.name}`}
                     >
                       −
                     </button>
-                    <span style={{ minWidth: 14, textAlign: 'center', fontSize: '.8rem', color: 'var(--cream)', fontWeight: 700 }}>
+                    <span style={{ minWidth: 24, textAlign: 'center', fontSize: '.8rem', color: 'var(--cream)', fontWeight: 700 }}>
                       {c.quantity}
                     </span>
                     <button
                       type="button"
                       onClick={() => changeCartQty(c.product.id, +1)}
                       disabled={c.quantity >= c.product.stock}
-                      style={{ background: 'transparent', border: 'none', color: c.quantity >= c.product.stock ? 'var(--border)' : 'var(--muted)', cursor: c.quantity >= c.product.stock ? 'not-allowed' : 'pointer', width: 18, height: 18, lineHeight: 1, fontSize: '1rem' }}
+                      className={styles.widgetCartBtn}
+                      style={{ color: c.quantity >= c.product.stock ? 'var(--border)' : undefined, cursor: c.quantity >= c.product.stock ? 'not-allowed' : undefined }}
                       aria-label={`Aumentar cantidad de ${c.product.name}`}
                     >
                       +
@@ -286,7 +284,8 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                   <button
                     type="button"
                     onClick={() => removeFromCart(c.product.id)}
-                    style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '.9rem', padding: '0 2px', lineHeight: 1 }}
+                    className={styles.widgetCartRemove}
+                    aria-label={`Quitar ${c.product.name} del carrito`}
                   >✕</button>
                 </div>
               ))}
@@ -331,14 +330,11 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                     type="button"
                     onClick={() => { pick(p); setModal(false) }}
                     disabled={avail <= 0}
+                    className={styles.widgetModalItem}
                     style={{
-                      background: 'transparent', border: 'none', borderBottom: '1px solid var(--hover)',
-                      padding: '11px 4px', cursor: avail <= 0 ? 'not-allowed' : 'pointer', textAlign: 'left',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      gap: 12, borderRadius: 4, opacity: avail <= 0 ? 0.4 : 1,
+                      cursor: avail <= 0 ? 'not-allowed' : 'pointer',
+                      opacity: avail <= 0 ? 0.4 : 1,
                     }}
-                    onMouseEnter={e => { if (avail > 0) e.currentTarget.style.background = 'var(--hover)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span style={{ fontSize: '.9rem', color: 'var(--cream)', fontWeight: 500 }}>{p.name}</span>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
