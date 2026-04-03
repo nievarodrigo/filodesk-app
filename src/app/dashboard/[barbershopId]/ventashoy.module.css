@@ -584,41 +584,61 @@
   }
   .tableRow {
     grid-template-columns: 20px minmax(0, 1fr) auto auto;
-    column-gap: 10px;
+    column-gap: 8px;
     font-size: .84rem;
-    padding: 12px 10px;
+    padding: 12px 8px;
     min-height: 56px;
   }
   .tableRowService {
-    grid-template-columns: 20px minmax(0, 1fr) auto auto auto;
-    column-gap: 10px;
+    grid-template-columns: 20px minmax(0, 1fr) 46px 86px 86px;
+    column-gap: 6px;
     border-left: 3px solid color-mix(in srgb, var(--gold) 45%, transparent);
     background: color-mix(in srgb, var(--gold) 7%, transparent);
   }
   .tableRowProduct {
-    grid-template-columns: 20px minmax(0, 1fr) auto auto auto;
-    column-gap: 10px;
+    grid-template-columns: 20px minmax(0, 1fr) 46px 86px 86px;
+    column-gap: 6px;
     border-left: 3px solid color-mix(in srgb, var(--green) 45%, transparent);
     background: color-mix(in srgb, var(--green) 8%, transparent);
+  }
+  .countBadge {
+    justify-self: center;
+    min-width: 46px;
+    text-align: center;
+  }
+  .rowAccent,
+  .rowAmount,
+  .transactionAccent,
+  .transactionTotal {
+    justify-self: end;
+    min-width: 86px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .transactionLabel {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .transactionTotal {
+    display: block;
+  }
+  .transactionTotal > span {
+    display: block;
+    text-align: right;
   }
   .rowPrimaryText {
     display: flex;
     flex-direction: column;
     gap: 4px;
     line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .rowTypeTag { display: none !important; }
-
-  /* Separador visual | entre ×count, comisión y total */
-  .tableRowService .rowAccent::before,
-  .tableRowService .rowAmount::before,
-  .tableRowProduct .transactionAccent::before,
-  .tableRowProduct .transactionTotal::before {
-    content: '|';
-    color: var(--border);
-    margin-right: 10px;
-    font-weight: 400;
-  }
 
   .detailBlock {
     padding: 0;

@@ -204,7 +204,6 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null)
   const [deletingProductSaleId, setDeletingProductSaleId] = useState<string | null>(null)
-  const [isDesktop, setIsDesktop] = useState(false)
   const [isDeleting, startDeleteTransition] = useTransition()
   const [isDeletingProduct, startDeleteProductTransition] = useTransition()
 
@@ -216,18 +215,9 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
     if (!isDeletingProduct) setProductSalesState(productSales)
   }, [productSales, isDeletingProduct])
 
-  useEffect(() => {
-    const mql = window.matchMedia('(min-width: 769px)')
-    const sync = () => setIsDesktop(mql.matches)
-    sync()
-    mql.addEventListener('change', sync)
-    return () => mql.removeEventListener('change', sync)
-  }, [])
-
-  const ITEMS_PER_PAGE = 10
-  const BARBERS_ITEMS_PER_PAGE = isDesktop ? 5 : ITEMS_PER_PAGE
-  const SERVICES_ITEMS_PER_PAGE = isDesktop ? 5 : ITEMS_PER_PAGE
-  const PRODUCT_ITEMS_PER_PAGE = isDesktop ? 5 : 10
+  const BARBERS_ITEMS_PER_PAGE = 5
+  const SERVICES_ITEMS_PER_PAGE = 5
+  const PRODUCT_ITEMS_PER_PAGE = 5
 
   const grouped = groupServicesByBarber(serviceSalesState)
   const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSalesState)
