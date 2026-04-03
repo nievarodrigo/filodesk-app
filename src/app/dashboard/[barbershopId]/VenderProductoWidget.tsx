@@ -138,8 +138,8 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
 
   return (
     <div className={styles.widget}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <p className={styles.widgetTitle} style={{ margin: 0 }}>Venta de productos</p>
+      <div className={styles.widgetHeader}>
+        <p className={styles.widgetTitle}>Venta de productos</p>
         <button
           type="button"
           onClick={() => setModal(true)}
@@ -161,8 +161,14 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           </div>
 
           {/* Autocomplete */}
-          <div ref={containerRef} style={{ position: 'relative', marginBottom: 8 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div ref={containerRef} className={styles.widgetPickerWrap}>
+            <div className={styles.widgetHead}>
+              <span>Producto</span>
+              <span>Cant.</span>
+              <span></span>
+            </div>
+
+            <div className={styles.widgetPickerRow}>
               <input
                 type="text"
                 placeholder="Buscar producto..."
@@ -172,9 +178,8 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                 onKeyDown={handleKeyDown}
                 className={styles.widgetSearch}
                 autoComplete="off"
-                style={{ flex: '1 1 140px', minWidth: 0 }}
               />
-              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card)', overflow: 'hidden' }}>
+              <div className={styles.widgetQtyStepper}>
                 <button
                   type="button"
                   onClick={() => adjustPickerQty(-1)}
@@ -190,14 +195,12 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                   value={qty}
                   onChange={e => setQty(Math.max(1, Number(e.target.value)))}
                   className={styles.widgetQty}
-                  style={{ border: 'none', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', borderRadius: 0, background: 'transparent', textAlign: 'center' }}
                 />
                 <button
                   type="button"
                   onClick={() => adjustPickerQty(1)}
                   disabled={!!selected && qty >= Math.max(1, availableStock(selected))}
                   className={styles.widgetStepperBtn}
-                  style={{ color: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'var(--border)' : undefined, cursor: (!!selected && qty >= Math.max(1, availableStock(selected))) ? 'not-allowed' : undefined }}
                   aria-label="Aumentar cantidad"
                 >
                   +
@@ -249,13 +252,20 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
 
           {/* Carrito */}
           {cart.length > 0 && (
-            <div style={{ background: 'var(--card)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={styles.cartBox}>
+              <div className={styles.widgetHeadCart}>
+                <span>Producto</span>
+                <span>Cant.</span>
+                <span>Precio unit.</span>
+                <span>Subtotal</span>
+                <span></span>
+              </div>
               {cart.map(c => (
-                <div key={c.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '.85rem', color: 'var(--text)', flex: '1 1 100px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div key={c.product.id} className={styles.cartRow}>
+                  <span className={styles.cartProduct}>
                     {c.product.name}
                   </span>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 0, borderRadius: 999, border: '1px solid var(--border)', background: 'var(--surface)', overflow: 'hidden' }}>
+                  <div className={styles.widgetCartStepper}>
                     <button
                       type="button"
                       onClick={() => changeCartQty(c.product.id, -1)}
@@ -278,7 +288,10 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                       +
                     </button>
                   </div>
-                  <span style={{ fontSize: '.85rem', color: 'var(--green)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <span className={styles.cartUnitPrice}>
+                    {formatARS(c.product.sale_price)}
+                  </span>
+                  <span className={styles.cartSubtotal}>
                     {formatARS(c.product.sale_price * c.quantity)}
                   </span>
                   <button
@@ -289,9 +302,9 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
                   >✕</button>
                 </div>
               ))}
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '.75rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px' }}>Total</span>
-                <span style={{ fontSize: '1rem', color: 'var(--gold)', fontWeight: 700 }}>{formatARS(total)}</span>
+              <div className={styles.cartTotalRow}>
+                <span>Total</span>
+                <span>{formatARS(total)}</span>
               </div>
             </div>
           )}
