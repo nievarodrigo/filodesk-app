@@ -79,11 +79,29 @@
 .tableRowService {
   grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
 }
+.tableHeadService > span:nth-child(4),
+.tableHeadService > span:nth-child(5) {
+  text-align: right;
+}
+.tableRowService > span:nth-child(4),
+.tableRowService > span:nth-child(5) {
+  justify-self: end;
+  text-align: right;
+}
 .tableHeadProduct {
   grid-template-columns: 24px minmax(140px, 1.25fr) minmax(90px, .8fr) minmax(95px, 1fr) minmax(95px, 1fr);
 }
 .tableRowProduct {
   grid-template-columns: 24px minmax(140px, 1.25fr) minmax(90px, .8fr) minmax(95px, 1fr) minmax(95px, 1fr);
+}
+.tableHeadProduct > span:nth-child(4),
+.tableHeadProduct > span:nth-child(5) {
+  text-align: right;
+}
+.tableRowProduct > span:nth-child(4),
+.tableRowProduct > span:nth-child(5) {
+  justify-self: end;
+  text-align: right;
 }
 
 .countBadge {
@@ -100,10 +118,14 @@
 .rowAmount {
   color: var(--green);
   font-weight: 600;
+  justify-self: end;
+  text-align: right;
 }
 .rowAccent {
   color: var(--gold);
   font-weight: 600;
+  justify-self: end;
+  text-align: right;
 }
 
 .divider {
@@ -133,6 +155,10 @@
   color: var(--muted);
   font-weight: 600;
 }
+.detailHead > span:nth-child(3) { text-align: center; }
+.detailHead > span:nth-child(4),
+.detailHead > span:nth-child(5),
+.detailHead > span:nth-child(6) { text-align: right; }
 
 .detailRow {
   display: grid;
@@ -159,20 +185,24 @@
 .detailAmount {
   color: var(--green);
   font-weight: 500;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   justify-content: flex-end;
   text-align: right;
+  width: 100%;
 }
 .detailAccent {
   color: var(--gold);
   font-weight: 600;
+  display: block;
   text-align: right;
+  width: 100%;
 }
 .detailAction {
-  display: inline-flex;
+  display: flex;
   justify-content: flex-end;
+  width: 100%;
 }
 .detailAmountMuted {
   color: var(--muted);
@@ -270,6 +300,11 @@
   color: var(--muted);
   font-weight: 600;
 }
+.productDetailHead > span:nth-child(2) { text-align: center; }
+.productDetailHead > span:nth-child(3),
+.productDetailHead > span:nth-child(4),
+.productDetailHead > span:nth-child(5),
+.productDetailHead > span:nth-child(6) { text-align: right; }
 .productDetailRow {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr) minmax(92px, 1fr) 98px;
