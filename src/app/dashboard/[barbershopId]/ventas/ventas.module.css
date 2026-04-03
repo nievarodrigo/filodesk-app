@@ -151,12 +151,18 @@
   color: var(--muted);
   font-weight: 600;
 }
+.servicesHeadCompact {
+  grid-template-columns: 1fr 120px 1fr;
+}
 
 .serviceRow {
   display: grid;
   grid-template-columns: 1fr 120px 1fr 32px;
   gap: 8px;
   align-items: center;
+}
+.serviceRowCompact {
+  grid-template-columns: 1fr 120px 1fr;
 }
 
 .qtyStepper {
@@ -223,12 +229,6 @@
 }
 .btnRemoveRow:hover:not(:disabled) { color: var(--red); }
 .btnRemoveRow:disabled { opacity: .3; cursor: not-allowed; }
-.removePlaceholder {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  display: inline-block;
-}
 
 .totals {
   display: flex;

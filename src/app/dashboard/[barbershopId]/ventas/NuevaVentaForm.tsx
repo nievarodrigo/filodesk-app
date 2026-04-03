@@ -131,15 +131,18 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
 
       {/* Filas de servicios */}
       <div className={styles.servicesSection}>
-        <div className={styles.servicesHead}>
+        <div className={`${styles.servicesHead} ${!hasStartedService ? styles.servicesHeadCompact : ''}`}>
           <span>Servicio</span>
           <span>Cant.</span>
           <span>Precio unit.</span>
-          <span></span>
+          {hasStartedService && <span></span>}
         </div>
 
         {rows.map((row) => (
-          <div key={row.id} className={styles.serviceRow}>
+          <div
+            key={row.id}
+            className={`${styles.serviceRow} ${!hasStartedService ? styles.serviceRowCompact : ''}`}
+          >
             <select
               name="service_type_id[]"
               className={styles.select}
@@ -194,7 +197,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
               onChange={e => updateRow(row.id, 'amount', e.target.value)}
             />
 
-            {hasStartedService ? (
+            {hasStartedService && (
               <button
                 type="button"
                 className={styles.btnRemoveRow}
@@ -202,8 +205,6 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
                 disabled={rows.length === 1}
                 title="Quitar"
               >✕</button>
-            ) : (
-              <span aria-hidden className={styles.removePlaceholder}></span>
             )}
           </div>
         ))}
