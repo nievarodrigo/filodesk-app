@@ -366,15 +366,18 @@
   .tableHead { display: none; }
   .tableRow {
     grid-template-columns: 20px minmax(0, 1fr) auto auto;
+    column-gap: 10px;
     font-size: .84rem;
     padding: 12px 10px;
     min-height: 56px;
   }
   .tableRowService {
     grid-template-columns: 20px minmax(0, 1fr) auto auto auto;
+    column-gap: 10px;
   }
   .tableRowProduct {
     grid-template-columns: 20px minmax(0, 1fr) auto auto auto;
+    column-gap: 10px;
   }
 
   .detailBlock {
