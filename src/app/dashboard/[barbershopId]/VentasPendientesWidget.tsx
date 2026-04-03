@@ -91,8 +91,8 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
                   <button
                     type="submit"
                     style={{
-                      minHeight: 38,
-                      padding: '8px 12px',
+                      minHeight: 44,
+                      padding: '8px 14px',
                       borderRadius: 8,
                       border: '1px solid rgba(94, 207, 135, 0.32)',
                       background: 'rgba(94, 207, 135, 0.12)',
@@ -113,8 +113,8 @@ export default async function VentasPendientesWidget({ barbershopId, role }: Pro
                   <button
                     type="submit"
                     style={{
-                      minHeight: 38,
-                      padding: '8px 12px',
+                      minHeight: 44,
+                      padding: '8px 14px',
                       borderRadius: 8,
                       border: '1px solid rgba(224, 112, 112, 0.26)',
                       background: 'rgba(224, 112, 112, 0.1)',

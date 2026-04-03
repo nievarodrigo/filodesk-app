@@ -237,6 +237,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
 
   const showServices = effectiveFilter === 'todos' || effectiveFilter === 'servicio'
   const showProducts = role !== 'barber' && (effectiveFilter === 'todos' || effectiveFilter === 'producto')
+  const splitDesktopColumns = role !== 'barber'
+    && effectiveFilter === 'todos'
+    && showServices
+    && showProducts
+    && grouped.length > 0
+    && groupedTransactions.length > 0
 
   const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSalesState.length)
 
@@ -341,14 +347,21 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
       {totalCount === 0 ? (
         <p className={styles.empty}>Todavía no hay ventas hoy.</p>
       ) : (
-        <div className={styles.table}>
+        <div className={`${styles.table} ${splitDesktopColumns ? styles.tableSplit : ''}`}>
           {deleteError && (
             <p className={styles.errorBox}>{deleteError}</p>
           )}
 
           {/* ── Servicios agrupados por barbero ── */}
           {showServices && grouped.length > 0 && (
-            <>
+            <section className={`${styles.categoryBlock} ${styles.categoryBlockService} ${splitDesktopColumns ? styles.categoryPane : ''}`}>
+              <div className={`${styles.categoryHeader} ${styles.categoryHeaderService}`}>
+                <span className={styles.categoryTitle}>
+                  <span className={`${styles.categoryIcon} ${styles.categoryIconService}`} aria-hidden />
+                  Servicios de barberos
+                </span>
+                <span className={styles.categoryMeta}>{serviceSalesState.length}</span>
+              </div>
               <div className={`${styles.tableHead} ${styles.tableHeadService}`}>
                 <span></span>
                 <span>Barbero</span>
@@ -380,7 +393,10 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.rowChevron}>
                       {expandedBarberIds.has(g.barber_id) ? '▼' : '▶'}
                     </span>
-                    <span className={styles.rowPrimaryText}>{g.barber}</span>
+                    <span className={styles.rowPrimaryText}>
+                      <span className={`${styles.rowTypeTag} ${styles.rowTypeTagService}`}>Servicio</span>
+                      {g.barber}
+                    </span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
                     <span className={styles.rowAccent}>{formatARS(g.totalCommission)}</span>
                     <span className={styles.rowAmount}>{formatARS(g.total)}</span>
@@ -400,13 +416,19 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                       {paginatedServices.map(svc => (
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
                           <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
-                          <span className={styles.detailService} data-label="Servicio">{svc.service}</span>
+                          <span className={styles.detailService} data-label="Servicio">
+                            {svc.service}
+                            {svc.notes && <em className={styles.detailNoteDesktop} title={svc.notes}>{svc.notes}</em>}
+                          </span>
                           <span className={styles.detailQty} data-label="Cant.">1</span>
                           <span className={styles.detailAccent} data-label="Comisión">{formatARS(svc.commission)}</span>
                           <span className={styles.detailAmount} data-label="Total">
                             {formatARS(svc.amount)}
                             {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           </span>
+                          {svc.notes && (
+                            <span className={styles.detailNotes} data-label="Nota" title={svc.notes}>{svc.notes}</span>
+                          )}
                           <span className={styles.detailAction} data-label="">
                             {role !== 'barber' && (
                               <button
@@ -443,17 +465,24 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                   onNext={() => setBarberPage(Math.min(totalBarbersPages, barberPage + 1))}
                 />
               )}
-            </>
+            </section>
           )}
 
           {/* ── Separador si hay ambos ── */}
-          {showServices && showProducts && grouped.length > 0 && groupedTransactions.length > 0 && (
+          {!splitDesktopColumns && showServices && showProducts && grouped.length > 0 && groupedTransactions.length > 0 && (
             <div className={styles.divider} />
           )}
 
           {/* ── Productos agrupados por transacción ── */}
           {showProducts && groupedTransactions.length > 0 && (
-            <>
+            <section className={`${styles.categoryBlock} ${styles.categoryBlockProduct} ${splitDesktopColumns ? styles.categoryPane : ''}`}>
+              <div className={`${styles.categoryHeader} ${styles.categoryHeaderProduct}`}>
+                <span className={styles.categoryTitle}>
+                  <span className={`${styles.categoryIcon} ${styles.categoryIconProduct}`} aria-hidden />
+                  Ventas de productos
+                </span>
+                <span className={styles.categoryMeta}>{productSalesState.length}</span>
+              </div>
               <div className={`${styles.tableHead} ${styles.tableHeadProduct}`}>
                 <span></span>
                 <span>Transacción</span>
@@ -465,7 +494,10 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <details key={tx.transaction_id} className={styles.productTransaction}>
                   <summary className={`${styles.tableRow} ${styles.tableRowProduct} ${styles.productTransactionSummary}`}>
                     <span className={styles.rowChevronProduct} aria-hidden>▶</span>
-                    <span className={styles.transactionLabel}>Venta {extractTime(tx.created_at)}</span>
+                    <span className={styles.transactionLabel}>
+                      <span className={`${styles.rowTypeTag} ${styles.rowTypeTagProduct}`}>Producto</span>
+                      Venta {extractTime(tx.created_at)}
+                    </span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
                     <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
                     <span className={styles.transactionTotal}>
@@ -514,7 +546,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                   onNext={() => setTransactionPage(Math.min(totalTransactionPages, transactionPage + 1))}
                 />
               )}
-            </>
+            </section>
           )}
 
           {/* ── Empty states por tab ── */}
