@@ -70,25 +70,27 @@
 }
 
 .tableHead {
-  display: grid; grid-template-columns: 24px minmax(160px, 1.4fr) minmax(100px, 1fr) minmax(100px, 1fr);
-  padding: 12px 20px; font-size: .72rem; text-transform: uppercase;
+  display: grid; grid-template-columns: 20px minmax(0, 1.2fr) minmax(72px, .7fr) minmax(78px, .7fr);
+  column-gap: 8px;
+  padding: 11px 14px; font-size: .72rem; text-transform: uppercase;
   letter-spacing: .7px; color: var(--muted); font-weight: 600;
   border-bottom: 1px solid var(--border); background: var(--card);
 }
 
 .tableRow {
-  display: grid; grid-template-columns: 24px minmax(160px, 1.4fr) minmax(100px, 1fr) minmax(100px, 1fr);
-  padding: 13px 20px; font-size: .9rem; color: var(--text);
+  display: grid; grid-template-columns: 20px minmax(0, 1.2fr) minmax(72px, .7fr) minmax(78px, .7fr);
+  column-gap: 8px;
+  padding: 12px 14px; font-size: .88rem; color: var(--text);
   border-bottom: 1px solid var(--border); align-items: center; transition: background .12s; min-height: 64px;
   cursor: pointer;
 }
 .tableRow:last-child { border-bottom: none; }
 .tableRow:hover { background: var(--card); }
 .tableHeadService {
-  grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  grid-template-columns: 20px minmax(0, 1.12fr) minmax(58px, .5fr) minmax(78px, .64fr) minmax(82px, .68fr);
 }
 .tableRowService {
-  grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  grid-template-columns: 20px minmax(0, 1.12fr) minmax(58px, .5fr) minmax(78px, .64fr) minmax(82px, .68fr);
   min-height: 64px;
 }
 .tableHeadService > span:nth-child(4),
@@ -101,10 +103,10 @@
   text-align: right;
 }
 .tableHeadProduct {
-  grid-template-columns: 24px minmax(140px, 1.25fr) minmax(90px, .8fr) minmax(95px, 1fr) minmax(95px, 1fr);
+  grid-template-columns: 20px minmax(0, 1.08fr) minmax(58px, .5fr) minmax(78px, .62fr) minmax(82px, .66fr);
 }
 .tableRowProduct {
-  grid-template-columns: 24px minmax(140px, 1.25fr) minmax(90px, .8fr) minmax(95px, 1fr) minmax(95px, 1fr);
+  grid-template-columns: 20px minmax(0, 1.08fr) minmax(58px, .5fr) minmax(78px, .62fr) minmax(82px, .66fr);
   min-height: 64px;
 }
 .tableHeadProduct > span:nth-child(4),
@@ -127,6 +129,10 @@
 .rowPrimaryText {
   font-weight: 600;
   color: var(--cream);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rowTypeTag {
   display: none;
@@ -270,10 +276,10 @@
 
 .detailHead {
   display: grid;
-  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr) 98px;
-  column-gap: 8px;
+  grid-template-columns: 62px minmax(90px, 1fr) 46px minmax(78px, .9fr) minmax(78px, .95fr) 84px;
+  column-gap: 6px;
   align-items: center;
-  padding: 10px 12px 8px;
+  padding: 10px 10px 8px;
   font-size: .74rem;
   text-transform: uppercase;
   letter-spacing: .6px;
@@ -287,10 +293,10 @@
 
 .detailRow {
   display: grid;
-  grid-template-columns: 78px minmax(140px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr) 98px;
-  column-gap: 8px;
+  grid-template-columns: 62px minmax(90px, 1fr) 46px minmax(78px, .9fr) minmax(78px, .95fr) 84px;
+  column-gap: 6px;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 10px;
   font-size: .85rem;
   color: var(--text);
   border-top: 1px solid var(--border);
@@ -439,10 +445,10 @@
 }
 .productDetailHead {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr) minmax(92px, 1fr) 98px;
-  column-gap: 8px;
+  grid-template-columns: minmax(90px, 1fr) 46px minmax(78px, .9fr) minmax(78px, .9fr) minmax(78px, .95fr) 84px;
+  column-gap: 6px;
   align-items: center;
-  padding: 10px 12px 8px;
+  padding: 10px 10px 8px;
   font-size: .74rem;
   text-transform: uppercase;
   letter-spacing: .6px;
@@ -456,13 +462,20 @@
 .productDetailHead > span:nth-child(6) { text-align: right; }
 .productDetailRow {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) 58px minmax(92px, 1fr) minmax(92px, 1fr) minmax(92px, 1fr) 98px;
-  column-gap: 8px;
+  grid-template-columns: minmax(90px, 1fr) 46px minmax(78px, .9fr) minmax(78px, .9fr) minmax(78px, .95fr) 84px;
+  column-gap: 6px;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 10px;
   font-size: .85rem;
   color: var(--text);
   border-top: 1px solid var(--border);
+}
+
+@media (max-width: 1280px) {
+  .tableSplit {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .paginationControls {
