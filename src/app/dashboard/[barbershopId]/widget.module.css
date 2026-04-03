@@ -3,6 +3,9 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .widgetHeader {
@@ -10,6 +13,13 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.widgetMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
 }
 
 .widgetTitle {
@@ -64,16 +74,36 @@
   background: var(--gold);
   color: var(--bg);
   border: none;
-  padding: 9px 18px;
+  padding: 10px 18px;
   border-radius: 8px;
   font-weight: 700;
   font-size: .88rem;
   cursor: pointer;
   white-space: nowrap;
   transition: background .15s;
+  min-height: 38px;
 }
 .widgetBtn:hover:not(:disabled) { background: var(--gold-soft); }
 .widgetBtn:disabled { opacity: .6; cursor: not-allowed; }
+
+.widgetBtnGhost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  min-height: 38px;
+}
+.widgetBtnGhost:hover:not(:disabled) {
+  color: var(--text);
+}
+.widgetBtnGhost:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
 .widgetFeedbackSlot {
   min-height: 42px;
@@ -335,6 +365,14 @@
   font-weight: 700;
 }
 
+.widgetFormActions {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 @media (max-width: 600px) {
   .widgetTitle { font-size: .75rem; }
   .widgetSearch,
@@ -348,6 +386,13 @@
   }
   .widgetPickerRow {
     grid-template-columns: 1fr;
+  }
+  .widgetFormActions {
+    justify-content: stretch;
+  }
+  .widgetFormActions .widgetBtnGhost,
+  .widgetFormActions .widgetBtn {
+    flex: 1;
   }
   .cartRow {
     grid-template-columns: 1fr;

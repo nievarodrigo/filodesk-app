@@ -123,6 +123,15 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
   const total = cart.reduce((s, c) => s + c.product.sale_price * c.quantity, 0)
   const date  = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
 
+  function clearDraft() {
+    setQuery('')
+    setSelected(null)
+    setQty(1)
+    setOpen(false)
+    setActiveIdx(-1)
+    setCart([])
+  }
+
   // Reset carrito al confirmar exitosamente
   useEffect(() => {
     if (initialRenderRef.current) {
@@ -154,7 +163,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           No hay productos con stock disponible.
         </p>
       ) : (
-        <>
+        <div className={styles.widgetMain}>
           <div className={styles.widgetFeedbackSlot}>
             {state?.message && !state?.success && <p className={styles.widgetError}>{state.message}</p>}
             {state?.message && state?.success && <p className={styles.widgetSuccess}>{state.message}</p>}
@@ -313,11 +322,21 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           <form ref={formRef} action={formAction}>
             <input type="hidden" name="items" value={JSON.stringify(cart.map(c => ({ product_id: c.product.id, quantity: c.quantity, sale_price: c.product.sale_price })))} />
             <input type="hidden" name="date" value={date} />
-            <button type="submit" className={styles.widgetBtn} disabled={pending || cart.length === 0} style={{ width: '100%' }}>
-              {pending ? '…' : `Confirmar venta${cart.length > 1 ? ` (${cart.length} productos)` : ''}`}
-            </button>
+            <div className={styles.widgetFormActions}>
+              <button
+                type="button"
+                className={styles.widgetBtnGhost}
+                onClick={clearDraft}
+                disabled={pending || (cart.length === 0 && query.trim() === '' && !selected)}
+              >
+                Limpiar
+              </button>
+              <button type="submit" className={styles.widgetBtn} disabled={pending || cart.length === 0}>
+                {pending ? '…' : `Confirmar venta${cart.length > 1 ? ` (${cart.length} productos)` : ''}`}
+              </button>
+            </div>
           </form>
-        </>
+        </div>
       )}
 
       {/* Modal ver productos */}
