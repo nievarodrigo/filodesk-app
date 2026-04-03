@@ -84,7 +84,7 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
     if (!wasPendingRef.current) return
     wasPendingRef.current = false
 
-    const hasError = Boolean(state?.message)
+    const hasError = !state?.success && Boolean(state?.message)
     if (hasError) return
 
     formRef.current?.reset()
@@ -96,7 +96,8 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
     <form ref={formRef} onSubmitCapture={handleSubmitCapture} action={formAction} className={compact ? styles.formCompact : styles.formCard}>
       {!compact && <h3 className={styles.formTitle}>Registrar venta</h3>}
 
-      {state?.message && <p className={styles.errorBox}>{state.message}</p>}
+      {state?.message && !state?.success && <p className={styles.errorBox}>{state.message}</p>}
+      {state?.message && state?.success && <p className={styles.successBox}>{state.message}</p>}
 
       {showOnboardingHint && (
         <div className={styles.onboardingHint}>

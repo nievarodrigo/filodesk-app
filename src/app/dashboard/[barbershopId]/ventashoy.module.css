@@ -78,6 +78,7 @@
 }
 .tableRowService {
   grid-template-columns: 24px minmax(160px, 1.3fr) minmax(90px, .8fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  min-height: 64px;
 }
 .tableHeadService > span:nth-child(4),
 .tableHeadService > span:nth-child(5) {
@@ -93,6 +94,7 @@
 }
 .tableRowProduct {
   grid-template-columns: 24px minmax(140px, 1.25fr) minmax(90px, .8fr) minmax(95px, 1fr) minmax(95px, 1fr);
+  min-height: 64px;
 }
 .tableHeadProduct > span:nth-child(4),
 .tableHeadProduct > span:nth-child(5) {
@@ -120,12 +122,14 @@
   font-weight: 600;
   justify-self: end;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .rowAccent {
   color: var(--gold);
   font-weight: 600;
   justify-self: end;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .divider {
@@ -191,6 +195,7 @@
   justify-content: flex-end;
   text-align: right;
   width: 100%;
+  font-variant-numeric: tabular-nums;
 }
 .detailAccent {
   color: var(--gold);
@@ -198,6 +203,7 @@
   display: block;
   text-align: right;
   width: 100%;
+  font-variant-numeric: tabular-nums;
 }
 .detailAction {
   display: flex;
@@ -207,6 +213,7 @@
 .detailAmountMuted {
   color: var(--muted);
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 .pendingBadge {
   display: inline-flex;
@@ -226,11 +233,13 @@
   background: rgba(224, 112, 112, 0.12);
   color: var(--red);
   border-radius: 999px;
-  padding: 3px 8px;
+  min-width: 78px;
+  padding: 3px 10px;
   font-size: .68rem;
   font-weight: 700;
   line-height: 1.2;
   cursor: pointer;
+  text-align: center;
 }
 .deleteServiceBtn:hover:not(:disabled) {
   background: rgba(224, 112, 112, 0.2);
@@ -278,10 +287,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  font-variant-numeric: tabular-nums;
 }
 .transactionAccent {
   color: var(--gold);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .productTransaction[open] .rowChevronProduct {
   transform: rotate(90deg);

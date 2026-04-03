@@ -67,6 +67,7 @@
 .widgetBtn:disabled { opacity: .6; cursor: not-allowed; }
 
 .widgetError { font-size: .78rem; color: var(--red); }
+.widgetSuccess { font-size: .78rem; color: var(--green); }
 
 .widgetBtnSecondary {
   background: transparent;

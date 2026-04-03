@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServerAuthContext } from '@/services/auth.service'
 import * as saleService from '@/services/sale.service'
 
-export type CreateVentaState = { message?: string } | undefined
+export type CreateVentaState = { message?: string; success?: boolean } | undefined
 
 export async function createVenta(
   barbershopId: string,
@@ -55,6 +55,7 @@ export async function createVenta(
 
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
   revalidatePath(`/dashboard/${barbershopId}`)
+  return { success: true, message: 'Servicio registrado con éxito.' }
 }
 
 export async function deleteVenta(barbershopId: string, saleId: string) {

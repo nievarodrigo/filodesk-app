@@ -129,7 +129,7 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
       initialRenderRef.current = false
       return
     }
-    if (!pending && !state?.message && formRef.current) {
+    if (!pending && state?.success && formRef.current) {
       // Use setTimeout to defer setState - prevents cascading render warning
       const timer = setTimeout(() => { setCart([]) }, 0)
       return () => clearTimeout(timer)
@@ -296,7 +296,8 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           <form ref={formRef} action={formAction}>
             <input type="hidden" name="items" value={JSON.stringify(cart.map(c => ({ product_id: c.product.id, quantity: c.quantity, sale_price: c.product.sale_price })))} />
             <input type="hidden" name="date" value={date} />
-            {state?.message && <p className={styles.widgetError} style={{ marginBottom: 6 }}>{state.message}</p>}
+            {state?.message && !state?.success && <p className={styles.widgetError} style={{ marginBottom: 6 }}>{state.message}</p>}
+            {state?.message && state?.success && <p className={styles.widgetSuccess} style={{ marginBottom: 6 }}>{state.message}</p>}
             <button type="submit" className={styles.widgetBtn} disabled={pending || cart.length === 0} style={{ width: '100%' }}>
               {pending ? '…' : `Confirmar venta${cart.length > 1 ? ` (${cart.length} productos)` : ''}`}
             </button>

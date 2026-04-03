@@ -78,7 +78,7 @@ export async function venderProducto(
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
 }
 
-export type VentaMultipleState = { message?: string } | undefined
+export type VentaMultipleState = { message?: string; success?: boolean } | undefined
 
 export async function venderProductos(
   barbershopId: string,
@@ -102,6 +102,7 @@ export async function venderProductos(
   revalidatePath(`/dashboard/${barbershopId}/productos`)
   revalidatePath(`/dashboard/${barbershopId}`)
   revalidatePath(`/dashboard/${barbershopId}/ventas`)
+  return { success: true, message: 'Venta de productos registrada con éxito.' }
 }
 
 export async function reponerStock(
