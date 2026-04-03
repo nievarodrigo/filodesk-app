@@ -384,7 +384,10 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.rowChevron}>
                       {expandedBarberIds.has(g.barber_id) ? '▼' : '▶'}
                     </span>
-                    <span className={styles.rowPrimaryText}>{g.barber}</span>
+                    <span className={styles.rowPrimaryText}>
+                      <span className={`${styles.rowTypeTag} ${styles.rowTypeTagService}`}>Servicio</span>
+                      {g.barber}
+                    </span>
                     <span className={styles.countBadge}>×{g.serviceCount}</span>
                     <span className={styles.rowAccent}>{formatARS(g.totalCommission)}</span>
                     <span className={styles.rowAmount}>{formatARS(g.total)}</span>
@@ -479,7 +482,10 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <details key={tx.transaction_id} className={styles.productTransaction}>
                   <summary className={`${styles.tableRow} ${styles.tableRowProduct} ${styles.productTransactionSummary}`}>
                     <span className={styles.rowChevronProduct} aria-hidden>▶</span>
-                    <span className={styles.transactionLabel}>Venta {extractTime(tx.created_at)}</span>
+                    <span className={styles.transactionLabel}>
+                      <span className={`${styles.rowTypeTag} ${styles.rowTypeTagProduct}`}>Producto</span>
+                      Venta {extractTime(tx.created_at)}
+                    </span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
                     <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
                     <span className={styles.transactionTotal}>
