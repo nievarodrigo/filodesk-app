@@ -72,7 +72,10 @@
   gap: 14px;
 }
 @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 500px) { .kpis { grid-template-columns: 1fr; } }
+@media (max-width: 500px) {
+  .kpis { grid-template-columns: 1fr; }
+  .kpisSecondary { grid-template-columns: 1fr; }
+}
 
 .kpiCard {
   background: var(--surface);
@@ -171,7 +174,11 @@
   }
 
   .kpisSecondary {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kpiCardHero {
+    padding: 20px 16px;
   }
 }
 

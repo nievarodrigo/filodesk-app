@@ -1080,6 +1080,12 @@
     font-size: 1rem; /* Evita zoom automático en iOS */
   }
 
+  /* Stepper +/- táctil: mínimo 44px para cumplir estándar Apple/Google */
+  .qtyBtn {
+    min-width: 44px;
+    height: 44px;
+  }
+
   .servicesHead { display: none; } /* Ocultar labels de tabla en mobile form */
 }
 
