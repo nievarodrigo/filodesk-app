@@ -433,8 +433,13 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
                           <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
                           <span className={styles.detailService} data-label="Servicio">
-                            {svc.service}
-                            {svc.notes && <em className={styles.detailNoteDesktop} title={svc.notes}>{svc.notes}</em>}
+                            <span className={styles.detailServiceName}>{svc.service}</span>
+                            {svc.notes && (
+                              <details className={styles.notePill}>
+                                <summary title={svc.notes}>nota</summary>
+                                <div className={styles.notePopover}>{svc.notes}</div>
+                              </details>
+                            )}
                           </span>
                           <span className={styles.detailQty} data-label="Cant.">1</span>
                           <span className={styles.detailAccent} data-label="Comisión">{formatARS(svc.commission)}</span>
@@ -442,11 +447,6 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             {formatARS(svc.amount)}
                             {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           </span>
-                          {svc.notes && (
-                            <span className={styles.detailNotes} data-label="Nota" title={svc.notes}>
-                              <span className={styles.detailNotesText}>{svc.notes}</span>
-                            </span>
-                          )}
                           <span className={styles.detailAction} data-label="">
                             {role !== 'barber' && (
                               <button

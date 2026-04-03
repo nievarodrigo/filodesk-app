@@ -308,9 +308,58 @@
 .detailService {
   color: var(--muted);
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.detailServiceName {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.notePill {
+  display: inline-block;
+}
+.notePill > summary {
+  display: inline-flex;
+  align-items: center;
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  min-height: 20px;
+}
+.notePill > summary::-webkit-details-marker { display: none; }
+.notePopover {
+  display: none;
+}
+.notePill[open] > summary {
+  color: var(--cream);
+  border-color: var(--muted);
+}
+.notePill[open] .notePopover {
+  display: block;
+  margin-top: 6px;
+  font-size: .78rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  max-width: 220px;
+  white-space: normal;
+  word-break: break-word;
+  font-style: italic;
+  line-height: 1.5;
 }
 .detailQty { text-align: center; }
 .detailAmount {
@@ -336,22 +385,6 @@
   display: flex;
   justify-content: flex-end;
   width: 100%;
-}
-.detailNoteDesktop {
-  display: block;
-  font-size: .73rem;
-  color: var(--muted);
-  font-style: italic;
-  font-weight: 400;
-  margin-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  cursor: default;
-}
-.detailNotes {
-  display: none;
 }
 .detailAmountMuted {
   color: var(--muted);
@@ -627,10 +660,23 @@
   }
 
   .detailService {
+    overflow: visible;
+    align-items: flex-end;
+  }
+  .detailServiceName {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
     text-align: right;
+  }
+  .notePill > summary {
+    font-size: .68rem;
+    min-height: 28px;
+    padding: 4px 8px;
+  }
+  .notePill[open] .notePopover {
+    max-width: 100%;
+    text-align: left;
   }
 
   .detailQty,
@@ -653,19 +699,4 @@
   .paginationControls { margin: 10px 0 2px; }
   .deleteServiceBtn { font-size: .75rem; }
   .pendingBadge { font-size: .75rem; }
-  .detailNoteDesktop { display: none; }
-  .detailNotes {
-    display: flex;
-    font-style: italic;
-    color: var(--muted);
-    font-size: .9rem;
-    align-items: flex-start;
-  }
-  .detailNotesText {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-align: right;
-  }
 }
