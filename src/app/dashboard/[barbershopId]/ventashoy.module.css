@@ -261,8 +261,11 @@
   cursor: pointer;
 }
 .productTransactionSummary::-webkit-details-marker { display: none; }
-.transactionIcon {
-  font-size: 15px;
+.rowChevronProduct {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1;
+  transition: transform .2s ease;
 }
 .transactionLabel {
   font-weight: 600;
@@ -280,13 +283,8 @@
   color: var(--gold);
   font-weight: 600;
 }
-.transactionChevron {
-  color: var(--muted);
-  line-height: 1;
-  transition: transform .2s ease;
-}
-.productTransaction[open] .transactionChevron {
-  transform: rotate(180deg);
+.productTransaction[open] .rowChevronProduct {
+  transform: rotate(90deg);
 }
 .productDetailHead {
   display: grid;

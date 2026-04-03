@@ -464,13 +464,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
               {paginatedTransactions.map(tx => (
                 <details key={tx.transaction_id} className={styles.productTransaction}>
                   <summary className={`${styles.tableRow} ${styles.tableRowProduct} ${styles.productTransactionSummary}`}>
-                    <span className={styles.transactionIcon} aria-hidden>📦</span>
+                    <span className={styles.rowChevronProduct} aria-hidden>▶</span>
                     <span className={styles.transactionLabel}>Venta {extractTime(tx.created_at)}</span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
                     <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
                     <span className={styles.transactionTotal}>
                       <span>{formatARS(tx.total)}</span>
-                      <span className={styles.transactionChevron} aria-hidden>▾</span>
                     </span>
                   </summary>
                   <div className={styles.detailBlock}>
