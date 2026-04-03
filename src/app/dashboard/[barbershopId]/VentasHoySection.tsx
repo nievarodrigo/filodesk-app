@@ -427,7 +427,9 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           </span>
                           {svc.notes && (
-                            <span className={styles.detailNotes} data-label="Nota" title={svc.notes}>{svc.notes}</span>
+                            <span className={styles.detailNotes} data-label="Nota" title={svc.notes}>
+                              <span className={styles.detailNotesText}>{svc.notes}</span>
+                            </span>
                           )}
                           <span className={styles.detailAction} data-label="">
                             {role !== 'barber' && (
