@@ -157,6 +157,11 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
         </p>
       ) : (
         <>
+          <div className={styles.widgetFeedbackSlot}>
+            {state?.message && !state?.success && <p className={styles.widgetError}>{state.message}</p>}
+            {state?.message && state?.success && <p className={styles.widgetSuccess}>{state.message}</p>}
+          </div>
+
           {/* Autocomplete */}
           <div ref={containerRef} style={{ position: 'relative', marginBottom: 8 }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -296,8 +301,6 @@ export default function VenderProductoWidget({ barbershopId, products }: Props) 
           <form ref={formRef} action={formAction}>
             <input type="hidden" name="items" value={JSON.stringify(cart.map(c => ({ product_id: c.product.id, quantity: c.quantity, sale_price: c.product.sale_price })))} />
             <input type="hidden" name="date" value={date} />
-            {state?.message && !state?.success && <p className={styles.widgetError} style={{ marginBottom: 6 }}>{state.message}</p>}
-            {state?.message && state?.success && <p className={styles.widgetSuccess} style={{ marginBottom: 6 }}>{state.message}</p>}
             <button type="submit" className={styles.widgetBtn} disabled={pending || cart.length === 0} style={{ width: '100%' }}>
               {pending ? '…' : `Confirmar venta${cart.length > 1 ? ` (${cart.length} productos)` : ''}`}
             </button>

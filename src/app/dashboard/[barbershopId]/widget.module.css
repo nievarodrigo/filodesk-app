@@ -66,6 +66,13 @@
 .widgetBtn:hover:not(:disabled) { background: var(--gold-soft); }
 .widgetBtn:disabled { opacity: .6; cursor: not-allowed; }
 
+.widgetFeedbackSlot {
+  min-height: 42px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
 .widgetError { font-size: .78rem; color: var(--red); }
 .widgetSuccess {
   background: rgba(56, 192, 129, .12);
