@@ -237,6 +237,12 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
 
   const showServices = effectiveFilter === 'todos' || effectiveFilter === 'servicio'
   const showProducts = role !== 'barber' && (effectiveFilter === 'todos' || effectiveFilter === 'producto')
+  const splitDesktopColumns = role !== 'barber'
+    && effectiveFilter === 'todos'
+    && showServices
+    && showProducts
+    && grouped.length > 0
+    && groupedTransactions.length > 0
 
   const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSalesState.length)
 
@@ -341,14 +347,14 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
       {totalCount === 0 ? (
         <p className={styles.empty}>Todavía no hay ventas hoy.</p>
       ) : (
-        <div className={styles.table}>
+        <div className={`${styles.table} ${splitDesktopColumns ? styles.tableSplit : ''}`}>
           {deleteError && (
             <p className={styles.errorBox}>{deleteError}</p>
           )}
 
           {/* ── Servicios agrupados por barbero ── */}
           {showServices && grouped.length > 0 && (
-            <section className={`${styles.categoryBlock} ${styles.categoryBlockService}`}>
+            <section className={`${styles.categoryBlock} ${styles.categoryBlockService} ${splitDesktopColumns ? styles.categoryPane : ''}`}>
               <div className={`${styles.categoryHeader} ${styles.categoryHeaderService}`}>
                 <span className={styles.categoryTitle}>
                   <span className={`${styles.categoryIcon} ${styles.categoryIconService}`} aria-hidden />
@@ -463,13 +469,13 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
           )}
 
           {/* ── Separador si hay ambos ── */}
-          {showServices && showProducts && grouped.length > 0 && groupedTransactions.length > 0 && (
+          {!splitDesktopColumns && showServices && showProducts && grouped.length > 0 && groupedTransactions.length > 0 && (
             <div className={styles.divider} />
           )}
 
           {/* ── Productos agrupados por transacción ── */}
           {showProducts && groupedTransactions.length > 0 && (
-            <section className={`${styles.categoryBlock} ${styles.categoryBlockProduct}`}>
+            <section className={`${styles.categoryBlock} ${styles.categoryBlockProduct} ${splitDesktopColumns ? styles.categoryPane : ''}`}>
               <div className={`${styles.categoryHeader} ${styles.categoryHeaderProduct}`}>
                 <span className={styles.categoryTitle}>
                   <span className={`${styles.categoryIcon} ${styles.categoryIconProduct}`} aria-hidden />

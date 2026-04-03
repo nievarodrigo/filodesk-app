@@ -59,6 +59,15 @@
 
 /* Table */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: none; }
+.tableSplit {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
 
 .tableHead {
   display: grid; grid-template-columns: 24px minmax(160px, 1.4fr) minmax(100px, 1fr) minmax(100px, 1fr);
@@ -159,6 +168,13 @@
 .categoryBlock {
   display: flex;
   flex-direction: column;
+}
+
+.categoryPane {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .categoryHeader {
@@ -480,6 +496,19 @@
 }
 
 @media (max-width: 768px) {
+  .tableSplit {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+    gap: 0;
+  }
+  .categoryPane {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
   .section { padding: 18px 22px; }
   .tableHead { display: none; }
   .divider {
