@@ -557,10 +557,7 @@
     gap: 4px;
     line-height: 1.2;
   }
-  .rowTypeTag {
-    display: inline-flex;
-    align-self: flex-start;
-  }
+  .rowTypeTag { display: none !important; }
 
   /* Separador visual | entre ×count, comisión y total */
   .tableRowService .rowAccent::before,
