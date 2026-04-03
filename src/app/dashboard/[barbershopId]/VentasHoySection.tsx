@@ -204,6 +204,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null)
   const [deletingProductSaleId, setDeletingProductSaleId] = useState<string | null>(null)
+  const [isDesktop, setIsDesktop] = useState(false)
   const [isDeleting, startDeleteTransition] = useTransition()
   const [isDeletingProduct, startDeleteProductTransition] = useTransition()
 
@@ -215,7 +216,16 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
     if (!isDeletingProduct) setProductSalesState(productSales)
   }, [productSales, isDeletingProduct])
 
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 769px)')
+    const sync = () => setIsDesktop(mql.matches)
+    sync()
+    mql.addEventListener('change', sync)
+    return () => mql.removeEventListener('change', sync)
+  }, [])
+
   const ITEMS_PER_PAGE = 10
+  const PRODUCT_ITEMS_PER_PAGE = isDesktop ? 5 : 10
 
   const grouped = groupServicesByBarber(serviceSalesState)
   const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSalesState)
@@ -253,10 +263,16 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const paginatedBarbers = grouped.slice(barberStart, barberEnd)
 
   // Paginación de transacciones de productos
-  const totalTransactionPages = Math.ceil(groupedTransactions.length / ITEMS_PER_PAGE)
-  const txStart = (transactionPage - 1) * ITEMS_PER_PAGE
-  const txEnd = txStart + ITEMS_PER_PAGE
+  const totalTransactionPages = Math.ceil(groupedTransactions.length / PRODUCT_ITEMS_PER_PAGE)
+  const txStart = (transactionPage - 1) * PRODUCT_ITEMS_PER_PAGE
+  const txEnd = txStart + PRODUCT_ITEMS_PER_PAGE
   const paginatedTransactions = groupedTransactions.slice(txStart, txEnd)
+
+  useEffect(() => {
+    if (transactionPage > totalTransactionPages) {
+      setTransactionPage(Math.max(1, totalTransactionPages))
+    }
+  }, [transactionPage, totalTransactionPages])
 
   function handleDeleteService(saleId: string, serviceName: string) {
     if (role === 'barber') return
