@@ -1106,8 +1106,8 @@
 }
 
 .statCard {
-  background: rgba(28, 27, 27, 0.85);
-  border: 1px solid rgba(154, 144, 123, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   padding: 2rem 1.5rem;
   display: flex;
@@ -1145,11 +1145,12 @@
 }
 
 .comparisonTableWrap {
-  border: 1px solid rgba(154, 144, 123, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 1.25rem;
   overflow: hidden;
   background: rgba(19, 19, 19, 0.60);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   overflow-x: auto;
 }
 
