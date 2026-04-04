@@ -1289,12 +1289,12 @@ html[data-theme="light"] .wrapper .widgetDays span { color: #6a7080; }
 
 /* Marquee */
 html[data-theme="light"] .wrapper .marqueeSection {
-  background: #fdf9f2;
-  border-top-color: #e0d8cc;
-  border-bottom-color: #e0d8cc;
+  background: #1e2a3a;
+  border-top-color: #152030;
+  border-bottom-color: #152030;
 }
-html[data-theme="light"] .wrapper .marqueeItem { color: #6a7080; }
-html[data-theme="light"] .wrapper .marqueeSep { color: #1e5fa8; }
+html[data-theme="light"] .wrapper .marqueeText { color: #c8d6e8; }
+html[data-theme="light"] .wrapper .marqueeSep { color: #f2c345; }
 
 /* Section headers */
 html[data-theme="light"] .wrapper .sectionH2 { color: #1a1e28; }
