@@ -1289,11 +1289,11 @@ html[data-theme="light"] .wrapper .widgetDays span { color: #6a7080; }
 
 /* Marquee */
 html[data-theme="light"] .wrapper .marqueeSection {
-  background: #1e2a3a;
-  border-top-color: #152030;
-  border-bottom-color: #152030;
+  background: #1e5fa8;
+  border-top-color: #174e8c;
+  border-bottom-color: #174e8c;
 }
-html[data-theme="light"] .wrapper .marqueeText { color: #c8d6e8; }
+html[data-theme="light"] .wrapper .marqueeText { color: #ddeaff; }
 html[data-theme="light"] .wrapper .marqueeSep { color: #f2c345; }
 
 /* Section headers */
