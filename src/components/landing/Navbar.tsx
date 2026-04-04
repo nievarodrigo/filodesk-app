@@ -30,18 +30,20 @@ export default async function Navbar() {
 
         <div className={styles.navActions}>
           <ThemeToggle />
-          {user ? (
-            <UserMenu email={user.email!} />
-          ) : (
-            <>
-              <Link href="/auth/login">
-                <button className={styles.btnOutline}>Iniciar sesión</button>
-              </Link>
-              <Link href="/auth/register">
-                <button className={styles.btnPrimary}>Empezar gratis</button>
-              </Link>
-            </>
-          )}
+          <div className={styles.navAuthDesktop}>
+            {user ? (
+              <UserMenu email={user.email!} />
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <button className={styles.btnOutline}>Iniciar sesión</button>
+                </Link>
+                <Link href="/auth/register">
+                  <button className={styles.btnPrimary}>Empezar gratis</button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
 import ThemeToggle from '@/components/ui/ThemeToggle'
@@ -12,6 +13,9 @@ type Props = {
 
 export default function MobileNav({ user }: Props) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!open) return
@@ -23,6 +27,58 @@ export default function MobileNav({ user }: Props) {
       document.body.style.overflow = ''
     }
   }, [open])
+
+  const drawer = (
+    <div className={styles.mobileOverlay} onClick={() => setOpen(false)}>
+      <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
+        <button
+          className={styles.mobileClose}
+          onClick={() => setOpen(false)}
+          aria-label="Cerrar menú"
+        >
+          <span className={`${styles.hamburgerLine} ${styles.hamburgerLineTop}`} />
+          <span className={`${styles.hamburgerLine} ${styles.hamburgerLineMid}`} />
+          <span className={`${styles.hamburgerLine} ${styles.hamburgerLineBot}`} />
+        </button>
+
+        <nav className={styles.mobileLinks}>
+          <Link href="/#features" onClick={() => setOpen(false)}>Funciones</Link>
+          <Link href="/#precio" onClick={() => setOpen(false)}>Precio</Link>
+          <Link href="/nosotros" onClick={() => setOpen(false)}>Nosotros</Link>
+          <Link href="/faq" onClick={() => setOpen(false)}>Preguntas frecuentes</Link>
+        </nav>
+
+        <div className={styles.mobileDivider} />
+
+        <ThemeToggle />
+
+        <div className={styles.mobileDivider} />
+
+        {user ? (
+          <div className={styles.mobileAuth}>
+            <span className={styles.mobileEmail}>{user.email}</span>
+            <Link href="/dashboard" onClick={() => setOpen(false)} className={styles.mobileAuthBtn}>
+              Dashboard
+            </Link>
+            <form action={logout}>
+              <button type="submit" className={`${styles.mobileAuthBtn} ${styles.mobileAuthBtnDanger}`}>
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className={styles.mobileAuth}>
+            <Link href="/auth/login" onClick={() => setOpen(false)} className={styles.mobileAuthBtn}>
+              Iniciar sesión
+            </Link>
+            <Link href="/auth/register" onClick={() => setOpen(false)} className={`${styles.mobileAuthBtn} ${styles.mobileAuthBtnPrimary}`}>
+              Crear cuenta gratis
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -37,47 +93,7 @@ export default function MobileNav({ user }: Props) {
         <span className={`${styles.hamburgerLine} ${open ? styles.hamburgerLineBot : ''}`} />
       </button>
 
-      {open && (
-        <div className={styles.mobileOverlay} onClick={() => setOpen(false)}>
-          <div className={styles.mobileDrawer} onClick={e => e.stopPropagation()}>
-            <nav className={styles.mobileLinks}>
-              <Link href="/#features" onClick={() => setOpen(false)}>Funciones</Link>
-              <Link href="/#precio" onClick={() => setOpen(false)}>Precio</Link>
-              <Link href="/nosotros" onClick={() => setOpen(false)}>Nosotros</Link>
-              <Link href="/faq" onClick={() => setOpen(false)}>Preguntas frecuentes</Link>
-            </nav>
-
-            <div className={styles.mobileDivider} />
-
-            <ThemeToggle />
-
-            <div className={styles.mobileDivider} />
-
-            {user ? (
-              <div className={styles.mobileAuth}>
-                <span className={styles.mobileEmail}>{user.email}</span>
-                <Link href="/dashboard" onClick={() => setOpen(false)} className={styles.mobileAuthBtn}>
-                  Dashboard
-                </Link>
-                <form action={logout}>
-                  <button type="submit" className={`${styles.mobileAuthBtn} ${styles.mobileAuthBtnDanger}`}>
-                    Cerrar sesión
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <div className={styles.mobileAuth}>
-                <Link href="/auth/login" onClick={() => setOpen(false)} className={styles.mobileAuthBtn}>
-                  Iniciar sesión
-                </Link>
-                <Link href="/auth/register" onClick={() => setOpen(false)} className={`${styles.mobileAuthBtn} ${styles.mobileAuthBtnPrimary}`}>
-                  Crear cuenta gratis
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {mounted && open && createPortal(drawer, document.body)}
     </>
   )
 }
