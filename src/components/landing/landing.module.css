@@ -567,7 +567,7 @@
 .visualBg {
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.35);
+  filter: brightness(0.55);
 }
 
 /* Overlay: suave arriba → opaco abajo para legibilidad de datos */
@@ -576,9 +576,9 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(13, 13, 13, 0.10) 0%,
-    rgba(13, 13, 13, 0.35) 30%,
-    rgba(13, 13, 13, 0.75) 60%,
+    rgba(13, 13, 13, 0.05) 0%,
+    rgba(13, 13, 13, 0.20) 30%,
+    rgba(13, 13, 13, 0.65) 60%,
     rgba(13, 13, 13, 1.00) 100%
   );
   z-index: 1;
@@ -599,6 +599,11 @@
 .visualHeadline {
   text-align: center;
   max-width: 52rem;
+}
+
+.visualAccent {
+  color: #f2c345;
+  font-style: italic;
 }
 
 .visualHeadline h2 {
@@ -1386,7 +1391,7 @@ html[data-theme="light"] .wrapper .btnDisabled {
 /* Final CTA */
 html[data-theme="light"] .wrapper .finalCta {
   background-image:
-    linear-gradient(to bottom, rgba(245,240,232,0.55) 0%, rgba(245,240,232,0.80) 50%, rgba(245,240,232,1.00) 100%),
+    linear-gradient(to bottom, rgba(245,240,232,0.10) 0%, rgba(245,240,232,0.50) 55%, rgba(245,240,232,1.00) 100%),
     url('/barbershop-cta.png');
 }
 html[data-theme="light"] .wrapper .ctaTopDivider { background: rgba(224, 216, 204, 0.8); }
