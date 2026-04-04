@@ -35,6 +35,11 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
   const commission = selectedBarber && total > 0
     ? Math.round(total * selectedBarber.commission_pct / 100)
     : null
+  const hasStartedService = rows.some((row) =>
+    row.service_type_id !== ''
+    || (row.amount ?? '').trim() !== ''
+    || Math.max(1, Number(row.quantity) || 1) > 1
+  )
 
   function addRow() {
     setRows(r => [...r, newRow()])
@@ -126,15 +131,18 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
 
       {/* Filas de servicios */}
       <div className={styles.servicesSection}>
-        <div className={styles.servicesHead}>
+        <div className={`${styles.servicesHead} ${rows.length === 1 ? styles.servicesHeadCompact : ''}`}>
           <span>Servicio</span>
           <span>Cant.</span>
           <span>Precio unit.</span>
-          <span></span>
+          {rows.length > 1 && <span></span>}
         </div>
 
         {rows.map((row) => (
-          <div key={row.id} className={styles.serviceRow}>
+          <div
+            key={row.id}
+            className={`${styles.serviceRow} ${rows.length === 1 ? styles.serviceRowCompact : ''}`}
+          >
             <select
               name="service_type_id[]"
               className={styles.select}
@@ -189,13 +197,14 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
               onChange={e => updateRow(row.id, 'amount', e.target.value)}
             />
 
-            <button
-              type="button"
-              className={styles.btnRemoveRow}
-              onClick={() => removeRow(row.id)}
-              disabled={rows.length === 1}
-              title="Quitar"
-            >✕</button>
+            {rows.length > 1 && (
+              <button
+                type="button"
+                className={styles.btnRemoveRow}
+                onClick={() => removeRow(row.id)}
+                title="Quitar"
+              >✕</button>
+            )}
           </div>
         ))}
 
@@ -214,10 +223,12 @@ export default function NuevaVentaForm({ barbershopId, barbers, serviceTypes, co
         )}
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="notes">Notas <span className={styles.optional}>(opcional)</span></label>
-        <input id="notes" name="notes" type="text" className={styles.input} placeholder="Ej: cliente nuevo, combo…" />
-      </div>
+      {hasStartedService && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="notes">Notas <span className={styles.optional}>(opcional)</span></label>
+          <input id="notes" name="notes" type="text" className={styles.input} placeholder="Ej: cliente nuevo, combo…" />
+        </div>
+      )}
 
       <div className={styles.formActions}>
         <button type="button" className={styles.btnSecondary} onClick={handleReset}>Limpiar</button>

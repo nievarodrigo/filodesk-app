@@ -1,126 +1,98 @@
 import Link from 'next/link'
 import styles from './landing.module.css'
+import { CheckCircleIcon } from './LandingIcons'
+import AnimateOnScroll from './AnimateOnScroll'
 
-const plans = [
+const PLANS = [
   {
     name: 'Base',
     price: '11.999',
-    sub: '14 días gratis · Cancelás cuando querés',
-    cta: 'Empezar gratis',
-    href: '/auth/register',
-    disabled: false,
-    highlight: false,
+    sub: '14 días gratis · Sin tarjeta de crédito',
+    featured: false,
     features: [
       'Hasta 6 barberos',
-      'Registro de ventas y servicios',
-      'Comisiones calculadas automáticamente',
-      'Control de gastos del local',
-      'Ganancia neta real (ingresos menos gastos y comisiones)',
-      'Nóminas del equipo',
-      'Agenda de turnos',
-      'Control de stock con alertas de reposición',
+      'Ventas, comisiones y nóminas automáticas',
+      'Control de gastos y ganancia neta real',
+      'Agenda de turnos y control de stock',
       'Gráficos de ventas mensuales',
-      'Funciona desde el celular, sin instalar nada',
       'Soporte por WhatsApp',
     ],
+    cta: 'Empezar gratis 14 días',
+    href: '/auth/register',
+    disabled: false,
   },
   {
     name: 'Pro',
     price: '19.999',
     sub: 'En desarrollo — disponible pronto',
+    featured: true,
+    badge: 'Próximamente',
+    features: [
+      'Todo lo del plan Base',
+      'Barberos ilimitados',
+      'Múltiples usuarios en el dashboard',
+      'Rol Encargado — gestiona sin ver finanzas',
+      'Rol Barbero — solo registra sus servicios',
+      'Exportar reportes en CSV',
+    ],
     cta: 'Próximamente',
     href: '#',
     disabled: true,
-    highlight: true,
-    badge: 'Próximamente',
-    features: [
-      'Barberos ilimitados',
-      'Todo lo del plan Base',
-      'Múltiples usuarios con acceso al dashboard',
-      'Rol Encargado — gestiona el local sin ver finanzas',
-      'Rol Barbero — solo registra sus propios servicios',
-      'Exportar reportes en CSV',
-      'Soporte prioritario',
-    ],
   },
 ]
 
 export default function Pricing() {
   return (
-    <section id="precio" className={styles.section}>
-      <div className={styles.sectionLabel}>Planes</div>
-      <div className={styles.sectionTitle}>Elegí el plan que necesitás</div>
-      <div className={styles.sectionSub}>
-        Todos los planes incluyen 14 días gratis. Pagás con tarjeta, débito o transferencia vía Mercado Pago.
-      </div>
+    <section id="precios" className={styles.pricingSection}>
+      <AnimateOnScroll className={styles.sectionHeader}>
+        <h2 className={styles.sectionH2}>
+          Planes para cada <span className={styles.sectionH2Accent}>etapa</span>
+        </h2>
+        <p className={styles.sectionP}>
+          Pagás con tarjeta, débito o transferencia vía Mercado Pago. Cancelás cuando querés.
+        </p>
+      </AnimateOnScroll>
 
-      <div className={styles.pricingGrid}>
-        {plans.map((plan) => {
-          return (
-            <div
-              key={plan.name}
-              className={`${styles.pricingCard} ${plan.highlight ? styles.pricingCardHighlight : ''}`}
-            >
-              {/* Top accent bar */}
-              <div
-                className={styles.pricingAccent}
-                style={plan.highlight ? { background: 'var(--blue)' } : undefined}
-              />
+      <div className={styles.pricingGrid2col}>
+        {PLANS.map((plan, i) => (
+          <AnimateOnScroll
+            key={plan.name}
+            className={`${styles.pricingCard} ${plan.featured ? styles.pricingCardFeatured : ''}`}
+            delay={i * 120}
+          >
+            {plan.badge && <span className={styles.pricingBadge}>{plan.badge}</span>}
 
-              {/* Badge */}
-              {plan.badge ? (
-                <div className={styles.pricingBadge}>{plan.badge}</div>
-              ) : (
-                <div className={styles.pricingBadge}>{plan.name}</div>
-              )}
+            <p className={styles.pricingName}>{plan.name}</p>
 
-              {/* Price */}
-              <div className={styles.pricingPrice}>
-                ${plan.price} <span>ARS/mes</span>
-              </div>
-              <div className={styles.pricingSub}>{plan.sub}</div>
-
-              {/* Features */}
-              <ul className={styles.pricingFeatures}>
-                {plan.features.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              {plan.disabled ? (
-                <button
-                  className={`${styles.btn} ${styles.btnLg}`}
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: '1px solid var(--border)',
-                    color: 'var(--muted)',
-                    opacity: 0.7,
-                  }}
-                  disabled
-                >
-                  {plan.cta}
-                </button>
-              ) : (
-                <Link href={plan.href} style={{ display: 'block' }}>
-                  <button
-                    className={`${styles.btn} ${styles.btnLg}`}
-                    style={plan.highlight ? { width: '100%', background: 'var(--blue)', color: '#fff' } : { width: '100%' }}
-                  >
-                    {plan.cta}
-                  </button>
-                </Link>
-              )}
-
-              <div className={styles.pricingNote}>
-                {plan.disabled ? 'En desarrollo — disponible pronto' : 'Sin compromiso, cancelás cuando querés'}
-              </div>
+            <div className={styles.pricingPriceRow}>
+              <span className={styles.pricingCurrencySymbol}>$</span>
+              <span className={`${styles.pricingAmount} ${plan.featured ? styles.pricingAmountFeatured : ''}`}>
+                {plan.price}
+              </span>
+              <span className={styles.pricingPeriod}>/mes ARS</span>
             </div>
-          )
-        })}
-      </div>
 
+            <p className={styles.pricingSub}>{plan.sub}</p>
+
+            <ul className={styles.pricingList}>
+              {plan.features.map(f => (
+                <li key={f}>
+                  <span className={styles.checkIcon}><CheckCircleIcon size={15} /></span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            {plan.disabled ? (
+              <button className={styles.btnDisabled} disabled>{plan.cta}</button>
+            ) : (
+              <Link href={plan.href} style={{ display: 'block' }}>
+                <button className={`${styles.btnPrimary} ${styles.btnBlock}`}>{plan.cta}</button>
+              </Link>
+            )}
+          </AnimateOnScroll>
+        ))}
+      </div>
     </section>
   )
 }

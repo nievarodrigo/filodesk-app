@@ -151,7 +151,7 @@ export default async function EgresosPage({
   if (activeTab === 'gastos') {
     if (!canGastos) redirect(`/dashboard/${barbershopId}/egresos?tab=nominas`)
 
-    const PAGE_SIZE = 20
+    const PAGE_SIZE = 5
     const page = Math.max(1, Number(p) || 1)
     const now = new Date()
     const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())

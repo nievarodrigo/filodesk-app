@@ -136,7 +136,7 @@ export default async function DashboardPage({
     { data: productSalesMonth },
     { data: expensesMonth },
   ] = await Promise.all([
-    scopedSalesQuery.order('created_at', { ascending: false }).limit(10),
+    scopedSalesQuery.order('created_at', { ascending: false }),
     scopedSalesTotalsQuery,
     context.role === 'barber'
       ? Promise.resolve({ data: [] as ProductSale[] })
@@ -144,8 +144,7 @@ export default async function DashboardPage({
           .select('id, sale_price, quantity, transaction_id, created_at, products(name, cost_price)')
           .eq('barbershop_id', barbershopId)
           .eq('date', todayDate)
-          .order('created_at', { ascending: false })
-          .limit(10),
+          .order('created_at', { ascending: false }),
     context.role === 'barber'
       ? Promise.resolve({ data: [] as Array<{ amount: number }> })
       : supabase.from('expenses').select('amount').eq('barbershop_id', barbershopId).eq('date', todayDate),

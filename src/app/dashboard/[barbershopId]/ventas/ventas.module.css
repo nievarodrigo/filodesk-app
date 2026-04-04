@@ -151,12 +151,18 @@
   color: var(--muted);
   font-weight: 600;
 }
+.servicesHeadCompact {
+  grid-template-columns: 1fr 120px 1fr;
+}
 
 .serviceRow {
   display: grid;
   grid-template-columns: 1fr 120px 1fr 32px;
   gap: 8px;
   align-items: center;
+}
+.serviceRowCompact {
+  grid-template-columns: 1fr 120px 1fr;
 }
 
 .qtyStepper {

@@ -6,7 +6,7 @@ import BarberMobileAccordion from '../ventas/BarberMobileAccordion'
 import Paginacion from '@/components/dashboard/Paginacion'
 import styles from '../ventas/ventas.module.css'
 
-const PAGE_SIZE_DESKTOP = 10
+const PAGE_SIZE_DESKTOP = 5
 const PAGE_SIZE_PRODUCTS_MOBILE = 5
 const PAGE_SIZE_BARBERS = 5
 
@@ -331,7 +331,7 @@ export default async function MovimientosTab({ barbershopId, desde, hasta, tipo 
             ))}
           </div>
         </div>
-        <p className={`${styles.pagNota} ${styles.desktopRecordsHint}`}>Se muestran hasta 10 registros por tipo y por página.</p>
+        <p className={`${styles.pagNota} ${styles.desktopRecordsHint}`}>Se muestran hasta 5 registros por tipo y por página.</p>
 
         {(tipo === 'todos' || tipo === 'servicio') && (
           <>

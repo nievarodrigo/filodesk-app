@@ -215,7 +215,9 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
     if (!isDeletingProduct) setProductSalesState(productSales)
   }, [productSales, isDeletingProduct])
 
-  const ITEMS_PER_PAGE = 10
+  const BARBERS_ITEMS_PER_PAGE = 5
+  const SERVICES_ITEMS_PER_PAGE = 5
+  const PRODUCT_ITEMS_PER_PAGE = 5
 
   const grouped = groupServicesByBarber(serviceSalesState)
   const groupedTransactions = role === 'barber' ? [] : groupProductsByTransaction(productSalesState)
@@ -247,16 +249,28 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
   const totalCount = serviceSalesState.length + (role === 'barber' ? 0 : productSalesState.length)
 
   // Paginación de barberos
-  const totalBarbersPages = Math.ceil(grouped.length / ITEMS_PER_PAGE)
-  const barberStart = (barberPage - 1) * ITEMS_PER_PAGE
-  const barberEnd = barberStart + ITEMS_PER_PAGE
+  const totalBarbersPages = Math.ceil(grouped.length / BARBERS_ITEMS_PER_PAGE)
+  const barberStart = (barberPage - 1) * BARBERS_ITEMS_PER_PAGE
+  const barberEnd = barberStart + BARBERS_ITEMS_PER_PAGE
   const paginatedBarbers = grouped.slice(barberStart, barberEnd)
 
   // Paginación de transacciones de productos
-  const totalTransactionPages = Math.ceil(groupedTransactions.length / ITEMS_PER_PAGE)
-  const txStart = (transactionPage - 1) * ITEMS_PER_PAGE
-  const txEnd = txStart + ITEMS_PER_PAGE
+  const totalTransactionPages = Math.ceil(groupedTransactions.length / PRODUCT_ITEMS_PER_PAGE)
+  const txStart = (transactionPage - 1) * PRODUCT_ITEMS_PER_PAGE
+  const txEnd = txStart + PRODUCT_ITEMS_PER_PAGE
   const paginatedTransactions = groupedTransactions.slice(txStart, txEnd)
+
+  useEffect(() => {
+    if (barberPage > totalBarbersPages) {
+      setBarberPage(Math.max(1, totalBarbersPages))
+    }
+  }, [barberPage, totalBarbersPages])
+
+  useEffect(() => {
+    if (transactionPage > totalTransactionPages) {
+      setTransactionPage(Math.max(1, totalTransactionPages))
+    }
+  }, [transactionPage, totalTransactionPages])
 
   function handleDeleteService(saleId: string, serviceName: string) {
     if (role === 'barber') return
@@ -370,10 +384,11 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                 <span>Total</span>
               </div>
               {paginatedBarbers.map(g => {
-                const servicePage = servicePagesPerBarber[g.barber_id] || 1
-                const totalServicePages = Math.ceil(g.services.length / ITEMS_PER_PAGE)
-                const serviceStart = (servicePage - 1) * ITEMS_PER_PAGE
-                const serviceEnd = serviceStart + ITEMS_PER_PAGE
+                const requestedServicePage = servicePagesPerBarber[g.barber_id] || 1
+                const totalServicePages = Math.ceil(g.services.length / SERVICES_ITEMS_PER_PAGE)
+                const servicePage = Math.min(requestedServicePage, Math.max(1, totalServicePages))
+                const serviceStart = (servicePage - 1) * SERVICES_ITEMS_PER_PAGE
+                const serviceEnd = serviceStart + SERVICES_ITEMS_PER_PAGE
                 const paginatedServices = g.services.slice(serviceStart, serviceEnd)
 
                 return (
@@ -417,8 +432,13 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                         <div key={svc.id} className={`${styles.detailRow} ${styles.detailRowCard}`}>
                           <span className={styles.detailTime} data-label="Hora">{extractTime(svc.created_at)}</span>
                           <span className={styles.detailService} data-label="Servicio">
-                            {svc.service}
-                            {svc.notes && <em className={styles.detailNoteDesktop} title={svc.notes}>{svc.notes}</em>}
+                            <span className={styles.detailServiceName}>{svc.service}</span>
+                            {svc.notes && (
+                              <details className={styles.notePill}>
+                                <summary title={svc.notes}>nota</summary>
+                                <div className={styles.notePopover}>{svc.notes}</div>
+                              </details>
+                            )}
                           </span>
                           <span className={styles.detailQty} data-label="Cant.">1</span>
                           <span className={styles.detailAccent} data-label="Comisión">{formatARS(svc.commission)}</span>
@@ -426,9 +446,6 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                             {formatARS(svc.amount)}
                             {svc.status === 'pending' && <span className={styles.pendingBadge}>Pendiente</span>}
                           </span>
-                          {svc.notes && (
-                            <span className={styles.detailNotes} data-label="Nota" title={svc.notes}>{svc.notes}</span>
-                          )}
                           <span className={styles.detailAction} data-label="">
                             {role !== 'barber' && (
                               <button
@@ -496,7 +513,7 @@ export default function VentasHoySection({ barbershopId, role, serviceSales, pro
                     <span className={styles.rowChevronProduct} aria-hidden>▶</span>
                     <span className={styles.transactionLabel}>
                       <span className={`${styles.rowTypeTag} ${styles.rowTypeTagProduct}`}>Producto</span>
-                      Venta {extractTime(tx.created_at)}
+                      <span className={styles.transactionPrefix}>Venta</span> {extractTime(tx.created_at)}
                     </span>
                     <span className={styles.countBadge}>×{tx.itemCount}</span>
                     <span className={styles.transactionAccent}>{formatARS(tx.totalProfit)}</span>
