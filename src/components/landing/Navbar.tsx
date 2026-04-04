@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import styles from './landing.module.css'
 import UserMenu from './UserMenu'
 import MobileNav from './MobileNav'
+import { ScissorsIcon } from './LandingIcons'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import Image from 'next/image'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -13,37 +13,36 @@ export default async function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <MobileNav user={user ? { email: user.email! } : null} />
+      <div className={styles.navInner}>
+        <MobileNav user={user ? { email: user.email! } : null} />
 
-      <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 34, height: 34, position: 'relative', flexShrink: 0 }}>
-          <Image src="/logo-dark.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-dark" sizes="34px" />
-          <Image src="/logo-light.png" alt="" fill style={{ objectFit: 'contain', borderRadius: 8 }} className="logo-light" sizes="34px" />
+        <Link href="/" className={styles.logo}>
+          <ScissorsIcon size={20} />
+          FiloDesk
+        </Link>
+
+        <ul className={styles.navLinks}>
+          <li><a href="#funciones">Funciones</a></li>
+          <li><a href="#precios">Precios</a></li>
+          <li><Link href="/nosotros">Nosotros</Link></li>
+          <li><Link href="/faq">FAQ</Link></li>
+        </ul>
+
+        <div className={styles.navActions}>
+          <ThemeToggle />
+          {user ? (
+            <UserMenu email={user.email!} />
+          ) : (
+            <>
+              <Link href="/auth/login">
+                <button className={styles.btnOutline}>Iniciar sesión</button>
+              </Link>
+              <Link href="/auth/register">
+                <button className={styles.btnPrimary}>Empezar gratis</button>
+              </Link>
+            </>
+          )}
         </div>
-        Filo<span>Desk</span>
-      </div>
-
-      <ul className={styles.navLinks}>
-        <li><a href="#features">Funciones</a></li>
-        <li><a href="#precio">Precio</a></li>
-        <li><Link href="/nosotros">Nosotros</Link></li>
-        <li><Link href="/faq">Preguntas frecuentes</Link></li>
-      </ul>
-
-      <div className={styles.navAuth}>
-        <ThemeToggle />
-        {user ? (
-          <UserMenu email={user.email!} />
-        ) : (
-          <>
-            <Link href="/auth/login">
-              <button className={`${styles.btn} ${styles.btnOutline}`}>Iniciar sesión</button>
-            </Link>
-            <Link href="/auth/register">
-              <button className={styles.btn}>Crear cuenta gratis</button>
-            </Link>
-          </>
-        )}
       </div>
     </nav>
   )
