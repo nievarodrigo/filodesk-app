@@ -39,25 +39,30 @@ export default function VisualSection() {
           <h2>Tu oficio merece un <span className={styles.visualAccent}>sistema</span> a la altura.</h2>
         </AnimateOnScroll>
 
+        {/* Divisor → stats */}
+        <AnimateOnScroll className={styles.visualDivider} delay={80}>
+          <span className={styles.visualDividerLine} />
+          <span className={styles.visualDividerLabel}>El costo oculto de no tener un sistema</span>
+          <span className={styles.visualDividerLine} />
+        </AnimateOnScroll>
+
         {/* Stats cards */}
         <div className={styles.statsGrid}>
           {STATS.map((s, i) => (
-            <AnimateOnScroll key={s.value} className={styles.statCard} delay={100 + i * 80}>
+            <AnimateOnScroll key={s.value} className={styles.statCard} delay={120 + i * 80}>
               <span className={styles.statValue}>{s.value}</span>
               <span className={styles.statDesc}>{s.desc}</span>
             </AnimateOnScroll>
           ))}
         </div>
 
-        {/* Divisor */}
-        <AnimateOnScroll className={styles.visualDivider} delay={160}>
-          <span className={styles.visualDividerLine} />
-          <span className={styles.visualDividerLabel}>El costo oculto de no tener un sistema</span>
-          <span className={styles.visualDividerLine} />
+        {/* Título tabla */}
+        <AnimateOnScroll className={styles.comparisonTitle} delay={180}>
+          La diferencia está en el <em>filo</em>
         </AnimateOnScroll>
 
         {/* Comparison table */}
-        <AnimateOnScroll className={styles.comparisonWrap} delay={200}>
+        <AnimateOnScroll className={styles.comparisonWrap} delay={220}>
           <div className={styles.comparisonTableWrap}>
             <table className={styles.cTable}>
               <thead>
