@@ -1343,8 +1343,8 @@ html[data-theme="light"] .wrapper .visualHeadline h2 { color: #fff; }
 html[data-theme="light"] .wrapper .visualAccent { color: #1e5fa8; }
 html[data-theme="light"] .wrapper .visualDividerLine { background: rgba(255,255,255,0.35); }
 html[data-theme="light"] .wrapper .visualDividerLabel { color: #fff; }
-html[data-theme="light"] .wrapper .comparisonTitle { color: #1a1e28; }
-html[data-theme="light"] .wrapper .comparisonTitle em { color: #1e5fa8; }
+html[data-theme="light"] .wrapper .comparisonTitle { color: #fff; }
+html[data-theme="light"] .wrapper .comparisonTitle em { color: #f2c345; }
 html[data-theme="light"] .wrapper .statCard {
   background: rgba(255, 255, 255, 0.65);
   border-color: rgba(200, 192, 180, 0.8);
