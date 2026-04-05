@@ -4,6 +4,7 @@ import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
 import Marquee from '@/components/landing/Marquee'
 import Features from '@/components/landing/Features'
+import MotivationSection from '@/components/landing/MotivationSection'
 import VisualSection from '@/components/landing/VisualSection'
 import Testimonials from '@/components/landing/Testimonials'
 import Pricing from '@/components/landing/Pricing'
@@ -31,6 +32,7 @@ export default async function LandingPage({
         <Hero />
         <Marquee />
         <Features />
+        <MotivationSection />
         <VisualSection />
         <Testimonials />
         <Pricing />

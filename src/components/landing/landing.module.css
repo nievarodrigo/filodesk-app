@@ -715,8 +715,163 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* ── MOTIVATION SECTION ───────────────────────────────────── */
+.motivationSection {
+  background: var(--l-bg);
+  padding: 6rem 1.5rem;
+}
+
+.motivationContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.motivationGrid {
+  display: grid;
+  gap: 4rem;
+  align-items: center;
+}
+
+.motivationText {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.motivationList {
+  list-style: none;
+  padding: 0;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.motivationList li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.motivationList li strong {
+  display: block;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.motivationList li div {
+  color: #d1c5af;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.motivationVisual {
+  display: flex;
+  justify-content: center;
+  perspective: 1000px;
+}
+
+.casinoCard {
+  background: rgba(28, 27, 27, 0.95);
+  border: 2px solid #f2c345;
+  border-radius: 2rem;
+  padding: 2.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 40px rgba(242, 195, 69, 0.25);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: cardBreath 2s ease-in-out infinite;
+}
+
+.casinoHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.casinoIcon {
+  font-size: 3rem;
+}
+
+.casinoHeader p {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f2c345;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.casinoBody {
+  margin-bottom: 2.5rem;
+}
+
+.casinoMainText {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.casinoProgress {
+  height: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.casinoProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #f2c345, #fff);
+  box-shadow: 0 0 15px rgba(242, 195, 69, 0.5);
+  transition: width 0.5s ease-out;
+}
+
+.casinoSubText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f2c345;
+}
+
+.casinoFooter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  color: #d1c5af;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.casinoSparkle {
+  color: #f2c345;
+}
+
+@media (min-width: 768px) {
+  .motivationGrid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Light Mode Motivation Overrides */
+html[data-theme="light"] .wrapper .motivationSection { background: #fdf9f2; }
+html[data-theme="light"] .wrapper .motivationList li strong { color: #1a1e28; }
+html[data-theme="light"] .wrapper .casinoCard { 
+  background: #fff; 
+  border-color: #1e5fa8; 
+  box-shadow: 0 20px 50px rgba(30, 95, 168, 0.15); 
+}
+html[data-theme="light"] .wrapper .casinoHeader p { color: #1e5fa8; }
+html[data-theme="light"] .wrapper .casinoMainText { color: #1a1e28; }
+html[data-theme="light"] .wrapper .casinoProgressBar { background: linear-gradient(90deg, #1e5fa8, #2d7acc); }
+html[data-theme="light"] .wrapper .casinoSubText { color: #1e5fa8; }
+html[data-theme="light"] .wrapper .casinoSparkle { color: #1e5fa8; }
 
 /* ── FINAL CTA ───────────────────────────────────────────── */
+...
 .finalCta {
   padding: 4.5rem 1.5rem;
   position: relative;
