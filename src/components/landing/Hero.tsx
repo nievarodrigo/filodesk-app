@@ -29,11 +29,11 @@ export default async function Hero() {
       {/* Left: Text */}
       <div className={styles.heroText}>
         <h1 className={styles.heroH1}>
-          Subí el <span className={styles.heroAccent}>estándar</span> de tu barbería.
+          Colgá el cuaderno. <span className={styles.heroAccent}>Digitalizá</span> tu oficio.
         </h1>
 
         <p className={styles.heroP}>
-          Dejá el Excel atrás. Controlá tus ventas, nóminas y stock desde una sola app pensada por y para barberos profesionales.
+          Dejá de perder tiempo liquidando comisiones a mano y olvidate de los errores de cálculo. Controlá tus ventas, barberos y stock desde una sola app pensada por y para barberos profesionales.
         </p>
 
         <div className={styles.heroCta}>
