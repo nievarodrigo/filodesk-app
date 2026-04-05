@@ -54,17 +54,6 @@ export default async function Hero() {
             </>
           )}
         </div>
-
-        <div className={styles.heroSocialProof}>
-          <div className={styles.avatarStack}>
-            {AVATARS.map((a, i) => (
-              <Image key={i} src={a.src} alt={a.alt} width={40} height={40} />
-            ))}
-          </div>
-          <p className={styles.heroSocialText}>
-            <span className={styles.heroSocialCount}>+500</span> barberías ya confían
-          </p>
-        </div>
       </div>
 
       {/* Right: Chart widget */}
