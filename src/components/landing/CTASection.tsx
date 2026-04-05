@@ -13,7 +13,7 @@ export default function CTASection() {
       </div>
 
       <AnimateOnScroll className={styles.ctaContent}>
-        <h2 className={styles.ctaH2}>Subí el <span className={styles.ctaAccent}>nivel</span> de tu barbería hoy.</h2>
+        <h2 className={styles.ctaH2}>Subí el <span className={styles.ctaAccent}>nivel</span> de tu barbería, hoy.</h2>
         <p className={styles.ctaP}>
           Unite a la comunidad de barberos más grande de Argentina y empezá a profesionalizar tu pasión.
         </p>
